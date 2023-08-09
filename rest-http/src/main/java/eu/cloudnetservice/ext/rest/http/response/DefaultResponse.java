@@ -45,9 +45,9 @@ public abstract class DefaultResponse<T> implements Response<T> {
 
     // response.header()
     if (this.body != null) {
-      this.serializeBody(response);
+      this.serializeBody(response, this.body);
     }
   }
 
-  protected abstract void serializeBody(@NonNull HttpResponse response);
+  protected abstract void serializeBody(@NonNull HttpResponse response, @NonNull T body);
 }
