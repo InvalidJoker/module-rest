@@ -31,8 +31,8 @@ public final class JsonResponse extends DefaultResponse<Object> {
   }
 
   @Override
-  protected void serializeBody(@NonNull HttpResponse response) {
-    var bodyDocument = DocumentFactory.json().newDocument(this.body);
+  protected void serializeBody(@NonNull HttpResponse response, @NonNull Object body) {
+    var bodyDocument = DocumentFactory.json().newDocument(body);
     response.body(bodyDocument.serializeToString(StandardSerialisationStyle.COMPACT));
   }
 
