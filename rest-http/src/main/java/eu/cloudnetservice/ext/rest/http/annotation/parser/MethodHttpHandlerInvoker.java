@@ -41,7 +41,7 @@ final class MethodHttpHandlerInvoker implements HttpHandler {
    *
    * @param handlerInstance the instance in which the http handler method is located.
    * @param handlerMethod   the method to delegate matching http calls to.
-   * @throws NullPointerException   if the given instance, method or methods collection is null.
+   * @throws NullPointerException if the given instance, method or methods collection is null.
    */
   public MethodHttpHandlerInvoker(@NonNull Object handlerInstance, @NonNull Method handlerMethod) {
     this.instance = handlerInstance;
@@ -70,8 +70,17 @@ final class MethodHttpHandlerInvoker implements HttpHandler {
     var arguments = new Object[this.handlerParameterTypes.length];
     var invocationHints = context.invocationHints(DefaultHttpAnnotationParser.PARAM_INVOCATION_HINT_KEY);
 
-    // check if enough arguments are passed from the preprocessing (-1 as the context is always the first argument)
-    var expectedArgumentCount = arguments.length - 1;
+    // check if the context was requested and needs to be passed into the method
+    boolean takesContext = false;
+    if (this.handlerParameterTypes.length >= 1) {
+      var firstType = this.handlerParameterTypes[0];
+      if (HttpContext.class.isAssignableFrom(firstType)) {
+        takesContext = true;
+      }
+    }
+
+    // check if enough arguments are passed from the preprocessing
+    var expectedArgumentCount = takesContext ? arguments.length - 1 : arguments.length;
     if (invocationHints.size() != expectedArgumentCount) {
       throw new AnnotationHttpHandleException(context.request(), String.format(
         "Arguments count to call handler does not match (got: %d; expected: %d)",
@@ -84,8 +93,10 @@ final class MethodHttpHandlerInvoker implements HttpHandler {
       // validate that we got and invocation hint
       if (invocationHint instanceof ParameterInvocationHint hint) {
         // validate the index
-        if (hint.index() <= 0 || hint.index() >= arguments.length) {
-          throw new AnnotationHttpHandleException(context.request(), "Invocation hint index " + hint.index() + " is out of bounds");
+        var lowerBound = takesContext ? 1 : 0;
+        if (hint.index() < lowerBound || hint.index() >= arguments.length) {
+          throw new AnnotationHttpHandleException(context.request(),
+            "Invocation hint index " + hint.index() + " is out of bounds");
         }
 
         // validate that the value type is matching the expected type at the index
@@ -115,8 +126,10 @@ final class MethodHttpHandlerInvoker implements HttpHandler {
       }
     }
 
-    // put in the context argument and return the completed array
-    arguments[0] = context;
+    // put in the context argument if required
+    if (takesContext) {
+      arguments[0] = context;
+    }
     return arguments;
   }
 }

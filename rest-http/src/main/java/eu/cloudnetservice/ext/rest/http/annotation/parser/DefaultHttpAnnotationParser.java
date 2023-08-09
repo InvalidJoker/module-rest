@@ -198,17 +198,7 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
           method.setAccessible(true);
         }
 
-        // validate that the method signature is correct
-        var methodParameterTypes = method.getParameterTypes();
-        //TODO: remove context from method
-        if (methodParameterTypes.length == 0 || !HttpContext.class.isAssignableFrom(methodParameterTypes[0])) {
-          throw new IllegalArgumentException(String.format(
-            "Http handler method (@HttpRequestHandler) %s in %s must take HttpContext as the first argument!",
-            method.getName(), method.getDeclaringClass().getName()));
-        }
-
         var configBuilder = HttpHandlerConfig.builder();
-
         // set the supported request method of the handler
         configBuilder.httpMethod(annotation.method());
 
