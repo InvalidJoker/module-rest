@@ -1,9 +1,12 @@
-package eu.cloudnetservice.ext.rest.http.response;
+package eu.cloudnetservice.ext.rest.http.response.type;
 
 import eu.cloudnetservice.driver.document.DocumentFactory;
 import eu.cloudnetservice.driver.document.StandardSerialisationStyle;
 import eu.cloudnetservice.ext.rest.http.HttpResponse;
 import eu.cloudnetservice.ext.rest.http.HttpResponseCode;
+import eu.cloudnetservice.ext.rest.http.response.DefaultResponse;
+import eu.cloudnetservice.ext.rest.http.response.DefaultResponseBuilder;
+import eu.cloudnetservice.ext.rest.http.response.Response;
 import java.util.List;
 import java.util.Map;
 import lombok.NonNull;
