@@ -20,7 +20,7 @@ import dev.derklaro.reflexion.MethodAccessor;
 import dev.derklaro.reflexion.Reflexion;
 import eu.cloudnetservice.ext.rest.http.HttpContext;
 import eu.cloudnetservice.ext.rest.http.HttpHandler;
-import eu.cloudnetservice.ext.rest.http.response.Response;
+import eu.cloudnetservice.ext.rest.http.response.IntoResponse;
 import java.lang.reflect.Method;
 import lombok.NonNull;
 
@@ -53,9 +53,9 @@ final class MethodHttpHandlerInvoker implements HttpHandler {
    * {@inheritDoc}
    */
   @Override
-  public @NonNull Response<?> handle(@NonNull HttpContext context) {
+  public @NonNull IntoResponse<?> handle(@NonNull HttpContext context) {
     var arguments = this.buildInvocationArguments(context);
-    return this.handlerMethodAccessor.<Response<?>>invoke(this.instance, arguments).getOrThrow();
+    return this.handlerMethodAccessor.<IntoResponse<?>>invoke(this.instance, arguments).getOrThrow();
   }
 
   /**

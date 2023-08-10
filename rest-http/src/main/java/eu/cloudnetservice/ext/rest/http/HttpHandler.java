@@ -16,7 +16,7 @@
 
 package eu.cloudnetservice.ext.rest.http;
 
-import eu.cloudnetservice.ext.rest.http.response.Response;
+import eu.cloudnetservice.ext.rest.http.response.IntoResponse;
 import lombok.NonNull;
 
 /**
@@ -38,5 +38,5 @@ public interface HttpHandler {
    * @throws Exception            if any exception occurs during the request handling.
    * @throws NullPointerException if the given path or context is null.
    */
-  @NonNull Response<?> handle(@NonNull HttpContext context) throws Exception;
+  @NonNull IntoResponse<?> handle(@NonNull HttpContext context) throws Exception;
 }
