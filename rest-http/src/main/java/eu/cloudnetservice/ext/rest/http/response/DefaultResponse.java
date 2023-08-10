@@ -49,5 +49,10 @@ public abstract class DefaultResponse<T> implements Response<T> {
     }
   }
 
+  @Override
+  public @NonNull Response<T> into() {
+    return this;
+  }
+
   protected abstract void serializeBody(@NonNull HttpResponse response, @NonNull T body);
 }

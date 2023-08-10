@@ -12,7 +12,7 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-public interface Response<T> {
+public interface Response<T> extends IntoResponse<T> {
 
   @Nullable T body();
 
