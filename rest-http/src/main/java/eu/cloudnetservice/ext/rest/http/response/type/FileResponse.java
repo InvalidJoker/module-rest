@@ -1,11 +1,15 @@
 package eu.cloudnetservice.ext.rest.http.response.type;
 
+import com.google.common.base.Preconditions;
+import com.google.common.net.MediaType;
 import eu.cloudnetservice.ext.rest.http.HttpResponse;
 import eu.cloudnetservice.ext.rest.http.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.http.response.DefaultResponse;
 import eu.cloudnetservice.ext.rest.http.response.DefaultResponseBuilder;
 import eu.cloudnetservice.ext.rest.http.response.Response;
+import io.netty5.handler.codec.http.HttpHeaderNames;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -35,11 +39,9 @@ public final class FileResponse extends DefaultResponse<Path> {
   @Override
   protected void serializeBody(@NonNull HttpResponse response, @NonNull Path body) {
     try {
-      // todo: headers with attachment & last modified & content type
-      // also this should probably throw in case the file does not exist?
       response.body(Files.newInputStream(body, StandardOpenOption.READ));
     } catch (IOException exception) {
-      // todo: what to do with this?
+      throw new UncheckedIOException(exception);
     }
   }
 
@@ -50,7 +52,18 @@ public final class FileResponse extends DefaultResponse<Path> {
 
     @Override
     public @NonNull Response<Path> build() {
-      // todo: throw exception in case the file does not exist?
+      if (this.body != null) {
+        Preconditions.checkArgument(Files.exists(this.body), "File %s does not exist.", this.body);
+
+        var fileName = this.body.getFileName();
+        var attachment = String.format("attachment%s", fileName == null ? "" : "; filename=" + fileName);
+
+        this.httpHeaders.putIfAbsent(HttpHeaderNames.CONTENT_DISPOSITION.toString(), List.of(attachment));
+        this.httpHeaders.putIfAbsent(
+          HttpHeaderNames.CONTENT_TYPE.toString(),
+          List.of(MediaType.OCTET_STREAM.toString()));
+      }
+
       return new FileResponse(this.body, this.responseCode, Map.copyOf(this.httpHeaders));
     }
   }

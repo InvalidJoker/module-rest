@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,6 +18,20 @@ public record CorsConfig(
   @Nullable Boolean allowPrivateNetworks,
   @Nullable Duration maxAge
 ) {
+
+  public static @NonNull Builder builder() {
+    return new Builder();
+  }
+
+  public static @NonNull Builder builder(@NonNull CorsConfig config) {
+    return builder()
+      .allowedOrigins(config.allowedOrigins())
+      .allowedHeaders(config.allowedHeaders())
+      .exposedHeaders(config.exposedHeaders())
+      .allowCredentials(config.allowCredentials())
+      .allowPrivateNetworks(config.allowPrivateNetworks())
+      .maxAge(config.maxAge());
+  }
 
   public @Nullable String findMatchingOrigin(@Nullable String origin) {
     if (this.allowedOrigins.isEmpty() || Strings.isNullOrEmpty(origin)) {
@@ -67,6 +82,90 @@ public record CorsConfig(
 
   private static @NonNull String trimTrailingSlash(@NonNull String input) {
     return input.endsWith("/") ? input.substring(0, input.length() - 1) : input;
+  }
+
+  public static final class Builder {
+
+    private List<Pattern> allowedOrigins = new ArrayList<>();
+    private List<String> allowedHeaders = new ArrayList<>();
+    private List<String> exposedHeaders = new ArrayList<>();
+    private Boolean allowCredentials;
+    private Boolean allowPrivateNetworks;
+    private Duration maxAge;
+
+    public @NonNull Builder addAllowedOrigin(@NonNull String allowedOrigin) {
+      return this.addAllowedOrigin(Pattern.quote(allowedOrigin));
+    }
+
+    public @NonNull Builder addAllowedOrigin(@NonNull Pattern allowedOrigin) {
+      this.allowedOrigins.add(allowedOrigin);
+      return this;
+    }
+
+    public @NonNull Builder allowedOrigins(@NonNull List<Pattern> allowedOrigins) {
+      this.allowedOrigins = new ArrayList<>(allowedOrigins);
+      return this;
+    }
+
+    public @NonNull Builder modifyAllowedOrigins(@NonNull Consumer<List<Pattern>> allowedOriginConsumer) {
+      allowedOriginConsumer.accept(this.allowedOrigins);
+      return this;
+    }
+
+    public @NonNull Builder addAllowedHeader(@NonNull String allowedHeader) {
+      this.allowedHeaders.add(allowedHeader);
+      return this;
+    }
+
+    public @NonNull Builder allowedHeaders(@NonNull List<String> allowedHeaders) {
+      this.allowedHeaders = new ArrayList<>(allowedHeaders);
+      return this;
+    }
+
+    public @NonNull Builder modifyAllowedHeaders(@NonNull Consumer<List<String>> allowedHeaderConsumer) {
+      allowedHeaderConsumer.accept(this.allowedHeaders);
+      return this;
+    }
+
+    public @NonNull Builder addExposedHeader(@NonNull String exposedHeader) {
+      this.exposedHeaders.add(exposedHeader);
+      return this;
+    }
+
+    public @NonNull Builder exposedHeaders(@NonNull List<String> exposedHeaders) {
+      this.exposedHeaders = new ArrayList<>(exposedHeaders);
+      return this;
+    }
+
+    public @NonNull Builder modifyExposedHeaders(@NonNull Consumer<List<String>> exposedHeaderConsumer) {
+      exposedHeaderConsumer.accept(this.exposedHeaders);
+      return this;
+    }
+
+    public @NonNull Builder allowCredentials(@Nullable Boolean allowCredentials) {
+      this.allowCredentials = allowCredentials;
+      return this;
+    }
+
+    public @NonNull Builder allowPrivateNetworks(@Nullable Boolean allowPrivateNetworks) {
+      this.allowPrivateNetworks = allowPrivateNetworks;
+      return this;
+    }
+
+    public @NonNull Builder maxAge(@Nullable Duration maxAge) {
+      this.maxAge = maxAge;
+      return this;
+    }
+
+    public @NonNull CorsConfig build() {
+      return new CorsConfig(
+        List.copyOf(this.allowedOrigins),
+        List.copyOf(this.allowedHeaders),
+        List.copyOf(this.exposedHeaders),
+        this.allowCredentials,
+        this.allowPrivateNetworks,
+        this.maxAge);
+    }
   }
 
 }

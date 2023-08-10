@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,27 +61,20 @@ public class NettyHttpServer extends NettySslServer implements HttpServer {
   private static final Predicate<HttpHandlerTree<HttpPathNode>> DYNAMIC_NODE_FILTER =
     node -> node.pathNode() instanceof DynamicHttpPathNode;
 
-  protected final CorsConfig globalCorsConfig = new CorsConfig(
-    List.of(Pattern.compile(".*")),
-    List.of("*"),
-    List.of("*"),
-    true,
-    true,
-    null);
+  protected final CorsConfig globalCorsConfig;
   protected final DefaultHttpHandlerTree handlerTree = DefaultHttpHandlerTree.newTree();
   protected final Map<HostAndPort, Future<Void>> channelFutures = new ConcurrentHashMap<>();
 
   protected final EventLoopGroup bossGroup = NettyUtil.newEventLoopGroup(1);
   protected final EventLoopGroup workerGroup = NettyUtil.newEventLoopGroup(0);
 
-  protected final HttpAnnotationParser<HttpServer> annoParser = DefaultHttpAnnotationParser
-    .withDefaultProcessors(this, this.globalCorsConfig);
+  protected final HttpAnnotationParser<HttpServer> annotationParser;
 
   /**
    * Constructs a new instance of a netty http server instance. Equivalent to {@code new NettyHttpServer(null)}.
    */
-  public NettyHttpServer() {
-    this(null);
+  public NettyHttpServer(@NonNull CorsConfig config) {
+    this(null, config);
   }
 
   /**
@@ -90,8 +82,11 @@ public class NettyHttpServer extends NettySslServer implements HttpServer {
    *
    * @param sslConfiguration the ssl configuration to use, null for no ssl.
    */
-  public NettyHttpServer(@Nullable SSLConfiguration sslConfiguration) {
+  public NettyHttpServer(@Nullable SSLConfiguration sslConfiguration, @NonNull CorsConfig globalCorsConfig) {
     super(sslConfiguration);
+
+    this.globalCorsConfig = globalCorsConfig;
+    this.annotationParser = DefaultHttpAnnotationParser.withDefaultProcessors(this, this.globalCorsConfig);
 
     try {
       this.init();
@@ -113,7 +108,7 @@ public class NettyHttpServer extends NettySslServer implements HttpServer {
    */
   @Override
   public @NonNull HttpAnnotationParser<HttpServer> annotationParser() {
-    return this.annoParser;
+    return this.annotationParser;
   }
 
   /**

@@ -23,6 +23,8 @@ import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.ext.rest.http.HttpComponent;
 import eu.cloudnetservice.ext.rest.http.HttpContext;
 import eu.cloudnetservice.ext.rest.http.HttpHandler;
+import eu.cloudnetservice.ext.rest.http.annotation.ContentType;
+import eu.cloudnetservice.ext.rest.http.annotation.CrossOrigin;
 import eu.cloudnetservice.ext.rest.http.annotation.FirstRequestQueryParam;
 import eu.cloudnetservice.ext.rest.http.annotation.HttpRequestHandler;
 import eu.cloudnetservice.ext.rest.http.annotation.Optional;
@@ -34,9 +36,12 @@ import eu.cloudnetservice.ext.rest.http.annotation.RequestQueryParam;
 import eu.cloudnetservice.ext.rest.http.config.CorsConfig;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerInterceptor;
+import eu.cloudnetservice.ext.rest.http.response.Response;
+import io.netty5.handler.codec.http.HttpHeaderNames;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
@@ -121,7 +126,8 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
       .registerAnnotationProcessor(new RequestHeaderProcessor())
       .registerAnnotationProcessor(new RequestPathProcessor())
       .registerAnnotationProcessor(new RequestPathParamProcessor())
-      .registerAnnotationProcessor(new RequestQueryParamProcessor());
+      .registerAnnotationProcessor(new RequestQueryParamProcessor())
+      .registerAnnotationProcessor(new ContentTypeProcessor());
   }
 
   /**
@@ -184,8 +190,8 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
   public @NonNull HttpAnnotationParser<T> parseAndRegister(@NonNull Object handlerInstance) {
     for (var method : handlerInstance.getClass().getDeclaredMethods()) {
       // check if the handler is requested to be a request handler
-      var annotation = method.getAnnotation(HttpRequestHandler.class);
-      if (annotation != null) {
+      var handlerAnnotation = method.getAnnotation(HttpRequestHandler.class);
+      if (handlerAnnotation != null) {
         // we don't support static methods
         if (Modifier.isStatic(method.getModifiers())) {
           throw new IllegalArgumentException(String.format(
@@ -200,7 +206,25 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
 
         var configBuilder = HttpHandlerConfig.builder();
         // set the supported request method of the handler
-        configBuilder.httpMethod(annotation.method());
+        configBuilder.httpMethod(handlerAnnotation.method());
+
+        // check if cors settings were supplied and apply them
+        var corsAnnotation = method.getAnnotation(CrossOrigin.class);
+        if(corsAnnotation != null) {
+          var corsConfig = CorsConfig.builder();
+          for (var origin : corsAnnotation.origins()) {
+            corsConfig.addAllowedOrigin(origin);
+          }
+
+          corsConfig.allowedHeaders(List.of(corsAnnotation.allowedHeaders()))
+            .exposedHeaders(List.of(corsAnnotation.exposedHeaders()))
+            .allowCredentials(corsAnnotation.allowCredentions().toBoolean())
+            .allowPrivateNetworks(corsAnnotation.allowPrivateNetworks().toBoolean())
+            .maxAge(corsAnnotation.maxAge() < 1 ? null : Duration.ofSeconds(corsAnnotation.maxAge()));
+
+          // build the actual config and
+          configBuilder.corsConfiguration(corsConfig.build());
+        }
 
         // add the processors to the config
         for (var processor : this.processors) {
@@ -214,7 +238,7 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
 
         // register the handler
         var handler = new MethodHttpHandlerInvoker(handlerInstance, method);
-        this.component.registerHandler(annotation.path(), handler, configBuilder.build());
+        this.component.registerHandler(handlerAnnotation.path(), handler, configBuilder.build());
       }
     }
 
@@ -465,6 +489,37 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
           @NonNull HttpHandlerConfig config
         ) {
           context.addInvocationHints(PARAM_INVOCATION_HINT_KEY, hints);
+          return true;
+        }
+      };
+    }
+  }
+
+  /**
+   * A processor for the {@code @ContentType} annotation.
+   *
+   * @since 4.0
+   */
+  private static final class ContentTypeProcessor implements HttpAnnotationProcessor {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public @NonNull HttpHandlerInterceptor buildPreprocessor(@NonNull Method method, @NonNull Object handlerInstance) {
+      return new HttpHandlerInterceptor() {
+        @Override
+        public boolean postProcess(
+          @NonNull HttpContext context,
+          @NonNull HttpHandler handler,
+          @NonNull HttpHandlerConfig config,
+          @NonNull Response<?> response
+        ) {
+          var annotation = method.getAnnotation(ContentType.class);
+          if (annotation != null) {
+            context.response().header(HttpHeaderNames.CONTENT_TYPE.toString(), annotation.value());
+          }
+
           return true;
         }
       };
