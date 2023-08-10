@@ -128,7 +128,7 @@ public record CorsConfig(
     private Duration maxAge;
 
     public @NonNull Builder addAllowedOrigin(@NonNull String allowedOrigin) {
-      return this.addAllowedOrigin(Pattern.quote(allowedOrigin));
+      return this.addAllowedOrigin(Pattern.compile(Pattern.quote(allowedOrigin)));
     }
 
     public @NonNull Builder addAllowedOrigin(@NonNull Pattern allowedOrigin) {

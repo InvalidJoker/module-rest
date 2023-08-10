@@ -167,6 +167,9 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
           HttpHeaderNames.ACCESS_CONTROL_ALLOW_PRIVATE_NETWORK.toString(),
           Boolean.toString(privateNetworkAllowed));
       }
+
+      // preflight requests are answered with 204 (no content)
+      httpResponse.status(HttpResponseCode.NO_CONTENT);
     }
 
     // set the origin that we filtered out to be allowed
