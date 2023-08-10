@@ -7,7 +7,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Range;
 
 @Documented
 @Target(ElementType.PARAMETER)
@@ -25,7 +24,6 @@ public @interface CrossOrigin {
 
   TriState allowPrivateNetworks() default TriState.UNDEFINED;
 
-  @Range(from = 1, to = 86400)
   long maxAge() default -1;
 
   enum TriState {

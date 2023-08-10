@@ -26,7 +26,7 @@ import eu.cloudnetservice.ext.rest.http.HttpHandler;
 import eu.cloudnetservice.ext.rest.http.annotation.ContentType;
 import eu.cloudnetservice.ext.rest.http.annotation.CrossOrigin;
 import eu.cloudnetservice.ext.rest.http.annotation.FirstRequestQueryParam;
-import eu.cloudnetservice.ext.rest.http.annotation.HttpRequestHandler;
+import eu.cloudnetservice.ext.rest.http.annotation.RequestHandler;
 import eu.cloudnetservice.ext.rest.http.annotation.Optional;
 import eu.cloudnetservice.ext.rest.http.annotation.RequestBody;
 import eu.cloudnetservice.ext.rest.http.annotation.RequestHeader;
@@ -190,7 +190,7 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
   public @NonNull HttpAnnotationParser<T> parseAndRegister(@NonNull Object handlerInstance) {
     for (var method : handlerInstance.getClass().getDeclaredMethods()) {
       // check if the handler is requested to be a request handler
-      var handlerAnnotation = method.getAnnotation(HttpRequestHandler.class);
+      var handlerAnnotation = method.getAnnotation(RequestHandler.class);
       if (handlerAnnotation != null) {
         // we don't support static methods
         if (Modifier.isStatic(method.getModifiers())) {
@@ -218,12 +218,12 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
 
           corsConfig.allowedHeaders(List.of(corsAnnotation.allowedHeaders()))
             .exposedHeaders(List.of(corsAnnotation.exposedHeaders()))
-            .allowCredentials(corsAnnotation.allowCredentions().toBoolean())
+            .allowCredentials(corsAnnotation.allowCredentials().toBoolean())
             .allowPrivateNetworks(corsAnnotation.allowPrivateNetworks().toBoolean())
             .maxAge(corsAnnotation.maxAge() < 1 ? null : Duration.ofSeconds(corsAnnotation.maxAge()));
 
           // build the actual config and
-          configBuilder.corsConfiguration(corsConfig.build());
+          configBuilder.corsConfiguration(corsConfig.build().combine(this.globalCorsConfig));
         }
 
         // add the processors to the config

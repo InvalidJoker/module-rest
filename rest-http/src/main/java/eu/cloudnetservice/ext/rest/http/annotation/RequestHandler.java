@@ -32,7 +32,7 @@ import lombok.NonNull;
 @Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface HttpRequestHandler {
+public @interface RequestHandler {
 
   /**
    * Get the paths to which the request can be sent in order to call the associated handling method.

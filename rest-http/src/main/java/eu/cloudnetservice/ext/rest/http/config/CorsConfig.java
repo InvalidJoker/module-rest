@@ -4,7 +4,9 @@ import com.google.common.base.Strings;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import lombok.NonNull;
@@ -19,6 +21,8 @@ public record CorsConfig(
   @Nullable Duration maxAge
 ) {
 
+  private static final Pattern ALLOW_ALL = Pattern.compile(".*");
+
   public static @NonNull Builder builder() {
     return new Builder();
   }
@@ -31,6 +35,21 @@ public record CorsConfig(
       .allowCredentials(config.allowCredentials())
       .allowPrivateNetworks(config.allowPrivateNetworks())
       .maxAge(config.maxAge());
+  }
+
+  public @NonNull CorsConfig combine(@Nullable CorsConfig other) {
+    if (other == null) {
+      return this;
+    }
+
+    return builder(this)
+      .allowedOrigins(combine(this.allowedOrigins, other.allowedOrigins(), ALLOW_ALL))
+      .allowedHeaders(combine(this.allowedHeaders, other.allowedHeaders(), "*"))
+      .exposedHeaders(combine(this.exposedHeaders, other.exposedHeaders(), "*"))
+      .allowCredentials(combine(this.allowCredentials, other.allowCredentials()))
+      .allowPrivateNetworks(combine(this.allowPrivateNetworks, other.allowPrivateNetworks()))
+      .maxAge(combine(this.maxAge(), other.maxAge()))
+      .build();
   }
 
   public @Nullable String findMatchingOrigin(@Nullable String origin) {
@@ -78,6 +97,21 @@ public record CorsConfig(
     }
 
     return results.isEmpty() ? null : results;
+  }
+
+  private static <T> @NonNull List<T> combine(@NonNull List<T> left, @NonNull List<T> right, T permitAll) {
+    if (left.contains(permitAll) || right.contains(permitAll)) {
+      return List.of(permitAll);
+    }
+
+    Set<T> combined = new HashSet<>(left.size() + right.size());
+    combined.addAll(left);
+    combined.addAll(right);
+    return new ArrayList<>(combined);
+  }
+
+  private static <T> @Nullable T combine(@Nullable T specific, @Nullable T global) {
+    return specific != null ? specific : global;
   }
 
   private static @NonNull String trimTrailingSlash(@NonNull String input) {
