@@ -30,7 +30,7 @@ import org.jetbrains.annotations.UnknownNullability;
  * @see HttpResponse
  * @since 4.0
  */
-public interface HttpMessage<T extends HttpMessage<T>> {
+public interface HttpMessage<T extends HttpMessage<T>> extends HttpCookieAware<T> {
 
   /**
    * Get the context this message is processed in.

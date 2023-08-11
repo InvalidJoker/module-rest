@@ -16,21 +16,30 @@
 
 package eu.cloudnetservice.ext.rest.netty;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.primitives.Ints;
 import eu.cloudnetservice.ext.rest.http.HttpContext;
+import eu.cloudnetservice.ext.rest.http.HttpCookie;
 import eu.cloudnetservice.ext.rest.http.HttpResponse;
 import eu.cloudnetservice.ext.rest.http.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.http.HttpVersion;
 import io.netty5.buffer.DefaultBufferAllocators;
 import io.netty5.handler.codec.http.DefaultFullHttpResponse;
 import io.netty5.handler.codec.http.FullHttpResponse;
+import io.netty5.handler.codec.http.HttpHeaderNames;
 import io.netty5.handler.codec.http.HttpRequest;
 import io.netty5.handler.codec.http.HttpResponseStatus;
+import io.netty5.handler.codec.http.headers.DefaultHttpSetCookie;
+import io.netty5.handler.codec.http.headers.HttpSetCookie;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -265,5 +274,113 @@ final class NettyHttpServerResponse extends NettyHttpMessage implements HttpResp
   @Override
   public boolean hasBody() {
     return this.httpResponse.payload().readableBytes() > 0 || this.responseInputStream != null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @Nullable HttpCookie cookie(@NonNull String name) {
+    var cookie = this.httpResponse.headers().getSetCookie(name);
+    return cookie == null ? null : this.convertFromNettySetCookie(cookie);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull Collection<HttpCookie> cookies() {
+    List<HttpCookie> cookies = new ArrayList<>();
+    this.httpResponse.headers().getSetCookies().forEach(cookie -> {
+      var convertedCookie = this.convertFromNettySetCookie(cookie);
+      cookies.add(convertedCookie);
+    });
+    return cookies;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean hasCookie(@NonNull String name) {
+    return this.httpResponse.headers().getSetCookie(name) != null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull HttpResponse cookies(@NonNull Collection<HttpCookie> cookies) {
+    this.httpResponse.headers().remove(HttpHeaderNames.SET_COOKIE);
+    cookies.forEach(this::addCookie);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull HttpResponse addCookie(@NonNull HttpCookie httpCookie) {
+    var convertedCookie = this.convertToNettySetCookie(httpCookie);
+    this.httpResponse.headers().addSetCookie(convertedCookie);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull HttpResponse removeCookie(@NonNull String name) {
+    this.httpResponse.headers().removeSetCookies(name);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull HttpResponse clearCookies() {
+    this.httpResponse.headers().remove(HttpHeaderNames.SET_COOKIE);
+    return this;
+  }
+
+  /**
+   * Converts the netty set-cookie value to a {@link HttpCookie}.
+   *
+   * @param cookie the cookie to convert.
+   * @return the converted cookie.
+   * @throws NullPointerException if the given cookie is null.
+   */
+  private @NonNull HttpCookie convertFromNettySetCookie(@NonNull HttpSetCookie cookie) {
+    return new HttpCookie(
+      cookie.name().toString(),
+      cookie.value().toString(),
+      Objects.toString(cookie.domain(), null),
+      Objects.toString(cookie.path(), null),
+      cookie.isHttpOnly(),
+      cookie.isSecure(),
+      cookie.isWrapped(),
+      MoreObjects.firstNonNull(cookie.maxAge(), Long.MAX_VALUE));
+  }
+
+  /**
+   * Converts the given {@link HttpCookie} to a netty set-cookie value.
+   *
+   * @param cookie the cookie to convert.
+   * @return the converted cookie.
+   * @throws NullPointerException if the given cookie is null.
+   */
+  private @NonNull HttpSetCookie convertToNettySetCookie(@NonNull HttpCookie cookie) {
+    return new DefaultHttpSetCookie(
+      cookie.name(),
+      cookie.value(),
+      cookie.path(),
+      cookie.domain(),
+      null,
+      cookie.maxAge() == Long.MAX_VALUE ? null : cookie.maxAge(),
+      null,
+      cookie.wrap(),
+      cookie.secure(),
+      cookie.httpOnly());
   }
 }

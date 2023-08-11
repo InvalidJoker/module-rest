@@ -18,14 +18,20 @@ package eu.cloudnetservice.ext.rest.netty;
 
 import com.google.common.primitives.Ints;
 import eu.cloudnetservice.ext.rest.http.HttpContext;
+import eu.cloudnetservice.ext.rest.http.HttpCookie;
 import eu.cloudnetservice.ext.rest.http.HttpRequest;
 import eu.cloudnetservice.ext.rest.http.HttpVersion;
 import io.netty5.buffer.BufferInputStream;
 import io.netty5.handler.codec.http.FullHttpRequest;
+import io.netty5.handler.codec.http.HttpHeaderNames;
 import io.netty5.handler.codec.http.QueryStringDecoder;
+import io.netty5.handler.codec.http.headers.DefaultHttpCookiePair;
+import io.netty5.handler.codec.http.headers.HttpCookiePair;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -295,5 +301,103 @@ final class NettyHttpServerRequest extends NettyHttpMessage implements HttpReque
   @Override
   public boolean hasBody() {
     return this.httpRequest instanceof FullHttpRequest request && request.payload().readableBytes() > 0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @Nullable HttpCookie cookie(@NonNull String name) {
+    var cookie = this.httpRequest.headers().getCookie(name);
+    return cookie == null ? null : this.convertFromNettyCookiePair(cookie);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull Collection<HttpCookie> cookies() {
+    List<HttpCookie> cookies = new ArrayList<>();
+    this.httpRequest.headers().getCookies().forEach(cookie -> {
+      var convertedCookie = this.convertFromNettyCookiePair(cookie);
+      cookies.add(convertedCookie);
+    });
+    return cookies;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean hasCookie(@NonNull String name) {
+    return this.httpRequest.headers().getCookie(name) != null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull HttpRequest cookies(@NonNull Collection<HttpCookie> cookies) {
+    this.httpRequest.headers().remove(HttpHeaderNames.COOKIE);
+    cookies.forEach(this::addCookie);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull HttpRequest addCookie(@NonNull HttpCookie httpCookie) {
+    var convertedCookie = this.convertToNettyCookiePair(httpCookie);
+    this.httpRequest.headers().addCookie(convertedCookie);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull HttpRequest removeCookie(@NonNull String name) {
+    this.httpRequest.headers().removeCookies(name);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull HttpRequest clearCookies() {
+    this.httpRequest.headers().remove(HttpHeaderNames.COOKIE);
+    return this;
+  }
+
+  /**
+   * Converts the netty cookie pair to a {@link HttpCookie}.
+   *
+   * @param cookie the cookie to convert.
+   * @return the converted cookie.
+   * @throws NullPointerException if the given cookie is null.
+   */
+  private @NonNull HttpCookie convertFromNettyCookiePair(@NonNull HttpCookiePair cookie) {
+    return new HttpCookie(
+      cookie.name().toString(),
+      cookie.value().toString(),
+      null,
+      null,
+      false,
+      false,
+      cookie.isWrapped(),
+      Long.MAX_VALUE);
+  }
+
+  /**
+   * Converts the given {@link HttpCookie} to a netty cookie pair.
+   *
+   * @param cookie the cookie to convert.
+   * @return the converted cookie.
+   * @throws NullPointerException if the given cookie is null.
+   */
+  private @NonNull HttpCookiePair convertToNettyCookiePair(@NonNull HttpCookie cookie) {
+    return new DefaultHttpCookiePair(cookie.name(), cookie.value(), cookie.wrap());
   }
 }

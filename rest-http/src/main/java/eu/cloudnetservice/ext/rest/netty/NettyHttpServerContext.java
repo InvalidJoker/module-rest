@@ -22,7 +22,6 @@ import eu.cloudnetservice.common.concurrent.Task;
 import eu.cloudnetservice.ext.rest.http.HttpChannel;
 import eu.cloudnetservice.ext.rest.http.HttpComponent;
 import eu.cloudnetservice.ext.rest.http.HttpContext;
-import eu.cloudnetservice.ext.rest.http.HttpCookie;
 import eu.cloudnetservice.ext.rest.http.HttpRequest;
 import eu.cloudnetservice.ext.rest.http.HttpResponse;
 import eu.cloudnetservice.ext.rest.http.HttpServer;
@@ -32,10 +31,8 @@ import io.netty5.buffer.DefaultBufferAllocators;
 import io.netty5.channel.Channel;
 import io.netty5.handler.codec.http.DefaultFullHttpResponse;
 import io.netty5.handler.codec.http.HttpResponseStatus;
-import io.netty5.handler.codec.http.headers.DefaultHttpSetCookie;
 import io.netty5.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import lombok.NonNull;
@@ -57,8 +54,6 @@ final class NettyHttpServerContext implements HttpContext {
   private final NettyHttpServer nettyHttpServer;
   private final BasicHttpConnectionInfo connectionInfo;
   private final NettyHttpServerRequest httpServerRequest;
-
-  private final Collection<HttpCookie> cookies = new ArrayList<>();
 
   volatile boolean closeAfter = false;
   volatile boolean cancelSendResponse = false;
@@ -99,21 +94,6 @@ final class NettyHttpServerContext implements HttpContext {
     this.connectionInfo = nettyHttpServer.componentConfig()
       .connectionInfoResolver()
       .extractConnectionInfo(this, baseConnectInfo);
-
-    var cookiesIterator = this.httpRequest.headers().getCookiesIterator();
-    while (cookiesIterator.hasNext()) {
-      var cookie = cookiesIterator.next();
-      var httpCookie = new HttpCookie(
-        cookie.name().toString(),
-        cookie.value().toString(),
-        null,
-        null,
-        false,
-        false,
-        cookie.isWrapped(),
-        0);
-      this.cookies.add(httpCookie);
-    }
   }
 
   /**
@@ -242,83 +222,6 @@ final class NettyHttpServerContext implements HttpContext {
   @Override
   public boolean closeAfter() {
     return this.closeAfter;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public HttpCookie cookie(@NonNull String name) {
-    return this.cookies.stream()
-      .filter(httpCookie -> httpCookie.name().equalsIgnoreCase(name))
-      .findFirst()
-      .orElse(null);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull Collection<HttpCookie> cookies() {
-    return this.cookies;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean hasCookie(@NonNull String name) {
-    return this.cookies.stream().anyMatch(httpCookie -> httpCookie.name().equalsIgnoreCase(name));
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpContext cookies(@NonNull Collection<HttpCookie> cookies) {
-    cookies.forEach(this::addCookie);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpContext addCookie(@NonNull HttpCookie httpCookie) {
-    var cookie = new DefaultHttpSetCookie(
-      httpCookie.name(),
-      httpCookie.value(),
-      httpCookie.path(),
-      httpCookie.domain(),
-      null,
-      httpCookie.maxAge(),
-      null,
-      httpCookie.wrap(),
-      httpCookie.secure(),
-      httpCookie.httpOnly());
-    this.httpServerResponse.httpResponse.headers().addSetCookie(cookie);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpContext removeCookie(@NonNull String name) {
-    this.httpServerResponse.httpResponse.headers().removeSetCookies(name);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpContext clearCookies() {
-    var cookieIterator = this.httpServerResponse.httpResponse.headers().getSetCookiesIterator();
-    while (cookieIterator.hasNext()) {
-      cookieIterator.remove();
-    }
-    return this;
   }
 
   /**
