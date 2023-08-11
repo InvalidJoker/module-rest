@@ -26,13 +26,14 @@ import eu.cloudnetservice.ext.rest.http.HttpHandler;
 import eu.cloudnetservice.ext.rest.http.annotation.ContentType;
 import eu.cloudnetservice.ext.rest.http.annotation.CrossOrigin;
 import eu.cloudnetservice.ext.rest.http.annotation.FirstRequestQueryParam;
-import eu.cloudnetservice.ext.rest.http.annotation.RequestHandler;
 import eu.cloudnetservice.ext.rest.http.annotation.Optional;
 import eu.cloudnetservice.ext.rest.http.annotation.RequestBody;
+import eu.cloudnetservice.ext.rest.http.annotation.RequestHandler;
 import eu.cloudnetservice.ext.rest.http.annotation.RequestHeader;
 import eu.cloudnetservice.ext.rest.http.annotation.RequestPath;
 import eu.cloudnetservice.ext.rest.http.annotation.RequestPathParam;
 import eu.cloudnetservice.ext.rest.http.annotation.RequestQueryParam;
+import eu.cloudnetservice.ext.rest.http.config.ContextConfig;
 import eu.cloudnetservice.ext.rest.http.config.CorsConfig;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerInterceptor;
@@ -64,19 +65,19 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
   public static final String PARAM_INVOCATION_HINT_KEY = "__PARAM_INVOCATION_HINT__";
 
   private final T component;
-  private final CorsConfig globalCorsConfig;
+  private final ContextConfig globalContextConfig;
   private final Deque<HttpAnnotationProcessor> processors = new LinkedList<>();
 
   /**
    * Constructs a new DefaultHttpAnnotationParser instance.
    *
-   * @param component        the component instance with which this parser is associated.
-   * @param globalCorsConfig the global cors configuration to merge with the handler specific one.
+   * @param component           the component instance with which this parser is associated.
+   * @param globalContextConfig the global cors configuration to merge with the handler specific one.
    * @throws NullPointerException if the given component is null.
    */
-  public DefaultHttpAnnotationParser(@NonNull T component, @NonNull CorsConfig globalCorsConfig) {
+  public DefaultHttpAnnotationParser(@NonNull T component, @NonNull ContextConfig globalContextConfig) {
     this.component = component;
-    this.globalCorsConfig = globalCorsConfig;
+    this.globalContextConfig = globalContextConfig;
   }
 
   /**
@@ -102,16 +103,16 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
    * Constructs a new DefaultHttpAnnotationParser instance and registers all processors for the default provided http
    * handling annotations.
    *
-   * @param component        the component instance with which this parser is associated.
-   * @param globalCorsConfig the global cors configuration to merge with the handler specific one.
+   * @param component           the component instance with which this parser is associated.
+   * @param globalContextConfig the global cors configuration to merge with the handler specific one.
    * @return the newly created HttpAnnotationParser instance.
    * @throws NullPointerException if the given component is null.
    */
   public static @NonNull <T extends HttpComponent<T>> HttpAnnotationParser<T> withDefaultProcessors(
     @NonNull T component,
-    @NonNull CorsConfig globalCorsConfig
+    @NonNull ContextConfig globalContextConfig
   ) {
-    return new DefaultHttpAnnotationParser<>(component, globalCorsConfig).registerDefaultProcessors();
+    return new DefaultHttpAnnotationParser<>(component, globalContextConfig).registerDefaultProcessors();
   }
 
   /**
@@ -210,7 +211,7 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
 
         // check if cors settings were supplied and apply them
         var corsAnnotation = method.getAnnotation(CrossOrigin.class);
-        if(corsAnnotation != null) {
+        if (corsAnnotation != null) {
           var corsConfig = CorsConfig.builder();
           for (var origin : corsAnnotation.origins()) {
             corsConfig.addAllowedOrigin(origin);
@@ -222,11 +223,11 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
             .allowPrivateNetworks(corsAnnotation.allowPrivateNetworks().toBoolean())
             .maxAge(corsAnnotation.maxAge() < 1 ? null : Duration.ofSeconds(corsAnnotation.maxAge()));
 
-          // build the actual config and
-          configBuilder.corsConfiguration(corsConfig.build().combine(this.globalCorsConfig));
+          // build the actual cors and
+          configBuilder.corsConfiguration(corsConfig.build().combine(this.globalContextConfig.cors()));
         }
 
-        // add the processors to the config
+        // add the processors to the cors
         for (var processor : this.processors) {
           if (processor.shouldProcess(method, handlerInstance)) {
             var contextProcessor = processor.buildPreprocessor(method, handlerInstance);

@@ -27,7 +27,7 @@ import eu.cloudnetservice.ext.rest.http.HttpHandler;
 import eu.cloudnetservice.ext.rest.http.HttpServer;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.DefaultHttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.HttpAnnotationParser;
-import eu.cloudnetservice.ext.rest.http.config.CorsConfig;
+import eu.cloudnetservice.ext.rest.http.config.ContextConfig;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.http.tree.DefaultHttpHandlerTree;
 import eu.cloudnetservice.ext.rest.http.tree.DynamicHttpPathNode;
@@ -61,7 +61,7 @@ public class NettyHttpServer extends NettySslServer implements HttpServer {
   private static final Predicate<HttpHandlerTree<HttpPathNode>> DYNAMIC_NODE_FILTER =
     node -> node.pathNode() instanceof DynamicHttpPathNode;
 
-  protected final CorsConfig globalCorsConfig;
+  protected final ContextConfig contextConfig;
   protected final DefaultHttpHandlerTree handlerTree = DefaultHttpHandlerTree.newTree();
   protected final Map<HostAndPort, Future<Void>> channelFutures = new ConcurrentHashMap<>();
 
@@ -73,7 +73,7 @@ public class NettyHttpServer extends NettySslServer implements HttpServer {
   /**
    * Constructs a new instance of a netty http server instance. Equivalent to {@code new NettyHttpServer(null)}.
    */
-  public NettyHttpServer(@NonNull CorsConfig config) {
+  public NettyHttpServer(@NonNull ContextConfig config) {
     this(null, config);
   }
 
@@ -82,11 +82,11 @@ public class NettyHttpServer extends NettySslServer implements HttpServer {
    *
    * @param sslConfiguration the ssl configuration to use, null for no ssl.
    */
-  public NettyHttpServer(@Nullable SSLConfiguration sslConfiguration, @NonNull CorsConfig globalCorsConfig) {
+  public NettyHttpServer(@Nullable SSLConfiguration sslConfiguration, @NonNull ContextConfig contextConfig) {
     super(sslConfiguration);
 
-    this.globalCorsConfig = globalCorsConfig;
-    this.annotationParser = DefaultHttpAnnotationParser.withDefaultProcessors(this, this.globalCorsConfig);
+    this.contextConfig = contextConfig;
+    this.annotationParser = DefaultHttpAnnotationParser.withDefaultProcessors(this, this.contextConfig);
 
     try {
       this.init();

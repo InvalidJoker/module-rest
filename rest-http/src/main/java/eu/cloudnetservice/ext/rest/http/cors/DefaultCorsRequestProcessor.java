@@ -86,7 +86,7 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
       return true;
     }
 
-    // check if a cors config is present for the handler
+    // check if a cors cors is present for the handler
     var corsConfig = httpHandlerConfig.corsConfig();
     if (corsConfig == null) {
       return true;

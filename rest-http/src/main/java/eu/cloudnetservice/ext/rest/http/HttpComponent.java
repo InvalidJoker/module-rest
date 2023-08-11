@@ -55,7 +55,7 @@ public interface HttpComponent<T extends HttpComponent<T>> extends AutoCloseable
    *
    * @param path    the path to register the handler to.
    * @param handler the handler to register.
-   * @param config the config for the handler.
+   * @param config the cors for the handler.
    * @return the same component instance as used to call the method, for chaining.
    * @throws NullPointerException if either the given path or handler is null.
    */
