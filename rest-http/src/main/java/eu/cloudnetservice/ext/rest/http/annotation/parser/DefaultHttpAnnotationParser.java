@@ -33,7 +33,6 @@ import eu.cloudnetservice.ext.rest.http.annotation.RequestHeader;
 import eu.cloudnetservice.ext.rest.http.annotation.RequestPath;
 import eu.cloudnetservice.ext.rest.http.annotation.RequestPathParam;
 import eu.cloudnetservice.ext.rest.http.annotation.RequestQueryParam;
-import eu.cloudnetservice.ext.rest.http.config.ContextConfig;
 import eu.cloudnetservice.ext.rest.http.config.CorsConfig;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerInterceptor;
@@ -65,19 +64,16 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
   public static final String PARAM_INVOCATION_HINT_KEY = "__PARAM_INVOCATION_HINT__";
 
   private final T component;
-  private final ContextConfig globalContextConfig;
   private final Deque<HttpAnnotationProcessor> processors = new LinkedList<>();
 
   /**
    * Constructs a new DefaultHttpAnnotationParser instance.
    *
-   * @param component           the component instance with which this parser is associated.
-   * @param globalContextConfig the global cors configuration to merge with the handler specific one.
+   * @param component the component instance with which this parser is associated.
    * @throws NullPointerException if the given component is null.
    */
-  public DefaultHttpAnnotationParser(@NonNull T component, @NonNull ContextConfig globalContextConfig) {
+  public DefaultHttpAnnotationParser(@NonNull T component) {
     this.component = component;
-    this.globalContextConfig = globalContextConfig;
   }
 
   /**
@@ -103,16 +99,14 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
    * Constructs a new DefaultHttpAnnotationParser instance and registers all processors for the default provided http
    * handling annotations.
    *
-   * @param component           the component instance with which this parser is associated.
-   * @param globalContextConfig the global cors configuration to merge with the handler specific one.
+   * @param component the component instance with which this parser is associated.
    * @return the newly created HttpAnnotationParser instance.
    * @throws NullPointerException if the given component is null.
    */
   public static @NonNull <T extends HttpComponent<T>> HttpAnnotationParser<T> withDefaultProcessors(
-    @NonNull T component,
-    @NonNull ContextConfig globalContextConfig
+    @NonNull T component
   ) {
-    return new DefaultHttpAnnotationParser<>(component, globalContextConfig).registerDefaultProcessors();
+    return new DefaultHttpAnnotationParser<>(component).registerDefaultProcessors();
   }
 
   /**
@@ -209,7 +203,7 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
         // set the supported request method of the handler
         configBuilder.httpMethod(handlerAnnotation.method());
 
-        // check if cors settings were supplied and apply them
+        // check if corsConfig settings were supplied and apply them
         var corsAnnotation = method.getAnnotation(CrossOrigin.class);
         if (corsAnnotation != null) {
           var corsConfig = CorsConfig.builder();
@@ -223,11 +217,12 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
             .allowPrivateNetworks(corsAnnotation.allowPrivateNetworks().toBoolean())
             .maxAge(corsAnnotation.maxAge() < 1 ? null : Duration.ofSeconds(corsAnnotation.maxAge()));
 
-          // build the actual cors and
-          configBuilder.corsConfiguration(corsConfig.build().combine(this.globalContextConfig.cors()));
+          // build the actual corsConfig and
+          var globalCorsConfig = this.httpComponent().componentConfig().corsConfig();
+          configBuilder.corsConfiguration(corsConfig.build().combine(globalCorsConfig));
         }
 
-        // add the processors to the cors
+        // add the processors to the corsConfig
         for (var processor : this.processors) {
           if (processor.shouldProcess(method, handlerInstance)) {
             var contextProcessor = processor.buildPreprocessor(method, handlerInstance);

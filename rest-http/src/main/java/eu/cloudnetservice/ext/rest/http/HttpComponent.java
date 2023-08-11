@@ -17,6 +17,7 @@
 package eu.cloudnetservice.ext.rest.http;
 
 import eu.cloudnetservice.ext.rest.http.annotation.parser.HttpAnnotationParser;
+import eu.cloudnetservice.ext.rest.http.config.ComponentConfig;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
 import java.util.Collection;
 import lombok.NonNull;
@@ -38,6 +39,13 @@ public interface HttpComponent<T extends HttpComponent<T>> extends AutoCloseable
   boolean sslEnabled();
 
   /**
+   * Get the configuration of this http component.
+   *
+   * @return the configuration of this component.
+   */
+  @NonNull ComponentConfig componentConfig();
+
+  /**
    * Get a http annotation parser which is associated with this component and can therefore be used to register
    * annotated handlers to this component.
    *
@@ -55,7 +63,7 @@ public interface HttpComponent<T extends HttpComponent<T>> extends AutoCloseable
    *
    * @param path    the path to register the handler to.
    * @param handler the handler to register.
-   * @param config the cors for the handler.
+   * @param config  the configuration of the handler.
    * @return the same component instance as used to call the method, for chaining.
    * @throws NullPointerException if either the given path or handler is null.
    */

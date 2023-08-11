@@ -27,7 +27,7 @@ import eu.cloudnetservice.ext.rest.http.HttpHandler;
 import eu.cloudnetservice.ext.rest.http.HttpServer;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.DefaultHttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.HttpAnnotationParser;
-import eu.cloudnetservice.ext.rest.http.config.ContextConfig;
+import eu.cloudnetservice.ext.rest.http.config.ComponentConfig;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.http.tree.DefaultHttpHandlerTree;
 import eu.cloudnetservice.ext.rest.http.tree.DynamicHttpPathNode;
@@ -61,7 +61,7 @@ public class NettyHttpServer extends NettySslServer implements HttpServer {
   private static final Predicate<HttpHandlerTree<HttpPathNode>> DYNAMIC_NODE_FILTER =
     node -> node.pathNode() instanceof DynamicHttpPathNode;
 
-  protected final ContextConfig contextConfig;
+  protected final ComponentConfig componentConfig;
   protected final DefaultHttpHandlerTree handlerTree = DefaultHttpHandlerTree.newTree();
   protected final Map<HostAndPort, Future<Void>> channelFutures = new ConcurrentHashMap<>();
 
@@ -73,7 +73,7 @@ public class NettyHttpServer extends NettySslServer implements HttpServer {
   /**
    * Constructs a new instance of a netty http server instance. Equivalent to {@code new NettyHttpServer(null)}.
    */
-  public NettyHttpServer(@NonNull ContextConfig config) {
+  public NettyHttpServer(@NonNull ComponentConfig config) {
     this(null, config);
   }
 
@@ -82,11 +82,11 @@ public class NettyHttpServer extends NettySslServer implements HttpServer {
    *
    * @param sslConfiguration the ssl configuration to use, null for no ssl.
    */
-  public NettyHttpServer(@Nullable SSLConfiguration sslConfiguration, @NonNull ContextConfig contextConfig) {
+  public NettyHttpServer(@Nullable SSLConfiguration sslConfiguration, @NonNull ComponentConfig componentConfig) {
     super(sslConfiguration);
 
-    this.contextConfig = contextConfig;
-    this.annotationParser = DefaultHttpAnnotationParser.withDefaultProcessors(this, this.contextConfig);
+    this.componentConfig = componentConfig;
+    this.annotationParser = DefaultHttpAnnotationParser.withDefaultProcessors(this);
 
     try {
       this.init();
@@ -101,6 +101,14 @@ public class NettyHttpServer extends NettySslServer implements HttpServer {
   @Override
   public boolean sslEnabled() {
     return this.sslContext != null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull ComponentConfig componentConfig() {
+    return this.componentConfig;
   }
 
   /**

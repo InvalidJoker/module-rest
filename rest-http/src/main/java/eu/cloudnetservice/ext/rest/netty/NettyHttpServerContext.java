@@ -26,6 +26,7 @@ import eu.cloudnetservice.ext.rest.http.HttpCookie;
 import eu.cloudnetservice.ext.rest.http.HttpRequest;
 import eu.cloudnetservice.ext.rest.http.HttpResponse;
 import eu.cloudnetservice.ext.rest.http.HttpServer;
+import eu.cloudnetservice.ext.rest.http.connection.BasicHttpConnectionInfo;
 import eu.cloudnetservice.ext.rest.http.websocket.WebSocketChannel;
 import io.netty5.buffer.DefaultBufferAllocators;
 import io.netty5.channel.Channel;
@@ -53,8 +54,8 @@ final class NettyHttpServerContext implements HttpContext {
   private final Channel nettyChannel;
   private final io.netty5.handler.codec.http.HttpRequest httpRequest;
 
-  private final NettyHttpChannel channel;
   private final NettyHttpServer nettyHttpServer;
+  private final BasicHttpConnectionInfo connectionInfo;
   private final NettyHttpServerRequest httpServerRequest;
 
   private final Collection<HttpCookie> cookies = new ArrayList<>();
@@ -62,6 +63,7 @@ final class NettyHttpServerContext implements HttpContext {
   volatile boolean closeAfter = false;
   volatile boolean cancelSendResponse = false;
 
+  private NettyHttpChannel channel;
   private volatile NettyWebSocketServerChannel webSocketServerChannel;
 
   /**
@@ -88,6 +90,15 @@ final class NettyHttpServerContext implements HttpContext {
 
     this.httpServerRequest = new NettyHttpServerRequest(this, httpRequest, pathParameters, uri);
     this.httpServerResponse = new NettyHttpServerResponse(this, httpRequest);
+
+    // extract the requesting connection info
+    var baseConnectInfo = new BasicHttpConnectionInfo(
+      channel.scheme(),
+      channel.serverAddress(),
+      channel.clientAddress());
+    this.connectionInfo = nettyHttpServer.componentConfig()
+      .connectionInfoResolver()
+      .extractConnectionInfo(this, baseConnectInfo);
 
     var cookiesIterator = this.httpRequest.headers().getCookiesIterator();
     while (cookiesIterator.hasNext()) {
@@ -136,6 +147,13 @@ final class NettyHttpServerContext implements HttpContext {
         Task<WebSocketChannel> task = new Task<>();
         handshaker.handshake(this.nettyChannel, this.httpRequest).addListener(future -> {
           if (future.isSuccess()) {
+            // change the protocol of the http channel for wss
+            this.channel = new NettyHttpChannel(
+              this.channel.channel(),
+              this.nettyHttpServer.sslEnabled() ? "wss" : "ws",
+              this.channel.serverAddress(),
+              this.channel.clientAddress());
+
             // successfully greeted the client, setup everything we need
             this.webSocketServerChannel = new NettyWebSocketServerChannel(this.channel, this.nettyChannel);
             this.nettyChannel.pipeline().addLast(
@@ -199,6 +217,14 @@ final class NettyHttpServerContext implements HttpContext {
   @Override
   public @NonNull HttpComponent<HttpServer> component() {
     return this.nettyHttpServer;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull BasicHttpConnectionInfo connectionInfo() {
+    return this.connectionInfo;
   }
 
   /**

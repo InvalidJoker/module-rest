@@ -60,7 +60,7 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
       return;
     }
 
-    // ensure that a cors configuration is present in order to process the CORS request
+    // ensure that a corsConfig configuration is present in order to process the CORS request
     var corsConfig = httpHandlerConfig != null ? httpHandlerConfig.corsConfig() : null;
     if (corsConfig == null) {
       this.rejectRequest(context.response());
@@ -86,7 +86,7 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
       return true;
     }
 
-    // check if a cors cors is present for the handler
+    // check if a corsConfig corsConfig is present for the handler
     var corsConfig = httpHandlerConfig.corsConfig();
     if (corsConfig == null) {
       return true;

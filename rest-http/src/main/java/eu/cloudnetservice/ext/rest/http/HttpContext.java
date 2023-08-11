@@ -17,6 +17,7 @@
 package eu.cloudnetservice.ext.rest.http;
 
 import eu.cloudnetservice.common.concurrent.Task;
+import eu.cloudnetservice.ext.rest.http.connection.BasicHttpConnectionInfo;
 import eu.cloudnetservice.ext.rest.http.websocket.WebSocketChannel;
 import java.util.Collection;
 import lombok.NonNull;
@@ -90,6 +91,18 @@ public interface HttpContext {
    * @return the http component which received the request.
    */
   @NonNull HttpComponent<?> component();
+
+  /**
+   * Get the extracted connection info about the client that requested the server information and the actual requested
+   * server host. This information might for example be extracted from the Forwarded and Host HTTP header.
+   * <p>
+   * The final extraction of the information is done by using the resolver supplied by the http component that is
+   * associated with this context. The extraction behaviour can therefore change and is therefor not necessarily
+   * consistent.
+   *
+   * @return the extracted client connection info.
+   */
+  @NonNull BasicHttpConnectionInfo connectionInfo();
 
   /**
    * Sets whether the connection to client should be closed after the last handler in the chain. This defaults to true.
