@@ -119,6 +119,11 @@ public abstract class DefaultResponseBuilder<T, B extends Response.Builder<T, B>
     return this.self();
   }
 
+  @Override
+  public @NonNull Response<T> into() {
+    return this.build();
+  }
+
   private @NonNull B self() {
     //noinspection unchecked
     return (B) this;

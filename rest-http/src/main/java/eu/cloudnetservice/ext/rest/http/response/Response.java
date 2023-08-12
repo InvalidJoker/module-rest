@@ -23,7 +23,7 @@ public interface Response<T> extends IntoResponse<T> {
 
   void serializeIntoResponse(@NonNull HttpResponse response);
 
-  interface Builder<T, B extends Builder<T, B>> {
+  interface Builder<T, B extends Builder<T, B>> extends IntoResponse<T> {
 
     @NonNull B responseCode(@NonNull HttpResponseCode responseCode);
 
