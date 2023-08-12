@@ -50,7 +50,7 @@ public abstract class DefaultResponse<T> implements Response<T> {
   }
 
   @Override
-  public @NonNull Response<T> into() {
+  public @NonNull Response<T> intoResponse() {
     return this;
   }
 

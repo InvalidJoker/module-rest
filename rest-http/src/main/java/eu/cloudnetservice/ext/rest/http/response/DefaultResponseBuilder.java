@@ -120,8 +120,8 @@ public abstract class DefaultResponseBuilder<T, B extends Response.Builder<T, B>
   }
 
   @Override
-  public @NonNull Response<T> into() {
-    return this.build();
+  public @NonNull Response.Builder<T, ?> intoResponseBuilder() {
+    return this;
   }
 
   private @NonNull B self() {

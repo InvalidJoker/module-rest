@@ -258,7 +258,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
       }
 
       // post the request to the actual handler
-      var response = httpHandler.handle(context).into();
+      var response = httpHandler.handle(context).intoResponse();
 
       // post process the response
       var returnAllowed = config.invokePostProcessors(context, httpHandler, config, response);

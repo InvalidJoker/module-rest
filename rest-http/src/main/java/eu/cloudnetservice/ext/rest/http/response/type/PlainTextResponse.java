@@ -35,6 +35,11 @@ public final class PlainTextResponse extends DefaultResponse<String> {
     response.body(body);
   }
 
+  @Override
+  public Response.@NonNull Builder<String, ?> intoResponseBuilder() {
+    return PlainTextResponse.builder(this);
+  }
+
   public static final class Builder extends DefaultResponseBuilder<String, Builder> {
 
     private Builder() {

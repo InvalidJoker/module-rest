@@ -36,6 +36,11 @@ public final class InputStreamResponse extends DefaultResponse<InputStream> {
     response.body(body);
   }
 
+  @Override
+  public @NonNull Response.Builder<InputStream, ?> intoResponseBuilder() {
+    return InputStreamResponse.builder(this);
+  }
+
   public static final class Builder extends DefaultResponseBuilder<InputStream, Builder> {
 
     private Builder() {
@@ -44,7 +49,6 @@ public final class InputStreamResponse extends DefaultResponse<InputStream> {
     @Override
     public @NonNull Response<InputStream> build() {
       this.httpHeaders.putIfAbsent(HttpHeaderNames.CONTENT_TYPE.toString(), List.of(MediaType.OCTET_STREAM.toString()));
-
       return new InputStreamResponse(this.body, this.responseCode, Map.copyOf(this.httpHeaders));
     }
   }

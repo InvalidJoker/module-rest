@@ -8,7 +8,6 @@ import lombok.NonNull;
  * @param <T> the type of the response body.
  * @since 4.0
  */
-@FunctionalInterface
 public interface IntoResponse<T> {
 
   /**
@@ -16,5 +15,14 @@ public interface IntoResponse<T> {
    *
    * @return the response data for the object that implements this interface.
    */
-  @NonNull Response<T> into();
+  default @NonNull Response<T> intoResponse() {
+    return this.intoResponseBuilder().build();
+  }
+
+  /**
+   * Constructs a response builder from this object.
+   *
+   * @return a builder for a response containing information from this object.
+   */
+  @NonNull Response.Builder<T, ?> intoResponseBuilder();
 }

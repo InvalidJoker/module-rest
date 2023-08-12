@@ -45,6 +45,11 @@ public final class FileResponse extends DefaultResponse<Path> {
     }
   }
 
+  @Override
+  public @NonNull Response.Builder<Path, ?> intoResponseBuilder() {
+    return FileResponse.builder(this);
+  }
+
   public static final class Builder extends DefaultResponseBuilder<Path, Builder> {
 
     private Builder() {

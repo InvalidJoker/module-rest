@@ -17,9 +17,8 @@
 package eu.cloudnetservice.ext.rest.http;
 
 import com.google.common.collect.ImmutableMap;
-import lombok.NonNull;
-
 import java.util.Map;
+import lombok.NonNull;
 
 /**
  * All http response codes. See <a href="https://developer.mozilla.org/de/docs/Web/HTTP/Status">here</a> for a full list

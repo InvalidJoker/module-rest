@@ -14,40 +14,47 @@ import java.util.Map;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class JsonResponse extends DefaultResponse<Object> {
+public final class JsonResponse<T> extends DefaultResponse<T> {
 
   private JsonResponse(
-    @Nullable Object body,
+    @Nullable T body,
     @NonNull HttpResponseCode responseCode,
     @NonNull Map<String, List<String>> headers
   ) {
     super(body, responseCode, headers);
   }
 
-  public static @NonNull Builder builder() {
-    return new Builder();
+  public static <T> @NonNull Builder<T> builder() {
+    return new Builder<>();
   }
 
-  public static @NonNull Builder builder(@NonNull Response<Object> response) {
-    return builder().responseCode(response.responseCode()).headers(response.headers()).body(response.body());
+  public static <T> @NonNull Builder<T> builder(@NonNull Response<? extends T> response) {
+    return JsonResponse.<T>builder()
+      .responseCode(response.responseCode())
+      .headers(response.headers())
+      .body(response.body());
   }
 
   @Override
-  protected void serializeBody(@NonNull HttpResponse response, @NonNull Object body) {
+  protected void serializeBody(@NonNull HttpResponse response, @NonNull T body) {
     var bodyDocument = DocumentFactory.json().newDocument(body);
     response.body(bodyDocument.serializeToString(StandardSerialisationStyle.COMPACT));
   }
 
-  public static final class Builder extends DefaultResponseBuilder<Object, Builder> {
+  @Override
+  public @NonNull Response.Builder<T, ?> intoResponseBuilder() {
+    return JsonResponse.builder(this);
+  }
+
+  public static final class Builder<T> extends DefaultResponseBuilder<T, Builder<T>> {
 
     private Builder() {
     }
 
     @Override
-    public @NonNull Response<Object> build() {
+    public @NonNull Response<T> build() {
       this.httpHeaders.putIfAbsent(HttpHeaderNames.CONTENT_TYPE.toString(), List.of(MediaType.JSON_UTF_8.toString()));
-
-      return new JsonResponse(this.body, this.responseCode, Map.copyOf(this.httpHeaders));
+      return new JsonResponse<>(this.body, this.responseCode, Map.copyOf(this.httpHeaders));
     }
   }
 }
