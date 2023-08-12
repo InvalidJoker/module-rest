@@ -37,13 +37,13 @@ public final class ForwardedSyntaxConnectionInfoResolver implements HttpConnecti
 
     // extract information about the forwarded scheme
     var forwardedSchemeMatcher = FORWARDED_SCHEME_PATTERN.matcher(forwardingInfo);
-    if (forwardedSchemeMatcher.matches()) {
+    if (forwardedSchemeMatcher.find()) {
       baseInfo = baseInfo.withScheme(forwardedSchemeMatcher.group(1));
     }
 
     // extract the information from the forwarded for header (the client info)
     var forwardedForMatcher = FORWARDED_FOR_PATTERN.matcher(forwardingInfo);
-    if (forwardedForMatcher.matches()) {
+    if (forwardedForMatcher.find()) {
       var defaultPort = baseInfo.clientAddress().port();
       var parsedAddress = AddressParseUtil.parseHostAndPort(this.headerName, forwardedForMatcher.group(1), defaultPort);
       baseInfo = baseInfo.withClientAddress(parsedAddress);
@@ -51,7 +51,7 @@ public final class ForwardedSyntaxConnectionInfoResolver implements HttpConnecti
 
     // extract the information from the host information (info about the target server listener)
     var forwardedHostMatcher = FORWARDED_HOST_PATTERN.matcher(forwardingInfo);
-    if (forwardedHostMatcher.matches()) {
+    if (forwardedHostMatcher.find()) {
       var defaultPort = baseInfo.defaultPortForScheme();
       var parsedAddress = AddressParseUtil.parseHostAndPort(
         this.headerName,
