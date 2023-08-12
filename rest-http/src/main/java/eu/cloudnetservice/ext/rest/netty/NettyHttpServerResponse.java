@@ -126,6 +126,15 @@ final class NettyHttpServerResponse extends NettyHttpMessage implements HttpResp
    * {@inheritDoc}
    */
   @Override
+  public @NonNull HttpResponse header(@NonNull String name, @NonNull Collection<String> value) {
+    this.httpResponse.headers().set(name, value);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public @NonNull HttpResponse header(@NonNull String name, @NonNull String value) {
     this.httpResponse.headers().set(name, value);
     return this;

@@ -17,6 +17,7 @@
 package eu.cloudnetservice.ext.rest.http;
 
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Map;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,6 +68,9 @@ public interface HttpMessage<T extends HttpMessage<T>> extends HttpCookieAware<T
    * @throws NullPointerException if the given name is null.
    */
   boolean headerAsBoolean(@NonNull String name);
+
+  // todo docs
+  @NonNull T header(@NonNull String name, @NonNull Collection<String> value);
 
   /**
    * Sets the given header, replacing the current one if already set.

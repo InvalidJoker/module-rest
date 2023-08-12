@@ -165,6 +165,15 @@ final class NettyHttpServerRequest extends NettyHttpMessage implements HttpReque
    * {@inheritDoc}
    */
   @Override
+  public @NonNull HttpRequest header(@NonNull String name, @NonNull Collection<String> value) {
+    this.httpRequest.headers().set(name, value);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public @NonNull HttpRequest addHeader(@NonNull String name, @NonNull String value) {
     this.httpRequest.headers().add(name, value);
     return this;

@@ -42,8 +42,8 @@ public abstract class DefaultResponse<T> implements Response<T> {
   @Override
   public void serializeIntoResponse(@NonNull HttpResponse response) {
     response.status(this.responseCode);
+    this.headers.forEach(response::header);
 
-    // response.header()
     if (this.body != null) {
       this.serializeBody(response, this.body);
     }
