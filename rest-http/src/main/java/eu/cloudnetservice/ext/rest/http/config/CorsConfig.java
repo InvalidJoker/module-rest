@@ -37,6 +37,25 @@ public record CorsConfig(
       .maxAge(config.maxAge());
   }
 
+  private static <T> @NonNull List<T> combine(@NonNull List<T> left, @NonNull List<T> right, T permitAll) {
+    if (left.contains(permitAll) || right.contains(permitAll)) {
+      return List.of(permitAll);
+    }
+
+    Set<T> combined = new HashSet<>(left.size() + right.size());
+    combined.addAll(left);
+    combined.addAll(right);
+    return new ArrayList<>(combined);
+  }
+
+  private static <T> @Nullable T combine(@Nullable T specific, @Nullable T global) {
+    return specific != null ? specific : global;
+  }
+
+  private static @NonNull String trimTrailingSlash(@NonNull String input) {
+    return input.endsWith("/") ? input.substring(0, input.length() - 1) : input;
+  }
+
   public @NonNull CorsConfig combine(@Nullable CorsConfig other) {
     if (other == null) {
       return this;
@@ -99,25 +118,6 @@ public record CorsConfig(
     return results.isEmpty() ? null : results;
   }
 
-  private static <T> @NonNull List<T> combine(@NonNull List<T> left, @NonNull List<T> right, T permitAll) {
-    if (left.contains(permitAll) || right.contains(permitAll)) {
-      return List.of(permitAll);
-    }
-
-    Set<T> combined = new HashSet<>(left.size() + right.size());
-    combined.addAll(left);
-    combined.addAll(right);
-    return new ArrayList<>(combined);
-  }
-
-  private static <T> @Nullable T combine(@Nullable T specific, @Nullable T global) {
-    return specific != null ? specific : global;
-  }
-
-  private static @NonNull String trimTrailingSlash(@NonNull String input) {
-    return input.endsWith("/") ? input.substring(0, input.length() - 1) : input;
-  }
-
   public static final class Builder {
 
     private List<Pattern> allowedOrigins = new ArrayList<>();
@@ -128,7 +128,17 @@ public record CorsConfig(
     private Duration maxAge;
 
     public @NonNull Builder addAllowedOrigin(@NonNull String allowedOrigin) {
-      return this.addAllowedOrigin(Pattern.compile(Pattern.quote(allowedOrigin)));
+      Pattern originPattern;
+      if (allowedOrigin.equals("*")) {
+        // special case: the user wants to allow all origins to be allowed - therefore we need to
+        // compile into a pattern that matches all origins
+        originPattern = Pattern.compile(".*");
+      } else {
+        // escape the origin input before compiling as we want to literally match the input string
+        originPattern = Pattern.compile(Pattern.quote(allowedOrigin));
+      }
+
+      return this.addAllowedOrigin(originPattern);
     }
 
     public @NonNull Builder addAllowedOrigin(@NonNull Pattern allowedOrigin) {

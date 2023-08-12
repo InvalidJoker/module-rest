@@ -1,13 +1,13 @@
 package eu.cloudnetservice.ext.rest.http.cors;
 
 import com.google.common.base.Splitter;
-import eu.cloudnetservice.ext.rest.http.HttpChannel;
 import eu.cloudnetservice.ext.rest.http.HttpContext;
 import eu.cloudnetservice.ext.rest.http.HttpRequest;
 import eu.cloudnetservice.ext.rest.http.HttpResponse;
 import eu.cloudnetservice.ext.rest.http.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.http.config.CorsConfig;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
+import eu.cloudnetservice.ext.rest.http.connection.BasicHttpConnectionInfo;
 import io.netty5.handler.codec.http.HttpHeaderNames;
 import io.netty5.handler.codec.http.HttpMethod;
 import java.net.URI;
@@ -55,7 +55,7 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
     @Nullable HttpHandlerConfig httpHandlerConfig
   ) {
     // check if the request needs CORS information
-    var crossOrigin = this.extractCrossOrigin(context.channel(), context.request());
+    var crossOrigin = this.extractCrossOrigin(context.request(), context.connectionInfo());
     if (crossOrigin == null) {
       return;
     }
@@ -81,12 +81,12 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
   @Override
   public boolean processNormalRequest(@NonNull HttpContext context, @NonNull HttpHandlerConfig httpHandlerConfig) {
     // check if the request needs CORS information
-    var crossOrigin = this.extractCrossOrigin(context.channel(), context.request());
+    var crossOrigin = this.extractCrossOrigin(context.request(), context.connectionInfo());
     if (crossOrigin == null) {
       return true;
     }
 
-    // check if a corsConfig corsConfig is present for the handler
+    // check if a cors config is present for the handler
     var corsConfig = httpHandlerConfig.corsConfig();
     if (corsConfig == null) {
       return true;
@@ -195,7 +195,10 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
     response.body("Provided information does not match CORS rules");
   }
 
-  private @Nullable String extractCrossOrigin(@NonNull HttpChannel channel, @NonNull HttpRequest request) {
+  private @Nullable String extractCrossOrigin(
+    @NonNull HttpRequest request,
+    @NonNull BasicHttpConnectionInfo connectionInfo
+  ) {
     // check if the origin header is present
     var origin = request.header(HttpHeaderNames.ORIGIN.toString());
     if (origin == null) {
@@ -206,12 +209,12 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
     var parsedOrigin = URI.create(origin);
     var originScheme = parsedOrigin.getScheme();
     var originHost = parsedOrigin.getHost();
-    var originPort = parsedOrigin.getPort();
+    var originPort = this.portOrDefault(originScheme, parsedOrigin.getPort());
 
     // get the service information
-    var serverScheme = channel.scheme();
-    var serverHost = channel.serverAddress().host();
-    var serverPort = channel.serverAddress().port();
+    var serverScheme = connectionInfo.scheme();
+    var serverHost = connectionInfo.hostAddress().host();
+    var serverPort = connectionInfo.hostAddress().port();
 
     if (Objects.equals(originScheme, serverScheme)
       && Objects.equals(originHost, serverHost)
@@ -222,5 +225,16 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
       // request is from a different origin
       return origin;
     }
+  }
+
+  private int portOrDefault(@NonNull String scheme, int port) {
+    if (port == -1) {
+      if (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("ws")) {
+        port = 80;
+      } else {
+        port = 443;
+      }
+    }
+    return port;
   }
 }

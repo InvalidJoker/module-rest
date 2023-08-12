@@ -218,8 +218,7 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
             .maxAge(corsAnnotation.maxAge() < 1 ? null : Duration.ofSeconds(corsAnnotation.maxAge()));
 
           // build the actual corsConfig and
-          var globalCorsConfig = this.httpComponent().componentConfig().corsConfig();
-          configBuilder.corsConfiguration(corsConfig.build().combine(globalCorsConfig));
+          configBuilder.corsConfiguration(corsConfig.build());
         }
 
         // add the processors to the corsConfig

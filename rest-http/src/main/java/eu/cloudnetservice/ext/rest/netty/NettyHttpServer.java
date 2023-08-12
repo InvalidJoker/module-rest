@@ -229,8 +229,10 @@ public class NettyHttpServer extends NettySslServer implements HttpServer {
       throw new IllegalStateException("Detected duplicate http handler for path \"%s\"");
     }
 
-    // register the http handler to the node
-    lastSeenTreeNode.pathNode().registerHttpHandler(handler, config);
+    // construct the final handler config & register the http handler
+    var mergedCorsConfig = this.componentConfig.corsConfig().combine(config.corsConfig());
+    var handlerConfig = HttpHandlerConfig.builder(config).corsConfiguration(mergedCorsConfig).build();
+    lastSeenTreeNode.pathNode().registerHttpHandler(handler, handlerConfig);
 
     return this;
   }
