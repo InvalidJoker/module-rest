@@ -36,7 +36,7 @@ public final class PlainTextResponse extends DefaultResponse<String> {
   }
 
   @Override
-  public Response.@NonNull Builder<String, ?> intoResponseBuilder() {
+  public @NonNull Response.Builder<String, ?> intoResponseBuilder() {
     return PlainTextResponse.builder(this);
   }
 
