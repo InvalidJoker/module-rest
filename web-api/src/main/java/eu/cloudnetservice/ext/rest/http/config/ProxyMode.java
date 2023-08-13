@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.rest.netty;
+package eu.cloudnetservice.ext.rest.http.config;
 
-import io.netty5.buffer.Buffer;
-import io.netty5.channel.ChannelHandlerContext;
-import io.netty5.handler.codec.ByteToMessageDecoder;
-
-final class NettyHAProxyDetectionHandler extends ByteToMessageDecoder {
-
-  @Override
-  protected void decode(ChannelHandlerContext ctx, Buffer in) throws Exception {
-
-  }
+public enum ProxyMode {
+  ENABLED,
+  DISABLED,
+  AUTO_DETECT
 }

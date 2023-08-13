@@ -39,6 +39,7 @@ import io.netty5.handler.codec.http.HttpResponseStatus;
 import io.netty5.handler.codec.http.HttpUtil;
 import io.netty5.handler.stream.ChunkedStream;
 import io.netty5.handler.timeout.ReadTimeoutException;
+import io.netty5.util.AttributeKey;
 import io.netty5.util.concurrent.Future;
 import java.io.IOException;
 import java.net.URI;
@@ -55,6 +56,8 @@ import org.jetbrains.annotations.Nullable;
  */
 @ApiStatus.Internal
 final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpRequest> {
+
+  public static final AttributeKey<HostAndPort> PROXY_REMOTE_ADDRESS_KEY = AttributeKey.valueOf("PROXY_REMOTE_ADDRESS");
 
   private static final Logger LOGGER = LogManager.logger(NettyHttpServerHandler.class);
 
@@ -76,18 +79,6 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
     this.corsRequestProcessor = new DefaultCorsRequestProcessor();
     this.nettyHttpServer = nettyHttpServer;
     this.connectedAddress = connectedAddress;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void channelActive(@NonNull ChannelHandlerContext ctx) {
-    this.channel = new NettyHttpChannel(
-      ctx.channel(),
-      this.nettyHttpServer.sslEnabled() ? "https" : "http",
-      this.connectedAddress,
-      HostAndPort.fromSocketAddress(ctx.channel().remoteAddress()));
   }
 
   /**
@@ -149,6 +140,19 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
         .writeAndFlush(new DefaultHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.BAD_REQUEST))
         .addListener(channel, ChannelFutureListeners.CLOSE);
       return;
+    }
+
+    // check if the HttpChannel for this channel wasn't constructed yet - do that if needed now
+    if (this.channel == null) {
+      // get the client address of the channel - either from some proxy info or from the supplied client address
+      var clientAddress = channel.attr(PROXY_REMOTE_ADDRESS_KEY).getAndSet(null);
+      if (clientAddress == null) {
+        clientAddress = HostAndPort.fromSocketAddress(channel.remoteAddress());
+      }
+
+      // get the request scheme and construct the channel info
+      var requestScheme = this.nettyHttpServer.sslEnabled() ? "https" : "http";
+      this.channel = new NettyHttpChannel(channel, requestScheme, this.connectedAddress, clientAddress);
     }
 
     // build the handling context
