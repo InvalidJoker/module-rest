@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+package eu.cloudnetservice.ext.rest.http.tree;
 
-rootProject.name = "modules-rest"
+import eu.cloudnetservice.ext.rest.http.HttpHandler;
+import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
+import lombok.NonNull;
 
-include("web-api")
-include("cloudnet-rest-module")
+public record HttpHandlerConfigPair(@NonNull HttpHandler httpHandler, @NonNull HttpHandlerConfig config) {
+
+}

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+dependencies {
+  compileOnly("eu.cloudnetservice.cloudnet:driver:4.0.0-RC9")
 
-rootProject.name = "modules-rest"
-
-include("web-api")
-include("cloudnet-rest-module")
+  implementation("com.google.guava:guava:32.1.2-jre")
+  implementation("io.netty:netty5-codec-http:5.0.0.Alpha5")
+  implementation("io.netty.contrib:netty-codec-haproxy:5.0.0.Alpha2")
+}

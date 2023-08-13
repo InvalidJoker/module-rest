@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+plugins {
+  id("eu.cloudnetservice.juppiter") version "0.2.0"
+}
 
-rootProject.name = "modules-rest"
+dependencies {
+  api(projects.webApi)
+  compileOnlyApi("eu.cloudnetservice.cloudnet:node:4.0.0-RC9")
+}
 
-include("web-api")
-include("cloudnet-rest-module")
+moduleJson {
+  main = "eu.cloudnetservice.ext.rest.CloudNetRestModule"
+  name = "CloudNet-Rest2"
+  version = "1.0"
+  author = "CloudNetService"
+}

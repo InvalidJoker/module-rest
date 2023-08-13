@@ -14,10 +14,22 @@
  * limitations under the License.
  */
 
-enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+package eu.cloudnetservice.ext.rest.http.annotation;
 
-rootProject.name = "modules-rest"
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-include("web-api")
-include("cloudnet-rest-module")
+/**
+ * Requests the injection of the full http request path to which the associated request was sent.
+ *
+ * @since 4.0
+ */
+@Documented
+@Target(ElementType.PARAMETER)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface RequestPath {
+
+}

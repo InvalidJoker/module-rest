@@ -1,25 +1,88 @@
+import com.diffplug.gradle.spotless.SpotlessExtension
+
+/*
+ * Copyright 2019-2023 CloudNetService team & contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 plugins {
-    id("java")
-    id("eu.cloudnetservice.juppiter") version "0.2.0"
+  id("com.diffplug.spotless") version "6.20.0" apply false
+  id("io.github.gradle-nexus.publish-plugin") version "2.0.0-rc-1"
 }
 
-group = "eu.cloudnetservice.cloudnet"
-version = "1.0-SNAPSHOT"
+allprojects {
+  version = "1.0-SNAPSHOT"
+  group = "eu.cloudnetservice.ext"
 
-repositories {
+  apply(plugin = "signing")
+  apply(plugin = "checkstyle")
+  apply(plugin = "java-library")
+  apply(plugin = "maven-publish")
+  apply(plugin = "com.diffplug.spotless")
+
+  repositories {
     mavenCentral()
+  }
 
-    maven("https://repository.derklaro.dev/releases/")
-    maven("https://repository.derklaro.dev/snapshots/")
-}
+  dependencies {
+    "compileOnly"("org.jetbrains:annotations:24.0.1")
+    "compileOnly"("org.projectlombok:lombok:1.18.28")
+    "annotationProcessor"("org.projectlombok:lombok:1.18.28")
+  }
 
-dependencies {
-    compileOnly("eu.cloudnetservice.cloudnet:node:4.0.0-RC9")
-}
+  configurations.all {
+    // unsure why but every project loves them, and they literally have an import for every letter I type - beware
+    exclude("org.checkerframework", "checker-qual")
+  }
 
-moduleJson {
-    main = "eu.cloudnetservice.cloudnet.rest.CloudNetRestModule"
-    name = "CloudNet-Rest2"
-    version = "1.0"
-    author = "CloudNetService"
+  tasks.withType<Jar> {
+    from(rootProject.file("LICENSE"))
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+  }
+
+  tasks.withType<Test> {
+    useJUnitPlatform()
+    testLogging {
+      events("started", "passed", "skipped", "failed")
+    }
+    // always pass down all given system properties
+    systemProperties(System.getProperties().mapKeys { it.key.toString() })
+  }
+
+  tasks.withType<JavaCompile>().configureEach {
+    sourceCompatibility = JavaVersion.VERSION_17.toString()
+    targetCompatibility = JavaVersion.VERSION_17.toString()
+    // options
+    options.encoding = "UTF-8"
+    options.isIncremental = true
+    // we are aware that those are there, but we only do that if there is no other way we can use - so please keep the terminal clean!
+    options.compilerArgs = mutableListOf("-Xlint:-deprecation,-unchecked")
+  }
+
+  tasks.withType<Checkstyle> {
+    maxErrors = 0
+    maxWarnings = 0
+    configFile = rootProject.file("checkstyle.xml")
+  }
+
+  extensions.configure<CheckstyleExtension> {
+    toolVersion = "10.12.2"
+  }
+
+  extensions.configure<SpotlessExtension> {
+    java {
+      licenseHeaderFile(rootProject.file("LICENSE_HEADER"))
+    }
+  }
 }

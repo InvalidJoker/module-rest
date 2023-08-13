@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+package eu.cloudnetservice.ext.rest.netty;
 
-rootProject.name = "modules-rest"
+import io.netty5.buffer.Buffer;
+import io.netty5.channel.ChannelHandlerContext;
+import io.netty5.handler.codec.ByteToMessageDecoder;
 
-include("web-api")
-include("cloudnet-rest-module")
+final class NettyHAProxyDetectionHandler extends ByteToMessageDecoder {
+
+  @Override
+  protected void decode(ChannelHandlerContext ctx, Buffer in) throws Exception {
+
+  }
+}

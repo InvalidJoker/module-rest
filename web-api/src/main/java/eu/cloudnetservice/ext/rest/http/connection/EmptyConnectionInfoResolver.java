@@ -14,10 +14,23 @@
  * limitations under the License.
  */
 
-enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+package eu.cloudnetservice.ext.rest.http.connection;
 
-rootProject.name = "modules-rest"
+import eu.cloudnetservice.ext.rest.http.HttpContext;
+import lombok.NonNull;
 
-include("web-api")
-include("cloudnet-rest-module")
+public final class EmptyConnectionInfoResolver implements HttpConnectionInfoResolver {
+
+  public static final HttpConnectionInfoResolver INSTANCE = new EmptyConnectionInfoResolver();
+
+  private EmptyConnectionInfoResolver() {
+  }
+
+  @Override
+  public @NonNull BasicHttpConnectionInfo extractConnectionInfo(
+    @NonNull HttpContext context,
+    @NonNull BasicHttpConnectionInfo baseInfo
+  ) {
+    return baseInfo;
+  }
+}

@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+package eu.cloudnetservice.ext.rest.http.cors;
 
-rootProject.name = "modules-rest"
+import java.util.List;
+import lombok.NonNull;
 
-include("web-api")
-include("cloudnet-rest-module")
+public record CorsPreflightRequestInfo(
+  @NonNull String origin,
+  @NonNull String requestMethod,
+  @NonNull List<String> requestHeaders
+) {
+
+}
