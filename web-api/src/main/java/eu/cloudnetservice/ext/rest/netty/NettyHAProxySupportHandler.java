@@ -16,7 +16,7 @@
 
 package eu.cloudnetservice.ext.rest.netty;
 
-import eu.cloudnetservice.ext.rest.http.config.ProxyMode;
+import eu.cloudnetservice.ext.rest.http.config.HttpProxyMode;
 import io.netty.contrib.handler.codec.haproxy.HAProxyMessageDecoder;
 import io.netty5.buffer.Buffer;
 import io.netty5.channel.ChannelHandlerContext;
@@ -26,9 +26,9 @@ import lombok.NonNull;
 
 final class NettyHAProxySupportHandler extends ByteToMessageDecoder {
 
-  private final ProxyMode mode;
+  private final HttpProxyMode mode;
 
-  public NettyHAProxySupportHandler(@NonNull ProxyMode mode) {
+  public NettyHAProxySupportHandler(@NonNull HttpProxyMode mode) {
     this.mode = mode;
   }
 

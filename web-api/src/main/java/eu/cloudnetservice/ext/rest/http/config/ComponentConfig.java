@@ -22,6 +22,7 @@ import lombok.NonNull;
 
 public record ComponentConfig(
   @NonNull CorsConfig corsConfig,
+  @NonNull HttpProxyMode haProxyMode,
   @NonNull HttpConnectionInfoResolver connectionInfoResolver
 ) {
 
@@ -35,8 +36,14 @@ public record ComponentConfig(
 
   public static final class Builder {
 
+    private HttpProxyMode haProxyMode = HttpProxyMode.DISABLED;
     private CorsConfig.Builder corsConfigBuilder = CorsConfig.builder();
     private HttpConnectionInfoResolver connectionInfoResolver = EmptyConnectionInfoResolver.INSTANCE;
+
+    public @NonNull Builder haProxyMode(@NonNull HttpProxyMode haProxyMode) {
+      this.haProxyMode = haProxyMode;
+      return this;
+    }
 
     public @NonNull Builder corsConfig(@NonNull CorsConfig corsConfig) {
       this.corsConfigBuilder = CorsConfig.builder(corsConfig);
@@ -59,7 +66,7 @@ public record ComponentConfig(
     }
 
     public @NonNull ComponentConfig build() {
-      return new ComponentConfig(this.corsConfigBuilder.build(), this.connectionInfoResolver);
+      return new ComponentConfig(this.corsConfigBuilder.build(), this.haProxyMode, this.connectionInfoResolver);
     }
   }
 }

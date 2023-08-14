@@ -16,7 +16,7 @@
 
 package eu.cloudnetservice.ext.rest.http.config;
 
-public enum ProxyMode {
+public enum HttpProxyMode {
   ENABLED,
   DISABLED,
   AUTO_DETECT

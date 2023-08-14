@@ -17,6 +17,7 @@
 package eu.cloudnetservice.ext.rest.netty;
 
 import eu.cloudnetservice.driver.network.HostAndPort;
+import eu.cloudnetservice.ext.rest.http.config.HttpProxyMode;
 import io.netty5.channel.Channel;
 import io.netty5.channel.ChannelInitializer;
 import io.netty5.handler.codec.http.HttpContentCompressor;
@@ -55,6 +56,15 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
    */
   @Override
   protected void initChannel(@NonNull Channel ch) {
+    var componentConfig = this.nettyHttpServer.componentConfig();
+
+    // add the HA proxy handler, if needed
+    var haProxyMode = componentConfig.haProxyMode();
+    if (haProxyMode != HttpProxyMode.DISABLED) {
+      ch.pipeline().addLast("ha-proxy-bridge", new NettyHAProxySupportHandler(haProxyMode));
+    }
+
+    // add the ssl handler if needed
     if (this.nettyHttpServer.sslContext != null) {
       ch.pipeline().addLast("ssl-handler", this.nettyHttpServer.sslContext.newHandler(ch.bufferAllocator()));
     }
