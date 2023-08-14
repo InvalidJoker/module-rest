@@ -16,8 +16,6 @@
 
 package eu.cloudnetservice.ext.rest.netty;
 
-import eu.cloudnetservice.common.log.LogManager;
-import eu.cloudnetservice.common.log.Logger;
 import eu.cloudnetservice.ext.rest.http.websocket.WebSocketFrameType;
 import io.netty5.channel.ChannelHandlerContext;
 import io.netty5.channel.SimpleChannelInboundHandler;
@@ -30,6 +28,8 @@ import io.netty5.handler.codec.http.websocketx.WebSocketFrame;
 import java.io.IOException;
 import lombok.NonNull;
 import org.jetbrains.annotations.ApiStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The default netty based handler for web socket messages.
@@ -39,7 +39,7 @@ import org.jetbrains.annotations.ApiStatus;
 @ApiStatus.Internal
 final class NettyWebSocketServerChannelHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
 
-  private static final Logger LOGGER = LogManager.logger(NettyWebSocketServerChannelHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(NettyWebSocketServerChannelHandler.class);
 
   private final NettyWebSocketServerChannel webSocketServerChannel;
 
@@ -59,7 +59,7 @@ final class NettyWebSocketServerChannelHandler extends SimpleChannelInboundHandl
   @Override
   public void channelExceptionCaught(@NonNull ChannelHandlerContext ctx, @NonNull Throwable cause) {
     if (!(cause instanceof IOException)) {
-      LOGGER.severe("Exception was caught", cause);
+      LOGGER.error("Caught exception in websocket connection", cause);
     }
   }
 
@@ -120,7 +120,7 @@ final class NettyWebSocketServerChannelHandler extends SimpleChannelInboundHandl
       try {
         listener.handle(this.webSocketServerChannel, type, bytes);
       } catch (Exception exception) {
-        LOGGER.severe("Exception while invoking handle", exception);
+        LOGGER.error("Exception while invoking handle", exception);
       }
     }
   }

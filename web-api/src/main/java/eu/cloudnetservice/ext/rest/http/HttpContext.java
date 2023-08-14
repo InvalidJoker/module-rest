@@ -16,10 +16,10 @@
 
 package eu.cloudnetservice.ext.rest.http;
 
-import eu.cloudnetservice.common.concurrent.Task;
 import eu.cloudnetservice.ext.rest.http.connection.BasicHttpConnectionInfo;
 import eu.cloudnetservice.ext.rest.http.websocket.WebSocketChannel;
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,7 +54,7 @@ public interface HttpContext {
    *
    * @return a task completed with the upgraded web socket channel or an exception if the upgrade was not possible.
    */
-  @NonNull Task<WebSocketChannel> upgrade();
+  @NonNull CompletableFuture<WebSocketChannel> upgrade();
 
   /**
    * Get the web socket channel to which this request was upgraded. If the request was not upgraded, or the upgrade was

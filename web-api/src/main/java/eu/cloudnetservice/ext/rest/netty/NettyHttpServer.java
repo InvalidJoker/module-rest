@@ -16,34 +16,37 @@
 
 package eu.cloudnetservice.ext.rest.netty;
 
-import eu.cloudnetservice.common.concurrent.Task;
-import eu.cloudnetservice.common.log.LogManager;
-import eu.cloudnetservice.common.log.Logger;
-import eu.cloudnetservice.driver.network.HostAndPort;
-import eu.cloudnetservice.driver.network.netty.NettySslServer;
-import eu.cloudnetservice.driver.network.netty.NettyUtil;
-import eu.cloudnetservice.driver.network.ssl.SSLConfiguration;
 import eu.cloudnetservice.ext.rest.http.HttpHandler;
 import eu.cloudnetservice.ext.rest.http.HttpServer;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.DefaultHttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.HttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.http.config.ComponentConfig;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
+import eu.cloudnetservice.ext.rest.http.config.SslConfiguration;
 import eu.cloudnetservice.ext.rest.http.tree.DefaultHttpHandlerTree;
 import eu.cloudnetservice.ext.rest.http.tree.DynamicHttpPathNode;
 import eu.cloudnetservice.ext.rest.http.tree.HttpHandlerTree;
 import eu.cloudnetservice.ext.rest.http.tree.HttpPathNode;
 import eu.cloudnetservice.ext.rest.http.tree.StaticHttpPathNode;
 import eu.cloudnetservice.ext.rest.http.tree.WildcardPathNode;
+import eu.cloudnetservice.ext.rest.http.util.HostAndPort;
 import io.netty5.bootstrap.ServerBootstrap;
 import io.netty5.channel.ChannelOption;
 import io.netty5.channel.EventLoopGroup;
+import io.netty5.handler.ssl.IdentityCipherSuiteFilter;
+import io.netty5.handler.ssl.OpenSsl;
+import io.netty5.handler.ssl.SslContext;
+import io.netty5.handler.ssl.SslContextBuilder;
+import io.netty5.handler.ssl.SslProvider;
 import io.netty5.util.concurrent.Future;
-import jakarta.inject.Singleton;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import lombok.NonNull;
@@ -54,44 +57,60 @@ import org.jetbrains.annotations.Nullable;
  *
  * @since 4.0
  */
-@Singleton
-public class NettyHttpServer extends NettySslServer implements HttpServer {
+public final class NettyHttpServer implements HttpServer {
 
-  private static final Logger LOGGER = LogManager.logger(NettyHttpServer.class);
   private static final Predicate<HttpHandlerTree<HttpPathNode>> DYNAMIC_NODE_FILTER =
     node -> node.pathNode() instanceof DynamicHttpPathNode;
 
-  protected final ComponentConfig componentConfig;
-  protected final DefaultHttpHandlerTree handlerTree = DefaultHttpHandlerTree.newTree();
-  protected final Map<HostAndPort, Future<Void>> channelFutures = new ConcurrentHashMap<>();
+  private final SslContext sslContext;
+  private final ComponentConfig componentConfig;
 
-  protected final EventLoopGroup bossGroup = NettyUtil.newEventLoopGroup(1);
-  protected final EventLoopGroup workerGroup = NettyUtil.newEventLoopGroup(0);
+  private final DefaultHttpHandlerTree handlerTree = DefaultHttpHandlerTree.newTree();
+  private final Map<HostAndPort, Future<Void>> channelFutures = new ConcurrentHashMap<>();
 
-  protected final HttpAnnotationParser<HttpServer> annotationParser;
+  private final NettyTransportType transportType;
+  private final EventLoopGroup bossEventLoopGroup;
+  private final EventLoopGroup workerEventLoopGroup;
 
-  /**
-   * Constructs a new instance of a netty http server instance. Equivalent to {@code new NettyHttpServer(null)}.
-   */
-  public NettyHttpServer(@NonNull ComponentConfig config) {
-    this(null, config);
-  }
+  private final HttpAnnotationParser<HttpServer> annotationParser;
 
   /**
    * Constructs a new netty http server instance with the given ssl configuration.
    *
-   * @param sslConfiguration the ssl configuration to use, null for no ssl.
+   * @param componentConfig the component configuration to use for the http server.
+   * @throws NullPointerException     if the given configuration is null.
+   * @throws IllegalArgumentException if ssl is enabled but cannot be initialized.
    */
-  public NettyHttpServer(@Nullable SSLConfiguration sslConfiguration, @NonNull ComponentConfig componentConfig) {
-    super(sslConfiguration);
-
+  public NettyHttpServer(@NonNull ComponentConfig componentConfig) {
     this.componentConfig = componentConfig;
     this.annotationParser = DefaultHttpAnnotationParser.withDefaultProcessors(this);
 
-    try {
-      this.init();
-    } catch (Exception exception) {
-      LOGGER.severe("Exception initializing web server", exception);
+    // init ssl
+    this.sslContext = initSslContext(componentConfig.sslConfiguration());
+
+    // select the available netty transport & create new a new event loop group with them
+    this.transportType = NettyTransportType.availableTransport(componentConfig.disableNativeTransport());
+    this.bossEventLoopGroup = this.transportType.createEventLoopGroup(1);
+    this.workerEventLoopGroup = this.transportType.createEventLoopGroup(0);
+  }
+
+  private static @Nullable SslContext initSslContext(@Nullable SslConfiguration sslConfiguration) {
+    if (sslConfiguration == null) {
+      // ssl is disabled, nothing to do
+      return null;
+    } else {
+      try (
+        var keyStream = Files.newInputStream(sslConfiguration.keyPath(), StandardOpenOption.READ);
+        var keyCertStream = Files.newInputStream(sslConfiguration.keyCertPath(), StandardOpenOption.READ)
+      ) {
+        return SslContextBuilder.forServer(keyCertStream, keyStream, sslConfiguration.keyPassword())
+          .applicationProtocolConfig(null)
+          .ciphers(null, IdentityCipherSuiteFilter.INSTANCE)
+          .sslProvider(OpenSsl.isAvailable() ? SslProvider.OPENSSL : SslProvider.JDK)
+          .build();
+      } catch (IOException exception) {
+        throw new IllegalArgumentException("Unable to construct server SSL context", exception);
+      }
     }
   }
 
@@ -123,7 +142,7 @@ public class NettyHttpServer extends NettySslServer implements HttpServer {
    * {@inheritDoc}
    */
   @Override
-  public @NonNull Task<Void> addListener(int port) {
+  public @NonNull CompletableFuture<Void> addListener(int port) {
     return this.addListener(new HostAndPort("0.0.0.0", port));
   }
 
@@ -131,12 +150,12 @@ public class NettyHttpServer extends NettySslServer implements HttpServer {
    * {@inheritDoc}
    */
   @Override
-  public @NonNull Task<Void> addListener(@NonNull HostAndPort hostAndPort) {
-    Task<Void> result = new Task<>();
+  public @NonNull CompletableFuture<Void> addListener(@NonNull HostAndPort hostAndPort) {
+    CompletableFuture<Void> result = new CompletableFuture<>();
     new ServerBootstrap()
-      .group(this.bossGroup, this.workerGroup)
-      .channelFactory(NettyUtil.serverChannelFactory())
-      .childHandler(new NettyHttpServerInitializer(this, hostAndPort))
+      .group(this.bossEventLoopGroup, this.workerEventLoopGroup)
+      .channelFactory(this.transportType.serverChannelFactory())
+      .childHandler(new NettyHttpServerInitializer(this.sslContext, hostAndPort, this))
 
       .childOption(ChannelOption.AUTO_READ, true)
       .childOption(ChannelOption.TCP_NODELAY, true)
@@ -304,8 +323,8 @@ public class NettyHttpServer extends NettySslServer implements HttpServer {
       entry.cancel();
     }
 
-    this.bossGroup.shutdownGracefully();
-    this.workerGroup.shutdownGracefully();
+    this.bossEventLoopGroup.shutdownGracefully();
+    this.workerEventLoopGroup.shutdownGracefully();
     this.clearHandlers();
   }
 }

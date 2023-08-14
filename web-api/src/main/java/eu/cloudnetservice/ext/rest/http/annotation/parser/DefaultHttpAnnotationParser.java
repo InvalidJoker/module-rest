@@ -17,9 +17,6 @@
 package eu.cloudnetservice.ext.rest.http.annotation.parser;
 
 import com.google.common.collect.Iterables;
-import eu.cloudnetservice.driver.document.Document;
-import eu.cloudnetservice.driver.document.DocumentFactory;
-import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.ext.rest.http.HttpComponent;
 import eu.cloudnetservice.ext.rest.http.HttpContext;
 import eu.cloudnetservice.ext.rest.http.HttpHandler;
@@ -39,8 +36,12 @@ import eu.cloudnetservice.ext.rest.http.config.HttpHandlerInterceptor;
 import eu.cloudnetservice.ext.rest.http.response.Response;
 import io.netty5.handler.codec.http.HttpHeaderNames;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
@@ -174,8 +175,10 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
    */
   @Override
   public @NonNull HttpAnnotationParser<T> parseAndRegister(@NonNull Class<?> handlerClass) {
-    var injectionLayer = InjectionLayer.findLayerOf(handlerClass);
-    return this.parseAndRegister(injectionLayer.instance(handlerClass));
+    //var injectionLayer = InjectionLayer.findLayerOf(handlerClass);
+    //return this.parseAndRegister(injectionLayer.instance(handlerClass));
+    // TODO: can/should we support this here?
+    return null;
   }
 
   /**
@@ -199,8 +202,8 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
           method.setAccessible(true);
         }
 
-        var configBuilder = HttpHandlerConfig.builder();
         // set the supported request method of the handler
+        var configBuilder = HttpHandlerConfig.builder();
         configBuilder.httpMethod(handlerAnnotation.method());
 
         // check if corsConfig settings were supplied and apply them
@@ -299,27 +302,21 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
         method,
         RequestBody.class,
         (param, annotation) -> (context) -> {
-          // match the type of the parameter in order to inject the correct value
           if (String.class.isAssignableFrom(param.getType())) {
             return context.request().bodyAsString();
-          }
-
-          if (byte[].class.isAssignableFrom(param.getType())) {
+          } else if (byte[].class.isAssignableFrom(param.getType())) {
             return context.request().body();
-          }
-
-          if (InputStream.class.isAssignableFrom(param.getType())) {
+          } else if (ByteBuffer.class.isAssignableFrom(param.getType())) {
+            return ByteBuffer.wrap(context.request().body());
+          } else if (InputStream.class.isAssignableFrom(param.getType())) {
             return context.request().bodyStream();
+          } else if (Reader.class.isAssignableFrom(param.getType())) {
+            return new InputStreamReader(context.request().bodyStream(), StandardCharsets.UTF_8);
+          } else {
+            throw new AnnotationHttpHandleException(
+              context.request(),
+              "Unable to inject body of type " + param.getType().getName());
           }
-
-          if (Document.class.isAssignableFrom(param.getType())) {
-            return DocumentFactory.json().parse(context.request().bodyStream());
-          }
-
-          // unable to handle the type
-          throw new AnnotationHttpHandleException(
-            context.request(),
-            "Unable to inject body of type " + param.getType().getName());
         });
       return new HttpHandlerInterceptor() {
         @Override

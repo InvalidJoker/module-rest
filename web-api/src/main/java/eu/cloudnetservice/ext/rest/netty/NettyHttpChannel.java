@@ -16,8 +16,8 @@
 
 package eu.cloudnetservice.ext.rest.netty;
 
-import eu.cloudnetservice.driver.network.HostAndPort;
 import eu.cloudnetservice.ext.rest.http.HttpChannel;
+import eu.cloudnetservice.ext.rest.http.util.HostAndPort;
 import io.netty5.channel.Channel;
 import lombok.NonNull;
 

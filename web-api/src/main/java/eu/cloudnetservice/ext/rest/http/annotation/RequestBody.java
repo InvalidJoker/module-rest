@@ -23,11 +23,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Injects the request body into the annotated parameter. The type of the parameter must be one of: {@code String},
- * {@code byte[]}, {@code InputStream} or {@code JsonDocument}. Json documents will be decoded by reading the request
- * body from the input stream.
+ * Injects the request body into the annotated parameter. The type of the parameter must be one of:
+ * <ul>
+ *   <li>{@code byte[]}
+ *   <li>{@link String}
+ *   <li>{@link java.nio.ByteBuffer}
+ *   <li>{@link java.io.InputStream}
+ *   <li>{@link java.io.Reader}
+ * </ul>
  *
- * @since 4.0
+ * @since 1.0
  */
 @Documented
 @Target(ElementType.PARAMETER)

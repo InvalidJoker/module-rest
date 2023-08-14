@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-dependencies {
-  compileOnly(libs.slf4j)
-  implementation(libs.guava)
-  implementation(libs.reflexion)
-  implementation(libs.nettyHandler)
-  implementation(libs.nettyCodecHttp)
-  implementation(libs.nettyContribHaProxy)
+package eu.cloudnetservice.ext.rest.http.config;
 
-  // transports
-  implementation(libs.nettyNativeEpoll)
-  implementation(libs.nettyNativeKqueue)
-  implementation(libs.nettyNativeIoUring)
+import java.nio.file.Path;
+import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
+
+public record SslConfiguration(
+  @NonNull Path keyPath,
+  @NonNull Path keyCertPath,
+  @Nullable String keyPassword
+) {
+
 }

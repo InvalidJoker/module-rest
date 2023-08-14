@@ -16,8 +16,8 @@
 
 package eu.cloudnetservice.ext.rest.http;
 
-import eu.cloudnetservice.common.concurrent.Task;
-import eu.cloudnetservice.driver.network.HostAndPort;
+import eu.cloudnetservice.ext.rest.http.util.HostAndPort;
+import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
 
 /**
@@ -35,7 +35,7 @@ public interface HttpServer extends HttpComponent<HttpServer> {
    * @return a future completed exceptionally if the bind fails, normally if the bind succeeded.
    * @throws IllegalArgumentException if the given port exceeds the port range.
    */
-  @NonNull Task<Void> addListener(int port);
+  @NonNull CompletableFuture<Void> addListener(int port);
 
   /**
    * Binds this network server to the given host and port if no listener is already listening on the given address.
@@ -44,5 +44,5 @@ public interface HttpServer extends HttpComponent<HttpServer> {
    * @return a future completed exceptionally if the bind fails, normally if the bind succeeded.
    * @throws NullPointerException if the given host and port is null.
    */
-  @NonNull Task<Void> addListener(@NonNull HostAndPort hostAndPort);
+  @NonNull CompletableFuture<Void> addListener(@NonNull HostAndPort hostAndPort);
 }

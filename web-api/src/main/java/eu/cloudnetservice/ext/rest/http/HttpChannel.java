@@ -16,7 +16,7 @@
 
 package eu.cloudnetservice.ext.rest.http;
 
-import eu.cloudnetservice.driver.network.HostAndPort;
+import eu.cloudnetservice.ext.rest.http.util.HostAndPort;
 import lombok.NonNull;
 
 /**

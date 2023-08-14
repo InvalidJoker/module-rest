@@ -16,7 +16,7 @@
 
 package eu.cloudnetservice.ext.rest.netty;
 
-import eu.cloudnetservice.driver.network.HostAndPort;
+import eu.cloudnetservice.ext.rest.http.util.HostAndPort;
 import io.netty.contrib.handler.codec.haproxy.HAProxyMessage;
 import io.netty5.channel.ChannelHandler;
 import io.netty5.channel.ChannelHandlerContext;

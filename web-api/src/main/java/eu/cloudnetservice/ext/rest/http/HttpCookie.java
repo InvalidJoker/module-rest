@@ -16,7 +16,6 @@
 
 package eu.cloudnetservice.ext.rest.http;
 
-import eu.cloudnetservice.common.Named;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
@@ -31,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
  */
 @ToString
 @EqualsAndHashCode
-public class HttpCookie implements Named {
+public class HttpCookie {
 
   protected final String name;
   protected final String value;
@@ -115,7 +114,6 @@ public class HttpCookie implements Named {
    *
    * @return the name of this cookie.
    */
-  @Override
   public @NonNull String name() {
     return this.name;
   }

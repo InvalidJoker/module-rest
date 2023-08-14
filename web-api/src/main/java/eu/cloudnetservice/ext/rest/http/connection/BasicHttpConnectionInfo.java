@@ -16,7 +16,7 @@
 
 package eu.cloudnetservice.ext.rest.http.connection;
 
-import eu.cloudnetservice.driver.network.HostAndPort;
+import eu.cloudnetservice.ext.rest.http.util.HostAndPort;
 import java.util.Locale;
 import lombok.NonNull;
 

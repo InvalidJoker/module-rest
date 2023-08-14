@@ -18,7 +18,6 @@ package eu.cloudnetservice.ext.rest.netty;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import eu.cloudnetservice.common.concurrent.Task;
 import eu.cloudnetservice.ext.rest.http.HttpChannel;
 import eu.cloudnetservice.ext.rest.http.HttpComponent;
 import eu.cloudnetservice.ext.rest.http.HttpContext;
@@ -35,6 +34,7 @@ import io.netty5.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,7 +100,7 @@ final class NettyHttpServerContext implements HttpContext {
    * {@inheritDoc}
    */
   @Override
-  public @NonNull Task<WebSocketChannel> upgrade() {
+  public @NonNull CompletableFuture<WebSocketChannel> upgrade() {
     if (this.webSocketServerChannel == null) {
       // not upgraded yet, build a new handshaker based on the given information
       var handshaker = new WebSocketServerHandshakerFactory(
@@ -117,14 +117,14 @@ final class NettyHttpServerContext implements HttpContext {
       this.cancelSendResponse = true;
       if (handshaker == null) {
         WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(this.nettyChannel);
-        return Task.completedTask(new IllegalStateException("Unsupported web socket version"));
+        return CompletableFuture.failedFuture(new IllegalStateException("Unsupported web socket version"));
       } else {
         // remove the http handler from the pipeline, gets replaced with the websocket one
         this.nettyChannel.pipeline().remove("http-server-handler");
         this.nettyChannel.pipeline().remove("read-timeout-handler");
 
         // try to greet the client
-        Task<WebSocketChannel> task = new Task<>();
+        CompletableFuture<WebSocketChannel> task = new CompletableFuture<>();
         handshaker.handshake(this.nettyChannel, this.httpRequest).addListener(future -> {
           if (future.isSuccess()) {
             // change the protocol of the http channel for wss
@@ -155,7 +155,7 @@ final class NettyHttpServerContext implements HttpContext {
         return task;
       }
     } else {
-      return Task.completedTask(this.webSocketServerChannel);
+      return CompletableFuture.completedFuture(this.webSocketServerChannel);
     }
   }
 

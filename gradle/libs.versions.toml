@@ -1,0 +1,77 @@
+[versions]
+
+# plugins
+juppiter = "0.4.0"
+spotless = "6.20.0"
+nexusPublish = "2.0.0-rc-1"
+checkstyleTools = "10.12.2"
+
+# testing
+junit = "5.10.0"
+mockito = "5.4.0"
+testcontainers = "1.18.3"
+
+# compile time processing
+lombok = "1.18.28"
+
+# runtime dependencies
+gson = "2.10.1"
+jjwt = "0.11.5"
+slf4j = "2.0.7"
+reflexion = "1.8.0"
+guava = "32.1.2-jre"
+annotations = "24.0.1"
+
+# netty stuff
+netty = "5.0.0.Alpha6-SNAPSHOT"
+nettyContribHaProxy = "5.0.0.Alpha2"
+
+
+[libraries]
+
+# compile time processing
+lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
+
+# netty
+nettyHandler = { group = "io.netty", name = "netty5-handler", version.ref = "netty" }
+nettyCodecHttp = { group = "io.netty", name = "netty5-codec-http", version.ref = "netty" }
+nettyNativeEpoll = { group = "io.netty", name = "netty5-transport-native-epoll", version.ref = "netty" }
+nettyNativeKqueue = { group = "io.netty", name = "netty5-transport-native-kqueue", version.ref = "netty" }
+nettyNativeIoUring = { group = "io.netty", name = "netty5-transport-native-io_uring", version.ref = "netty" }
+nettyContribHaProxy = { group = "io.netty.contrib", name = "netty-codec-haproxy", version.ref = "nettyContribHaProxy" }
+
+# runtime dependencies
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+
+# jjwt
+jjwtApi = { group = "io.jsonwebtoken", name = "jjwt-api", version.ref = "jjwt" }
+jjwtImpl = { group = "io.jsonwebtoken", name = "jjwt-impl", version.ref = "jjwt" }
+jjwtGson = { group = "io.jsonwebtoken", name = "jjwt-gson", version.ref = "jjwt" }
+
+# junit
+junitApi = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
+junitParams = { group = "org.junit.jupiter", name = "junit-jupiter-params", version.ref = "junit" }
+junitEngine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
+
+# general testing
+mockito = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref = "mockito" }
+
+# testcontainers
+testContainers = { group = "org.testcontainers", name = "testcontainers", version.ref = "testcontainers" }
+testContainersJunit = { group = "org.testcontainers", name = "junit-jupiter", version.ref = "testcontainers" }
+
+# general
+slf4j = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
+annotations = { group = "org.jetbrains", name = "annotations", version.ref = "annotations" }
+reflexion = { group = "dev.derklaro.reflexion", name = "reflexion", version.ref = "reflexion" }
+
+# dummy versions, just here for renovate to detect that there is something to update
+checkstyleTools = { group = "com.puppycrawl.tools", name = "checkstyle", version.ref = "checkstyleTools" }
+
+
+[plugins]
+
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+juppiter = { id = "eu.cloudnetservice.juppiter", version.ref = "juppiter" }
+nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexusPublish" }

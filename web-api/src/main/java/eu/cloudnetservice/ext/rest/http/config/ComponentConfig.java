@@ -19,10 +19,13 @@ package eu.cloudnetservice.ext.rest.http.config;
 import eu.cloudnetservice.ext.rest.http.connection.EmptyConnectionInfoResolver;
 import eu.cloudnetservice.ext.rest.http.connection.HttpConnectionInfoResolver;
 import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
 
 public record ComponentConfig(
+  boolean disableNativeTransport,
   @NonNull CorsConfig corsConfig,
   @NonNull HttpProxyMode haProxyMode,
+  @Nullable SslConfiguration sslConfiguration,
   @NonNull HttpConnectionInfoResolver connectionInfoResolver
 ) {
 
@@ -36,9 +39,21 @@ public record ComponentConfig(
 
   public static final class Builder {
 
+    private boolean disableNativeTransport;
+    private SslConfiguration sslConfiguration;
     private HttpProxyMode haProxyMode = HttpProxyMode.DISABLED;
     private CorsConfig.Builder corsConfigBuilder = CorsConfig.builder();
     private HttpConnectionInfoResolver connectionInfoResolver = EmptyConnectionInfoResolver.INSTANCE;
+
+    public @NonNull Builder disableNativeTransport() {
+      this.disableNativeTransport = true;
+      return this;
+    }
+
+    public @NonNull Builder sslConfiguration(@Nullable SslConfiguration sslConfiguration) {
+      this.sslConfiguration = sslConfiguration;
+      return this;
+    }
 
     public @NonNull Builder haProxyMode(@NonNull HttpProxyMode haProxyMode) {
       this.haProxyMode = haProxyMode;
@@ -66,7 +81,12 @@ public record ComponentConfig(
     }
 
     public @NonNull ComponentConfig build() {
-      return new ComponentConfig(this.corsConfigBuilder.build(), this.haProxyMode, this.connectionInfoResolver);
+      return new ComponentConfig(
+        this.disableNativeTransport,
+        this.corsConfigBuilder.build(),
+        this.haProxyMode,
+        this.sslConfiguration,
+        this.connectionInfoResolver);
     }
   }
 }

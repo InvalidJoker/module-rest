@@ -18,7 +18,7 @@ package eu.cloudnetservice.ext.rest.http.connection.parse;
 
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
-import eu.cloudnetservice.driver.network.HostAndPort;
+import eu.cloudnetservice.ext.rest.http.util.HostAndPort;
 import lombok.NonNull;
 
 final class AddressParseUtil {

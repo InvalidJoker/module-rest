@@ -16,15 +16,13 @@
 
 package eu.cloudnetservice.ext.rest.netty;
 
-import eu.cloudnetservice.common.log.LogManager;
-import eu.cloudnetservice.common.log.Logger;
-import eu.cloudnetservice.driver.network.HostAndPort;
 import eu.cloudnetservice.ext.rest.http.HttpContext;
 import eu.cloudnetservice.ext.rest.http.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.http.cors.CorsRequestProcessor;
 import eu.cloudnetservice.ext.rest.http.cors.DefaultCorsRequestProcessor;
 import eu.cloudnetservice.ext.rest.http.response.Response;
 import eu.cloudnetservice.ext.rest.http.tree.HttpHandlerConfigPair;
+import eu.cloudnetservice.ext.rest.http.util.HostAndPort;
 import io.netty5.channel.Channel;
 import io.netty5.channel.ChannelFutureListeners;
 import io.netty5.channel.ChannelHandlerContext;
@@ -47,6 +45,8 @@ import java.util.HashMap;
 import lombok.NonNull;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The http server handler implementation responsible to handling http requests sent to the server and responding to
@@ -59,7 +59,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
 
   public static final AttributeKey<HostAndPort> PROXY_REMOTE_ADDRESS_KEY = AttributeKey.valueOf("PROXY_REMOTE_ADDRESS");
 
-  private static final Logger LOGGER = LogManager.logger(NettyHttpServerHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(NettyHttpServerHandler.class);
 
   private final CorsRequestProcessor corsRequestProcessor;
 
@@ -97,7 +97,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
   @Override
   public void channelExceptionCaught(@NonNull ChannelHandlerContext ctx, @NonNull Throwable cause) {
     if (!(cause instanceof IOException) && !(cause instanceof ReadTimeoutException)) {
-      LOGGER.severe("Exception caught during processing of http request", cause);
+      LOGGER.error("Exception caught during processing of http request", cause);
     }
   }
 
@@ -147,7 +147,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
       // get the client address of the channel - either from some proxy info or from the supplied client address
       var clientAddress = channel.attr(PROXY_REMOTE_ADDRESS_KEY).getAndSet(null);
       if (clientAddress == null) {
-        clientAddress = HostAndPort.fromSocketAddress(channel.remoteAddress());
+        clientAddress = HostAndPortUtil.extractFromSocketAddressInfo(channel.remoteAddress());
       }
 
       // get the request scheme and construct the channel info
@@ -273,7 +273,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
         config.invokeExceptionallyPostProcessors(context, httpHandler, config, throwable);
       } catch (Exception exception) {
         // unable to handle the exception
-        LOGGER.fine("Exception in post-processing exception handler", exception);
+        LOGGER.debug("Exception in post-processing exception handler", exception);
         context.response().status(HttpResponseCode.INTERNAL_SERVER_ERROR);
       }
     }

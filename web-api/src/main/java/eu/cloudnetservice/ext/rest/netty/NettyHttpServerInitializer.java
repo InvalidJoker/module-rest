@@ -16,17 +16,19 @@
 
 package eu.cloudnetservice.ext.rest.netty;
 
-import eu.cloudnetservice.driver.network.HostAndPort;
 import eu.cloudnetservice.ext.rest.http.config.HttpProxyMode;
+import eu.cloudnetservice.ext.rest.http.util.HostAndPort;
 import io.netty5.channel.Channel;
 import io.netty5.channel.ChannelInitializer;
 import io.netty5.handler.codec.http.HttpContentCompressor;
 import io.netty5.handler.codec.http.HttpObjectAggregator;
 import io.netty5.handler.codec.http.HttpRequestDecoder;
 import io.netty5.handler.codec.http.HttpResponseEncoder;
+import io.netty5.handler.ssl.SslContext;
 import io.netty5.handler.stream.ChunkedWriteHandler;
 import lombok.NonNull;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The default channel initializer used to initialize http server connections.
@@ -36,19 +38,26 @@ import org.jetbrains.annotations.ApiStatus;
 @ApiStatus.Internal
 final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
 
+  private final SslContext serverSslContext;
+  private final HostAndPort listenerAddress;
   private final NettyHttpServer nettyHttpServer;
-  private final HostAndPort hostAndPort;
 
   /**
    * Constructs a new netty http server initializer instance.
    *
-   * @param nettyHttpServer the http server the initializer belongs to.
-   * @param hostAndPort     the host and port of the listener which was bound.
+   * @param serverSslContext the ssl context to use for the http server, null if ssl is disabled.
+   * @param nettyHttpServer  the http server the initializer belongs to.
+   * @param listenerAddress  the host and port of the listener which was bound.
    * @throws NullPointerException if either the http server or host and port is null.
    */
-  public NettyHttpServerInitializer(@NonNull NettyHttpServer nettyHttpServer, @NonNull HostAndPort hostAndPort) {
+  public NettyHttpServerInitializer(
+    @Nullable SslContext serverSslContext,
+    @NonNull HostAndPort listenerAddress,
+    @NonNull NettyHttpServer nettyHttpServer
+  ) {
+    this.serverSslContext = serverSslContext;
+    this.listenerAddress = listenerAddress;
     this.nettyHttpServer = nettyHttpServer;
-    this.hostAndPort = hostAndPort;
   }
 
   /**
@@ -65,8 +74,8 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
     }
 
     // add the ssl handler if needed
-    if (this.nettyHttpServer.sslContext != null) {
-      ch.pipeline().addLast("ssl-handler", this.nettyHttpServer.sslContext.newHandler(ch.bufferAllocator()));
+    if (this.serverSslContext != null) {
+      ch.pipeline().addLast("ssl-handler", this.serverSslContext.newHandler(ch.bufferAllocator()));
     }
 
     ch.pipeline()
@@ -76,6 +85,6 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
       .addLast("http-response-encoder", new HttpResponseEncoder())
       .addLast("http-response-compressor", new HttpContentCompressor())
       .addLast("http-chunk-handler", new ChunkedWriteHandler())
-      .addLast("http-server-handler", new NettyHttpServerHandler(this.nettyHttpServer, this.hostAndPort));
+      .addLast("http-server-handler", new NettyHttpServerHandler(this.nettyHttpServer, this.listenerAddress));
   }
 }

@@ -16,11 +16,11 @@
 
 package eu.cloudnetservice.ext.rest.http.connection.parse;
 
-import eu.cloudnetservice.driver.network.HostAndPort;
 import eu.cloudnetservice.ext.rest.http.HttpContext;
 import eu.cloudnetservice.ext.rest.http.HttpRequest;
 import eu.cloudnetservice.ext.rest.http.connection.BasicHttpConnectionInfo;
 import eu.cloudnetservice.ext.rest.http.connection.HttpConnectionInfoResolver;
+import eu.cloudnetservice.ext.rest.http.util.HostAndPort;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 

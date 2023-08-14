@@ -17,8 +17,6 @@
 package eu.cloudnetservice.ext.rest.http.response.type;
 
 import com.google.common.net.MediaType;
-import eu.cloudnetservice.driver.document.DocumentFactory;
-import eu.cloudnetservice.driver.document.StandardSerialisationStyle;
 import eu.cloudnetservice.ext.rest.http.HttpResponse;
 import eu.cloudnetservice.ext.rest.http.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.http.response.DefaultResponse;
@@ -53,8 +51,9 @@ public final class JsonResponse<T> extends DefaultResponse<T> {
 
   @Override
   protected void serializeBody(@NonNull HttpResponse response, @NonNull T body) {
-    var bodyDocument = DocumentFactory.json().newDocument(body);
-    response.body(bodyDocument.serializeToString(StandardSerialisationStyle.COMPACT));
+    // TODO
+    //var bodyDocument = DocumentFactory.json().newDocument(body);
+    //response.body(bodyDocument.serializeToString(StandardSerialisationStyle.COMPACT));
   }
 
   @Override

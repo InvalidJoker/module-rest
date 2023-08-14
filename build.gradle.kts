@@ -17,8 +17,8 @@ import com.diffplug.gradle.spotless.SpotlessExtension
  */
 
 plugins {
-  id("com.diffplug.spotless") version "6.20.0" apply false
-  id("io.github.gradle-nexus.publish-plugin") version "2.0.0-rc-1"
+  alias(libs.plugins.spotless)
+  alias(libs.plugins.nexusPublish)
 }
 
 allprojects {
@@ -33,12 +33,14 @@ allprojects {
 
   repositories {
     mavenCentral()
+    maven("https://repository.derklaro.dev/releases/")
+    maven("https://oss.sonatype.org/content/repositories/snapshots/")
   }
 
   dependencies {
-    "compileOnly"("org.jetbrains:annotations:24.0.1")
-    "compileOnly"("org.projectlombok:lombok:1.18.28")
-    "annotationProcessor"("org.projectlombok:lombok:1.18.28")
+    "compileOnly"(rootProject.libs.annotations)
+    "compileOnly"(rootProject.libs.lombok)
+    "annotationProcessor"(rootProject.libs.lombok)
   }
 
   configurations.all {
@@ -77,7 +79,7 @@ allprojects {
   }
 
   extensions.configure<CheckstyleExtension> {
-    toolVersion = "10.12.2"
+    toolVersion = rootProject.libs.versions.checkstyleTools.get()
   }
 
   extensions.configure<SpotlessExtension> {
