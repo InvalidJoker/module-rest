@@ -16,7 +16,6 @@
 
 package eu.cloudnetservice.ext.rest.http.annotation.parser;
 
-import eu.cloudnetservice.ext.rest.http.HttpComponent;
 import java.lang.reflect.InaccessibleObjectException;
 import java.util.Collection;
 import lombok.NonNull;
@@ -25,18 +24,9 @@ import org.jetbrains.annotations.UnmodifiableView;
 /**
  * A parser which can convert and register annotated http elements, supporting custom annotations as well.
  *
- * @param <T> the type of http component associated with this parser.
  * @since 4.0
  */
-public interface HttpAnnotationParser<T extends HttpComponent<T>> {
-
-  /**
-   * Get the http component which is associated with this parser. All handlers parsed using this parser will get
-   * registered into that component.
-   *
-   * @return the http component associated with this parser.
-   */
-  @NonNull T httpComponent();
+public interface HttpAnnotationParser {
 
   /**
    * Get an unmodifiable view of all annotation processors which were registered to this parser.
@@ -53,7 +43,7 @@ public interface HttpAnnotationParser<T extends HttpComponent<T>> {
    * @return the same instance as used to call the method, for chaining.
    * @throws NullPointerException if the given processor is null.
    */
-  @NonNull HttpAnnotationParser<T> registerAnnotationProcessor(@NonNull HttpAnnotationProcessor processor);
+  @NonNull HttpAnnotationParser registerAnnotationProcessor(@NonNull HttpAnnotationProcessor processor);
 
   /**
    * Unregisters an annotation processor from this parser if previously registered.
@@ -62,7 +52,7 @@ public interface HttpAnnotationParser<T extends HttpComponent<T>> {
    * @return the same instance as used to call the method, for chaining.
    * @throws NullPointerException if the given processor is null.
    */
-  @NonNull HttpAnnotationParser<T> unregisterAnnotationProcessor(@NonNull HttpAnnotationProcessor processor);
+  @NonNull HttpAnnotationParser unregisterAnnotationProcessor(@NonNull HttpAnnotationProcessor processor);
 
   /**
    * Unregisters all annotation processors from this parser whose classes were loaded by the given class loader.
@@ -71,7 +61,7 @@ public interface HttpAnnotationParser<T extends HttpComponent<T>> {
    * @return the same instance as used to call the method, for chaining.
    * @throws NullPointerException if the given class loader is null.
    */
-  @NonNull HttpAnnotationParser<T> unregisterAnnotationProcessors(@NonNull ClassLoader classLoader);
+  @NonNull HttpAnnotationParser unregisterAnnotationProcessors(@NonNull ClassLoader classLoader);
 
   /**
    * Parses all non-static http handlers methods annotated with {@code @HttpRequestHandler} in the given class instance.
@@ -85,7 +75,7 @@ public interface HttpAnnotationParser<T extends HttpComponent<T>> {
    *                                     annotation defines no paths or http methods to handle.
    * @throws InaccessibleObjectException if a http handler method is not accessible.
    */
-  @NonNull HttpAnnotationParser<T> parseAndRegister(@NonNull Class<?> handlerClass);
+  @NonNull HttpAnnotationParser parseAndRegister(@NonNull Class<?> handlerClass);
 
   /**
    * Parses all non-static http handlers methods annotated with {@code @HttpRequestHandler} in the given class instance.
@@ -99,5 +89,5 @@ public interface HttpAnnotationParser<T extends HttpComponent<T>> {
    *                                     annotation defines no paths or http methods to handle.
    * @throws InaccessibleObjectException if a http handler method is not accessible.
    */
-  @NonNull HttpAnnotationParser<T> parseAndRegister(@NonNull Object handlerInstance);
+  @NonNull HttpAnnotationParser parseAndRegister(@NonNull Object handlerInstance);
 }

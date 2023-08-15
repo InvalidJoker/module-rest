@@ -18,8 +18,7 @@ package eu.cloudnetservice.ext.rest.http;
 
 import eu.cloudnetservice.ext.rest.http.annotation.parser.HttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.http.config.ComponentConfig;
-import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
-import java.util.Collection;
+import eu.cloudnetservice.ext.rest.http.registry.HttpHandlerRegistry;
 import lombok.NonNull;
 
 /**
@@ -51,53 +50,7 @@ public interface HttpComponent<T extends HttpComponent<T>> extends AutoCloseable
    *
    * @return the associated http annotation parser instance.
    */
-  @NonNull HttpAnnotationParser<T> annotationParser();
+  @NonNull HttpAnnotationParser annotationParser();
 
-  /**
-   * Registers the given handlers to this component. The given handlers will get called when a request matches the given
-   * path. The path may contain the following placeholders:
-   * <ul>
-   *   <li>{@code *}: Represents a wildcard character which matches anything provided in the path.
-   *   <li>{@code {name}}: Represents a path parameter you want to retrieve when handling the request.
-   * </ul>
-   *
-   * @param path    the path to register the handler to.
-   * @param handler the handler to register.
-   * @param config  the configuration of the handler.
-   * @return the same component instance as used to call the method, for chaining.
-   * @throws NullPointerException if either the given path or handler is null.
-   */
-  @NonNull T registerHandler(@NonNull String path, @NonNull HttpHandler handler, @NonNull HttpHandlerConfig config);
-
-  /**
-   * Unregisters the given handler from this component if it was registered previously.
-   *
-   * @param handler the handler to unregister.
-   * @return the same component instance as used to call the method, for chaining.
-   * @throws NullPointerException if the given handler is null.
-   */
-  @NonNull T removeHandler(@NonNull HttpHandler handler);
-
-  /**
-   * Removes all registered handlers from this component whose classes were loaded by the given class loader.
-   *
-   * @param classLoader the loader of the handler classes to unregister.
-   * @return the same component instance as used to call the method, for chaining.
-   * @throws NullPointerException if the given class loader is null.
-   */
-  @NonNull T removeHandler(@NonNull ClassLoader classLoader);
-
-  /**
-   * Get all handlers which were registered to this component.
-   *
-   * @return all handlers which were registered to this component.
-   */
-  @NonNull Collection<HttpHandler> httpHandlers();
-
-  /**
-   * Removes all handlers which were previously registered to this component.
-   *
-   * @return the same component instance as used to call the method, for chaining.
-   */
-  @NonNull T clearHandlers();
+  @NonNull HttpHandlerRegistry handlerRegistry();
 }

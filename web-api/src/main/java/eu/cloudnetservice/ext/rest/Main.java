@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-dependencies {
-  compileOnly(libs.slf4j)
-  implementation(libs.gson)
-  implementation(libs.guava)
-  implementation(libs.reflexion)
-  implementation(libs.nettyHandler)
-  implementation(libs.nettyCodecHttp)
-  implementation(libs.nettyContribHaProxy)
+package eu.cloudnetservice.ext.rest;
 
-  // transports
-  implementation(libs.nettyNativeEpoll)
-  implementation(libs.nettyNativeKqueue)
-  implementation(libs.nettyNativeIoUring)
+public class Main {
+
+  public static void main(String[] args) {
+
+  }
+
 }

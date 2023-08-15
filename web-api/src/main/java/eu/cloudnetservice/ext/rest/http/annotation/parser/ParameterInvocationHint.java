@@ -41,7 +41,6 @@ public record ParameterInvocationHint(
    * Resolves the value of this hint which should be injected into the method parameter at the associated index
    * depending on the calling context and path.
    *
-   * @param requestPath the path to which the http request to handle by the method was sent.
    * @param context     the http context to resolve the parameter value based on.
    * @return the value to inject into the parameter, can be null.
    * @throws NullPointerException if the given request path or context is null.

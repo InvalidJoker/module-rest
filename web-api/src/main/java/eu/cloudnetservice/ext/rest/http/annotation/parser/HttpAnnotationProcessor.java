@@ -16,6 +16,8 @@
 
 package eu.cloudnetservice.ext.rest.http.annotation.parser;
 
+import eu.cloudnetservice.ext.rest.http.config.ComponentConfig;
+import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerInterceptor;
 import java.lang.reflect.Method;
 import lombok.NonNull;
@@ -38,12 +40,15 @@ public interface HttpAnnotationProcessor {
    * <p>
    * If this processor returns null it indicates that it has no interest in adding a preprocessor.
    *
+   * @param config //TODO
    * @param method          the method which gets processed currently.
    * @param handlerInstance the instance of the handler class in which the method is located.
-   * @return a preprocessor for a http request context, or null if there is no need for a preprocessor.
    * @throws NullPointerException if the given method or handler instance is null.
    */
-  @Nullable HttpHandlerInterceptor buildPreprocessor(@NonNull Method method, @NonNull Object handlerInstance);
+  void buildPreprocessor(
+    @NonNull HttpHandlerConfig.Builder config,
+    @NonNull Method method,
+    @NonNull Object handlerInstance);
 
   /**
    * Checks if this processor should process the given method. This defaults to true.

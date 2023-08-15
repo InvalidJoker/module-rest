@@ -16,39 +16,23 @@
 
 package eu.cloudnetservice.ext.rest.http.annotation.parser;
 
-import com.google.common.collect.Iterables;
-import eu.cloudnetservice.ext.rest.http.HttpComponent;
-import eu.cloudnetservice.ext.rest.http.HttpContext;
-import eu.cloudnetservice.ext.rest.http.HttpHandler;
-import eu.cloudnetservice.ext.rest.http.annotation.ContentType;
-import eu.cloudnetservice.ext.rest.http.annotation.CrossOrigin;
-import eu.cloudnetservice.ext.rest.http.annotation.FirstRequestQueryParam;
-import eu.cloudnetservice.ext.rest.http.annotation.Optional;
-import eu.cloudnetservice.ext.rest.http.annotation.RequestBody;
 import eu.cloudnetservice.ext.rest.http.annotation.RequestHandler;
-import eu.cloudnetservice.ext.rest.http.annotation.RequestHeader;
-import eu.cloudnetservice.ext.rest.http.annotation.RequestPath;
-import eu.cloudnetservice.ext.rest.http.annotation.RequestPathParam;
-import eu.cloudnetservice.ext.rest.http.annotation.RequestQueryParam;
-import eu.cloudnetservice.ext.rest.http.config.CorsConfig;
+import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.ContentTypeProcessor;
+import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.CrossOriginProcessor;
+import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.FirstRequestQueryParamProcessor;
+import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.JsonBodyProcessor;
+import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.RequestBodyProcessor;
+import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.RequestHeaderProcessor;
+import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.RequestPathParamProcessor;
+import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.RequestPathProcessor;
+import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.RequestQueryParamProcessor;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
-import eu.cloudnetservice.ext.rest.http.config.HttpHandlerInterceptor;
-import eu.cloudnetservice.ext.rest.http.response.Response;
-import io.netty5.handler.codec.http.HttpHeaderNames;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.lang.reflect.Method;
+import eu.cloudnetservice.ext.rest.http.registry.HttpHandlerRegistry;
 import java.lang.reflect.Modifier;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
@@ -56,25 +40,18 @@ import org.jetbrains.annotations.UnmodifiableView;
 /**
  * The default implementation of a http annotation parser.
  *
- * @param <T> the type of http component associated with this parser.
  * @since 4.0
  */
-public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> implements HttpAnnotationParser<T> {
+public final class DefaultHttpAnnotationParser implements HttpAnnotationParser {
 
   public static final String DEFAULTS_TO_NULL_MASK = "__NULL__";
   public static final String PARAM_INVOCATION_HINT_KEY = "__PARAM_INVOCATION_HINT__";
 
-  private final T component;
+  private final HttpHandlerRegistry httpHandlerRegistry;
   private final Deque<HttpAnnotationProcessor> processors = new LinkedList<>();
 
-  /**
-   * Constructs a new DefaultHttpAnnotationParser instance.
-   *
-   * @param component the component instance with which this parser is associated.
-   * @throws NullPointerException if the given component is null.
-   */
-  public DefaultHttpAnnotationParser(@NonNull T component) {
-    this.component = component;
+  public DefaultHttpAnnotationParser(@NonNull HttpHandlerRegistry httpHandlerRegistry) {
+    this.httpHandlerRegistry = httpHandlerRegistry;
   }
 
   /**
@@ -86,7 +63,7 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
    * @return the actual value if present or the unmasked version of the default value.
    * @throws NullPointerException if the given default value is null.
    */
-  private static @Nullable Object applyDefault(@NonNull String defaultValue, @Nullable String actualValue) {
+  public static @Nullable Object applyDefault(@NonNull String defaultValue, @Nullable String actualValue) {
     // return the actual value directly if present
     if (actualValue != null) {
       return actualValue;
@@ -100,14 +77,14 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
    * Constructs a new DefaultHttpAnnotationParser instance and registers all processors for the default provided http
    * handling annotations.
    *
-   * @param component the component instance with which this parser is associated.
+   * @param registry // TODO
    * @return the newly created HttpAnnotationParser instance.
    * @throws NullPointerException if the given component is null.
    */
-  public static @NonNull <T extends HttpComponent<T>> HttpAnnotationParser<T> withDefaultProcessors(
-    @NonNull T component
+  public static @NonNull HttpAnnotationParser withDefaultProcessors(
+    @NonNull HttpHandlerRegistry registry
   ) {
-    return new DefaultHttpAnnotationParser<>(component).registerDefaultProcessors();
+    return new DefaultHttpAnnotationParser(registry).registerDefaultProcessors();
   }
 
   /**
@@ -115,7 +92,7 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
    *
    * @return the same instance as used to call the method, for chaining.
    */
-  public @NonNull HttpAnnotationParser<T> registerDefaultProcessors() {
+  public @NonNull HttpAnnotationParser registerDefaultProcessors() {
     return this
       .registerAnnotationProcessor(new FirstRequestQueryParamProcessor())
       .registerAnnotationProcessor(new RequestBodyProcessor())
@@ -123,15 +100,9 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
       .registerAnnotationProcessor(new RequestPathProcessor())
       .registerAnnotationProcessor(new RequestPathParamProcessor())
       .registerAnnotationProcessor(new RequestQueryParamProcessor())
-      .registerAnnotationProcessor(new ContentTypeProcessor());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull T httpComponent() {
-    return this.component;
+      .registerAnnotationProcessor(new ContentTypeProcessor())
+      .registerAnnotationProcessor(new JsonBodyProcessor())
+      .registerAnnotationProcessor(new CrossOriginProcessor());
   }
 
   /**
@@ -147,7 +118,7 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
    * {@inheritDoc}
    */
   @Override
-  public @NonNull HttpAnnotationParser<T> registerAnnotationProcessor(@NonNull HttpAnnotationProcessor processor) {
+  public @NonNull HttpAnnotationParser registerAnnotationProcessor(@NonNull HttpAnnotationProcessor processor) {
     this.processors.addFirst(processor);
     return this;
   }
@@ -156,7 +127,7 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
    * {@inheritDoc}
    */
   @Override
-  public @NonNull HttpAnnotationParser<T> unregisterAnnotationProcessor(@NonNull HttpAnnotationProcessor processor) {
+  public @NonNull HttpAnnotationParser unregisterAnnotationProcessor(@NonNull HttpAnnotationProcessor processor) {
     this.processors.remove(processor);
     return this;
   }
@@ -165,7 +136,7 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
    * {@inheritDoc}
    */
   @Override
-  public @NonNull HttpAnnotationParser<T> unregisterAnnotationProcessors(@NonNull ClassLoader classLoader) {
+  public @NonNull HttpAnnotationParser unregisterAnnotationProcessors(@NonNull ClassLoader classLoader) {
     this.processors.removeIf(entry -> entry.getClass().getClassLoader() == classLoader);
     return this;
   }
@@ -174,7 +145,7 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
    * {@inheritDoc}
    */
   @Override
-  public @NonNull HttpAnnotationParser<T> parseAndRegister(@NonNull Class<?> handlerClass) {
+  public @NonNull HttpAnnotationParser parseAndRegister(@NonNull Class<?> handlerClass) {
     //var injectionLayer = InjectionLayer.findLayerOf(handlerClass);
     //return this.parseAndRegister(injectionLayer.instance(handlerClass));
     // TODO: can/should we support this here?
@@ -185,7 +156,7 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
    * {@inheritDoc}
    */
   @Override
-  public @NonNull HttpAnnotationParser<T> parseAndRegister(@NonNull Object handlerInstance) {
+  public @NonNull HttpAnnotationParser parseAndRegister(@NonNull Object handlerInstance) {
     for (var method : handlerInstance.getClass().getDeclaredMethods()) {
       // check if the handler is requested to be a request handler
       var handlerAnnotation = method.getAnnotation(RequestHandler.class);
@@ -206,315 +177,19 @@ public final class DefaultHttpAnnotationParser<T extends HttpComponent<T>> imple
         var configBuilder = HttpHandlerConfig.builder();
         configBuilder.httpMethod(handlerAnnotation.method());
 
-        // check if corsConfig settings were supplied and apply them
-        var corsAnnotation = method.getAnnotation(CrossOrigin.class);
-        if (corsAnnotation != null) {
-          var corsConfig = CorsConfig.builder();
-          for (var origin : corsAnnotation.origins()) {
-            corsConfig.addAllowedOrigin(origin);
-          }
-
-          corsConfig.allowedHeaders(List.of(corsAnnotation.allowedHeaders()))
-            .exposedHeaders(List.of(corsAnnotation.exposedHeaders()))
-            .allowCredentials(corsAnnotation.allowCredentials().toBoolean())
-            .allowPrivateNetworks(corsAnnotation.allowPrivateNetworks().toBoolean())
-            .maxAge(corsAnnotation.maxAge() < 1 ? null : Duration.ofSeconds(corsAnnotation.maxAge()));
-
-          // build the actual corsConfig and
-          configBuilder.corsConfiguration(corsConfig.build());
-        }
-
         // add the processors to the corsConfig
         for (var processor : this.processors) {
           if (processor.shouldProcess(method, handlerInstance)) {
-            var contextProcessor = processor.buildPreprocessor(method, handlerInstance);
-            if (contextProcessor != null) {
-              configBuilder.addHandlerInterceptor(contextProcessor);
-            }
+            processor.buildPreprocessor(configBuilder, method, handlerInstance);
           }
         }
 
         // register the handler
         var handler = new MethodHttpHandlerInvoker(handlerInstance, method);
-        this.component.registerHandler(handlerAnnotation.path(), handler, configBuilder.build());
+        this.httpHandlerRegistry.registerHandler(handlerAnnotation.path(), handler, configBuilder.build());
       }
     }
 
     return this;
-  }
-
-  /**
-   * A processor for the {@code @FirstRequestQueryParam} annotation.
-   *
-   * @since 4.0
-   */
-  private static final class FirstRequestQueryParamProcessor implements HttpAnnotationProcessor {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public @NonNull HttpHandlerInterceptor buildPreprocessor(@NonNull Method method, @NonNull Object handler) {
-      var hints = HttpAnnotationProcessorUtil.mapParameters(
-        method,
-        FirstRequestQueryParam.class,
-        (param, annotation) -> (context) -> {
-          // get the parameters and error out if no values are present but the parameter is required
-          var queryParameters = context.request().queryParameters().get(annotation.value());
-          if (!param.isAnnotationPresent(Optional.class) && (queryParameters == null || queryParameters.isEmpty())) {
-            throw new AnnotationHttpHandleException(
-              context.request(),
-              "Missing required query param: " + annotation.value());
-          }
-
-          // return the first value or null if not possible
-          return applyDefault(
-            annotation.def(),
-            queryParameters == null ? null : Iterables.getFirst(queryParameters, null));
-        });
-      return new HttpHandlerInterceptor() {
-        @Override
-        public boolean preProcess(
-          @NonNull HttpContext context,
-          @NonNull HttpHandler handler,
-          @NonNull HttpHandlerConfig config
-        ) {
-          context.addInvocationHints(PARAM_INVOCATION_HINT_KEY, hints);
-          return true;
-        }
-      };
-    }
-  }
-
-  /**
-   * A processor for the {@code @RequestBody} annotation.
-   *
-   * @since 4.0
-   */
-  private static final class RequestBodyProcessor implements HttpAnnotationProcessor {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public @NonNull HttpHandlerInterceptor buildPreprocessor(@NonNull Method method, @NonNull Object handler) {
-      var hints = HttpAnnotationProcessorUtil.mapParameters(
-        method,
-        RequestBody.class,
-        (param, annotation) -> (context) -> {
-          if (String.class.isAssignableFrom(param.getType())) {
-            return context.request().bodyAsString();
-          } else if (byte[].class.isAssignableFrom(param.getType())) {
-            return context.request().body();
-          } else if (ByteBuffer.class.isAssignableFrom(param.getType())) {
-            return ByteBuffer.wrap(context.request().body());
-          } else if (InputStream.class.isAssignableFrom(param.getType())) {
-            return context.request().bodyStream();
-          } else if (Reader.class.isAssignableFrom(param.getType())) {
-            return new InputStreamReader(context.request().bodyStream(), StandardCharsets.UTF_8);
-          } else {
-            throw new AnnotationHttpHandleException(
-              context.request(),
-              "Unable to inject body of type " + param.getType().getName());
-          }
-        });
-      return new HttpHandlerInterceptor() {
-        @Override
-        public boolean preProcess(
-          @NonNull HttpContext context,
-          @NonNull HttpHandler handler,
-          @NonNull HttpHandlerConfig config
-        ) {
-          context.addInvocationHints(PARAM_INVOCATION_HINT_KEY, hints);
-          return true;
-        }
-      };
-    }
-  }
-
-  /**
-   * A processor for the {@code @RequestHeader} annotation.
-   *
-   * @since 4.0
-   */
-  private static final class RequestHeaderProcessor implements HttpAnnotationProcessor {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public @NonNull HttpHandlerInterceptor buildPreprocessor(@NonNull Method method, @NonNull Object handler) {
-      var hints = HttpAnnotationProcessorUtil.mapParameters(
-        method,
-        RequestHeader.class,
-        (param, annotation) -> (context) -> {
-          // get the header and error out if no value is present but the header is required
-          var header = context.request().header(annotation.value());
-          if (!param.isAnnotationPresent(Optional.class) && header == null) {
-            throw new AnnotationHttpHandleException(
-              context.request(),
-              "Missing required header: " + annotation.value());
-          }
-
-          // set the header in the context
-          return applyDefault(annotation.def(), header);
-        });
-      return new HttpHandlerInterceptor() {
-        @Override
-        public boolean preProcess(
-          @NonNull HttpContext context,
-          @NonNull HttpHandler handler,
-          @NonNull HttpHandlerConfig config
-        ) {
-          context.addInvocationHints(PARAM_INVOCATION_HINT_KEY, hints);
-          return true;
-        }
-      };
-    }
-  }
-
-  /**
-   * A processor for the {@code @RequestPath} annotation.
-   *
-   * @since 4.0
-   */
-  private static final class RequestPathProcessor implements HttpAnnotationProcessor {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public @NonNull HttpHandlerInterceptor buildPreprocessor(@NonNull Method method, @NonNull Object handler) {
-      var hints = HttpAnnotationProcessorUtil.mapParameters(
-        method,
-        RequestPath.class,
-        (param, annotation) -> (context) -> context.request().path());
-      return new HttpHandlerInterceptor() {
-        @Override
-        public boolean preProcess(
-          @NonNull HttpContext context,
-          @NonNull HttpHandler handler,
-          @NonNull HttpHandlerConfig config
-        ) {
-          context.addInvocationHints(PARAM_INVOCATION_HINT_KEY, hints);
-          return true;
-        }
-      };
-    }
-  }
-
-  /**
-   * A processor for the {@code @RequestPathParam} annotation.
-   *
-   * @since 4.0
-   */
-  private static final class RequestPathParamProcessor implements HttpAnnotationProcessor {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public @NonNull HttpHandlerInterceptor buildPreprocessor(@NonNull Method method, @NonNull Object handler) {
-      var hints = HttpAnnotationProcessorUtil.mapParameters(
-        method,
-        RequestPathParam.class,
-        (param, annotation) -> (context) -> {
-          // get the path parameter and error out if no value is present but the parameter is required
-          var pathParam = context.request().pathParameters().get(annotation.value());
-          if (!param.isAnnotationPresent(Optional.class) && pathParam == null) {
-            throw new AnnotationHttpHandleException(
-              context.request(),
-              "Missing required path parameter: " + annotation.value());
-          }
-
-          // set the path parameter in the context
-          return pathParam;
-        });
-      return new HttpHandlerInterceptor() {
-        @Override
-        public boolean preProcess(
-          @NonNull HttpContext context,
-          @NonNull HttpHandler handler,
-          @NonNull HttpHandlerConfig config
-        ) {
-          context.addInvocationHints(PARAM_INVOCATION_HINT_KEY, hints);
-          return true;
-        }
-      };
-    }
-  }
-
-  /**
-   * A processor for the {@code @RequestQueryParam} annotation.
-   *
-   * @since 4.0
-   */
-  private static final class RequestQueryParamProcessor implements HttpAnnotationProcessor {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public @NonNull HttpHandlerInterceptor buildPreprocessor(@NonNull Method method, @NonNull Object handler) {
-      var hints = HttpAnnotationProcessorUtil.mapParameters(
-        method,
-        RequestQueryParam.class,
-        (param, annotation) -> (context) -> {
-          // get the parameters and error out if no values are present but the parameter is required
-          var queryParameters = context.request().queryParameters().get(annotation.value());
-          if (!param.isAnnotationPresent(Optional.class) && (queryParameters == null || queryParameters.isEmpty())) {
-            throw new AnnotationHttpHandleException(
-              context.request(),
-              "Missing required query param: " + annotation.value());
-          }
-
-          // set the parameters in the context
-          return (queryParameters == null || queryParameters.isEmpty()) && annotation.nullWhenAbsent()
-            ? null
-            : Objects.requireNonNullElse(queryParameters, List.of());
-        });
-      return new HttpHandlerInterceptor() {
-        @Override
-        public boolean preProcess(
-          @NonNull HttpContext context,
-          @NonNull HttpHandler handler,
-          @NonNull HttpHandlerConfig config
-        ) {
-          context.addInvocationHints(PARAM_INVOCATION_HINT_KEY, hints);
-          return true;
-        }
-      };
-    }
-  }
-
-  /**
-   * A processor for the {@code @ContentType} annotation.
-   *
-   * @since 4.0
-   */
-  private static final class ContentTypeProcessor implements HttpAnnotationProcessor {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public @NonNull HttpHandlerInterceptor buildPreprocessor(@NonNull Method method, @NonNull Object handlerInstance) {
-      return new HttpHandlerInterceptor() {
-        @Override
-        public boolean postProcess(
-          @NonNull HttpContext context,
-          @NonNull HttpHandler handler,
-          @NonNull HttpHandlerConfig config,
-          @NonNull Response<?> response
-        ) {
-          var annotation = method.getAnnotation(ContentType.class);
-          if (annotation != null) {
-            context.response().header(HttpHeaderNames.CONTENT_TYPE.toString(), annotation.value());
-          }
-
-          return true;
-        }
-      };
-    }
   }
 }

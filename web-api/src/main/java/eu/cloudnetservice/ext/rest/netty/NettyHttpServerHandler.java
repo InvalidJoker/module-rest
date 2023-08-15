@@ -160,22 +160,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
 
     // find the node that is responsible to handle the request
     var fullPath = uri.getPath();
-    var matchingTreeNode = this.nettyHttpServer.handlerTree;
-    if (!fullPath.equals("/")) {
-      // strip the leading slash
-      if (fullPath.startsWith("/")) {
-        fullPath = fullPath.substring(1);
-      }
-
-      for (var pathPart : fullPath.split("/")) {
-        // find the first node that accepts the path part as input; returns null in case no node does so
-        matchingTreeNode = matchingTreeNode.findMatchingChildNode(
-          node -> node.pathNode().validateAndRegisterPathPart(context, pathPart));
-        if (matchingTreeNode == null || matchingTreeNode.pathNode().consumesRemainingPath()) {
-          break;
-        }
-      }
-    }
+    var matchingTreeNode = this.nettyHttpServer.handlerRegistry().findHandler(fullPath, context);
 
     if (matchingTreeNode == null) {
       channel

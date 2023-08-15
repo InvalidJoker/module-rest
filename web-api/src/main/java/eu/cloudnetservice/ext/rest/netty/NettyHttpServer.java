@@ -16,19 +16,13 @@
 
 package eu.cloudnetservice.ext.rest.netty;
 
-import eu.cloudnetservice.ext.rest.http.HttpHandler;
+import eu.cloudnetservice.ext.rest.http.registry.DefaultHttpHandlerRegistry;
+import eu.cloudnetservice.ext.rest.http.registry.HttpHandlerRegistry;
 import eu.cloudnetservice.ext.rest.http.HttpServer;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.DefaultHttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.HttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.http.config.ComponentConfig;
-import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.http.config.SslConfiguration;
-import eu.cloudnetservice.ext.rest.http.tree.DefaultHttpHandlerTree;
-import eu.cloudnetservice.ext.rest.http.tree.DynamicHttpPathNode;
-import eu.cloudnetservice.ext.rest.http.tree.HttpHandlerTree;
-import eu.cloudnetservice.ext.rest.http.tree.HttpPathNode;
-import eu.cloudnetservice.ext.rest.http.tree.StaticHttpPathNode;
-import eu.cloudnetservice.ext.rest.http.tree.WildcardPathNode;
 import eu.cloudnetservice.ext.rest.http.util.HostAndPort;
 import io.netty5.bootstrap.ServerBootstrap;
 import io.netty5.channel.ChannelOption;
@@ -42,13 +36,9 @@ import io.netty5.util.concurrent.Future;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,20 +49,17 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class NettyHttpServer implements HttpServer {
 
-  private static final Predicate<HttpHandlerTree<HttpPathNode>> DYNAMIC_NODE_FILTER =
-    node -> node.pathNode() instanceof DynamicHttpPathNode;
-
   private final SslContext sslContext;
   private final ComponentConfig componentConfig;
 
-  private final DefaultHttpHandlerTree handlerTree = DefaultHttpHandlerTree.newTree();
   private final Map<HostAndPort, Future<Void>> channelFutures = new ConcurrentHashMap<>();
 
   private final NettyTransportType transportType;
   private final EventLoopGroup bossEventLoopGroup;
   private final EventLoopGroup workerEventLoopGroup;
 
-  private final HttpAnnotationParser<HttpServer> annotationParser;
+  private final HttpHandlerRegistry httpHandlerRegistry;
+  private final HttpAnnotationParser annotationParser;
 
   /**
    * Constructs a new netty http server instance with the given ssl configuration.
@@ -83,7 +70,8 @@ public final class NettyHttpServer implements HttpServer {
    */
   public NettyHttpServer(@NonNull ComponentConfig componentConfig) {
     this.componentConfig = componentConfig;
-    this.annotationParser = DefaultHttpAnnotationParser.withDefaultProcessors(this);
+    this.httpHandlerRegistry = new DefaultHttpHandlerRegistry(componentConfig);
+    this.annotationParser = DefaultHttpAnnotationParser.withDefaultProcessors(this.httpHandlerRegistry);
 
     // init ssl
     this.sslContext = initSslContext(componentConfig.sslConfiguration());
@@ -134,8 +122,13 @@ public final class NettyHttpServer implements HttpServer {
    * {@inheritDoc}
    */
   @Override
-  public @NonNull HttpAnnotationParser<HttpServer> annotationParser() {
+  public @NonNull HttpAnnotationParser annotationParser() {
     return this.annotationParser;
+  }
+
+  @Override
+  public @NonNull HttpHandlerRegistry handlerRegistry() {
+    return this.httpHandlerRegistry;
   }
 
   /**
@@ -182,142 +175,6 @@ public final class NettyHttpServer implements HttpServer {
    * {@inheritDoc}
    */
   @Override
-  public @NonNull HttpServer registerHandler(
-    @NonNull String path,
-    @NonNull HttpHandler handler,
-    @NonNull HttpHandlerConfig config
-  ) {
-    // ensure that the path ends with a / (if the path is not the root handler)
-    var lastSeenTreeNode = this.handlerTree;
-    if (!path.equals("/")) {
-      // strip the leading slash
-      if (path.startsWith("/")) {
-        path = path.substring(1);
-      }
-
-      var pathParts = path.split("/");
-      for (int i = 0; i < pathParts.length; i++) {
-        var pathPart = pathParts[i];
-        if (pathPart.startsWith("{") && pathPart.endsWith("}")) {
-          // extract the path id from the given input
-          var pathId = pathPart.substring(1, pathPart.length() - 1);
-          HttpPathNode.validatePathId(pathId);
-
-          // check if the current node already has a dynamic node
-          var existingDynamicNode = lastSeenTreeNode.findMatchingChildNode(DYNAMIC_NODE_FILTER);
-          if (existingDynamicNode != null) {
-            if (existingDynamicNode.pathNode().pathId().equals(pathId)) {
-              // there is an existing dynamic node with the same name, use that
-              lastSeenTreeNode = existingDynamicNode;
-            } else {
-              // there can't be two different dynamic named nodes at the same point in the tree
-              // todo: show node tree upwards
-              throw new IllegalStateException(String.format(
-                "Tried to register second dynamic node named \"%s\" alongside \"%s\" in http handler tree. Path chain: %s",
-                pathId,
-                existingDynamicNode.pathNode().pathId(),
-                ""));
-            }
-          } else {
-            // register the dynamic path node
-            var dynamicNode = new DynamicHttpPathNode(pathId);
-            lastSeenTreeNode = lastSeenTreeNode.registerChildNode(dynamicNode);
-          }
-        } else if (pathPart.equals("*")) {
-          // ensure that a wildcard node is only used at the end of the uri
-          if (i != (pathParts.length - 1)) {
-            throw new IllegalStateException("Invalid use of wildcard in middle of handler uri: " + path);
-          }
-
-          // register the wildcard node
-          lastSeenTreeNode = lastSeenTreeNode.registerChildNode(new WildcardPathNode());
-        } else {
-          HttpPathNode.validatePathId(pathPart);
-
-          // register the static path node
-          var staticNode = new StaticHttpPathNode(pathPart);
-          lastSeenTreeNode = lastSeenTreeNode.registerChildNode(staticNode);
-        }
-      }
-    }
-
-    // ensure that there is no http handler for the current node yet
-    var existingHandler = lastSeenTreeNode.pathNode().findHandlerForMethod(config.httpMethod());
-    if (existingHandler != null) {
-      // todo: path
-      throw new IllegalStateException("Detected duplicate http handler for path \"%s\"");
-    }
-
-    // construct the final handler config & register the http handler
-    var mergedCorsConfig = this.componentConfig.corsConfig().combine(config.corsConfig());
-    var handlerConfig = HttpHandlerConfig.builder(config).corsConfiguration(mergedCorsConfig).build();
-    lastSeenTreeNode.pathNode().registerHttpHandler(handler, handlerConfig);
-
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpServer removeHandler(@NonNull HttpHandler handler) {
-    var nodeToUnregister = this.handlerTree.findMatchingChildNode(node -> {
-      var handlers = node.pathNode().handlers();
-      return handlers.stream().anyMatch(pair -> pair.httpHandler() == handler);
-    });
-    if (nodeToUnregister != null) {
-      this.handlerTree.unregisterChildNode(nodeToUnregister);
-    }
-
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpServer removeHandler(@NonNull ClassLoader classLoader) {
-    var nodeToUnregister = this.handlerTree.findMatchingChildNode(node -> {
-      var httpHandler = node.pathNode().handlers();
-      return !httpHandler.isEmpty() && httpHandler.getClass().getClassLoader() == classLoader;
-    });
-    if (nodeToUnregister != null) {
-      this.handlerTree.unregisterChildNode(nodeToUnregister);
-    }
-
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull Collection<HttpHandler> httpHandlers() {
-    List<HttpHandler> httpHandlers = new ArrayList<>();
-    this.handlerTree.visitFullTree(node -> {
-      var handlerPairs = node.pathNode().handlers();
-      if (!handlerPairs.isEmpty()) {
-        for (var handler : handlerPairs) {
-          httpHandlers.add(handler.httpHandler());
-        }
-      }
-    });
-    return httpHandlers;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpServer clearHandlers() {
-    this.handlerTree.removeAllChildren();
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public void close() {
     for (var entry : this.channelFutures.values()) {
       entry.cancel();
@@ -325,6 +182,5 @@ public final class NettyHttpServer implements HttpServer {
 
     this.bossEventLoopGroup.shutdownGracefully();
     this.workerEventLoopGroup.shutdownGracefully();
-    this.clearHandlers();
   }
 }
