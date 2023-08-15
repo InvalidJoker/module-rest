@@ -14,8 +14,15 @@
  * limitations under the License.
  */
 
-dependencies {
-  api(libs.guava)
-  compileOnlyApi(libs.slf4j)
-  implementation(libs.reflexion)
+package eu.cloudnetservice.ext.rest.api.cors;
+
+import java.util.List;
+import lombok.NonNull;
+
+public record CorsPreflightRequestInfo(
+  @NonNull String origin,
+  @NonNull String requestMethod,
+  @NonNull List<String> requestHeaders
+) {
+
 }

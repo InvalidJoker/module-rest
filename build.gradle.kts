@@ -25,6 +25,8 @@ allprojects {
   version = "1.0-SNAPSHOT"
   group = "eu.cloudnetservice.ext"
 
+  defaultTasks("build")
+
   apply(plugin = "signing")
   apply(plugin = "checkstyle")
   apply(plugin = "java-library")

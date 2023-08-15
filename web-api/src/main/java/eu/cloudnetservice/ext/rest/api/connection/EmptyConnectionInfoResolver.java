@@ -14,8 +14,23 @@
  * limitations under the License.
  */
 
-dependencies {
-  api(libs.guava)
-  compileOnlyApi(libs.slf4j)
-  implementation(libs.reflexion)
+package eu.cloudnetservice.ext.rest.api.connection;
+
+import eu.cloudnetservice.ext.rest.api.HttpContext;
+import lombok.NonNull;
+
+public final class EmptyConnectionInfoResolver implements HttpConnectionInfoResolver {
+
+  public static final HttpConnectionInfoResolver INSTANCE = new EmptyConnectionInfoResolver();
+
+  private EmptyConnectionInfoResolver() {
+  }
+
+  @Override
+  public @NonNull BasicHttpConnectionInfo extractConnectionInfo(
+    @NonNull HttpContext context,
+    @NonNull BasicHttpConnectionInfo baseInfo
+  ) {
+    return baseInfo;
+  }
 }

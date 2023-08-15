@@ -14,8 +14,21 @@
  * limitations under the License.
  */
 
-dependencies {
-  api(libs.guava)
-  compileOnlyApi(libs.slf4j)
-  implementation(libs.reflexion)
+package eu.cloudnetservice.ext.rest.api.annotation;
+
+import eu.cloudnetservice.ext.rest.api.codec.DataformatCodec;
+import eu.cloudnetservice.ext.rest.api.codec.builtin.JsonCodec;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import lombok.NonNull;
+
+@Documented
+@Target(ElementType.PARAMETER)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface RequestTypedBody {
+
+  @NonNull Class<? extends DataformatCodec> deserializationCodec() default JsonCodec.class;
 }

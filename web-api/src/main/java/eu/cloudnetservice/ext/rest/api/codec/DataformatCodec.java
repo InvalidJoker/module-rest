@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-dependencies {
-  api(libs.guava)
-  compileOnlyApi(libs.slf4j)
-  implementation(libs.reflexion)
+package eu.cloudnetservice.ext.rest.api.codec;
+
+import java.io.InputStream;
+import java.lang.reflect.Type;
+import java.nio.charset.Charset;
+import lombok.NonNull;
+
+public interface DataformatCodec {
+
+  @NonNull String serialize(@NonNull Type type, @NonNull Object object);
+
+  @NonNull Object deserialize(@NonNull Charset charset, @NonNull Type objectType, @NonNull InputStream content);
 }

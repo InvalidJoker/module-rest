@@ -14,8 +14,27 @@
  * limitations under the License.
  */
 
-dependencies {
-  api(libs.guava)
-  compileOnlyApi(libs.slf4j)
-  implementation(libs.reflexion)
+package eu.cloudnetservice.ext.rest.netty;
+
+import eu.cloudnetservice.ext.rest.api.HttpChannel;
+import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
+import io.netty5.channel.Channel;
+import lombok.NonNull;
+
+/**
+ * The default implementation of the http channel, delegating all method calls to netty.
+ *
+ * @since 4.0
+ */
+record NettyHttpChannel(
+  @NonNull Channel channel,
+  @NonNull String scheme,
+  @NonNull HostAndPort serverAddress,
+  @NonNull HostAndPort clientAddress
+) implements HttpChannel {
+
+  @Override
+  public void close() {
+    this.channel.close();
+  }
 }

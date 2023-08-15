@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-dependencies {
-  api(libs.guava)
-  compileOnlyApi(libs.slf4j)
-  implementation(libs.reflexion)
+package eu.cloudnetservice.ext.rest.api.codec.builtin;
+
+import eu.cloudnetservice.ext.rest.api.codec.DataformatCodec;
+
+public interface JsonCodec extends DataformatCodec {
+
 }

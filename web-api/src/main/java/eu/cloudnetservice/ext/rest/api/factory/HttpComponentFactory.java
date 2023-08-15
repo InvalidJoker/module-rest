@@ -14,8 +14,17 @@
  * limitations under the License.
  */
 
-dependencies {
-  api(libs.guava)
-  compileOnlyApi(libs.slf4j)
-  implementation(libs.reflexion)
+package eu.cloudnetservice.ext.rest.api.factory;
+
+import eu.cloudnetservice.ext.rest.api.HttpComponent;
+import eu.cloudnetservice.ext.rest.api.config.ComponentConfig;
+import lombok.NonNull;
+
+public interface HttpComponentFactory<T extends HttpComponent<T>> {
+
+  @NonNull String componentTypeName();
+
+  @NonNull Class<T> supportedComponentType();
+
+  @NonNull T construct(@NonNull ComponentConfig componentConfig);
 }

@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-dependencies {
-  api(libs.guava)
-  compileOnlyApi(libs.slf4j)
-  implementation(libs.reflexion)
+package eu.cloudnetservice.ext.rest.api.tree;
+
+import eu.cloudnetservice.ext.rest.api.HttpHandler;
+import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
+import lombok.NonNull;
+
+public record HttpHandlerConfigPair(@NonNull HttpHandler httpHandler, @NonNull HttpHandlerConfig config) {
+
 }

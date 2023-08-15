@@ -15,7 +15,14 @@
  */
 
 dependencies {
-  api(libs.guava)
-  compileOnlyApi(libs.slf4j)
-  implementation(libs.reflexion)
+  api(projects.webApi)
+
+  implementation(libs.nettyHandler)
+  implementation(libs.nettyCodecHttp)
+  implementation(libs.nettyContribHaProxy)
+
+  // transports
+  implementation(libs.nettyNativeEpoll)
+  implementation(libs.nettyNativeKqueue)
+  implementation(libs.nettyNativeIoUring)
 }

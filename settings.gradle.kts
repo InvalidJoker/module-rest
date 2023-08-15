@@ -20,5 +20,6 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 rootProject.name = "modules-rest"
 
 include("web-api")
+include("web-impl-netty")
 include("web-codec-gson")
 include("cloudnet-rest-module")

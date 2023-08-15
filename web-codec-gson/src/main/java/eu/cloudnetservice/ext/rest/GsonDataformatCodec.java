@@ -18,7 +18,7 @@ package eu.cloudnetservice.ext.rest;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import eu.cloudnetservice.ext.rest.http.codec.builtin.JsonCodec;
+import eu.cloudnetservice.ext.rest.api.codec.builtin.JsonCodec;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;

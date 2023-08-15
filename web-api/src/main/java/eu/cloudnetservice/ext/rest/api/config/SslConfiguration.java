@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-dependencies {
-  api(libs.guava)
-  compileOnlyApi(libs.slf4j)
-  implementation(libs.reflexion)
+package eu.cloudnetservice.ext.rest.api.config;
+
+import java.nio.file.Path;
+import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
+
+public record SslConfiguration(
+  @NonNull Path keyPath,
+  @NonNull Path keyCertPath,
+  @Nullable String keyPassword
+) {
+
 }
