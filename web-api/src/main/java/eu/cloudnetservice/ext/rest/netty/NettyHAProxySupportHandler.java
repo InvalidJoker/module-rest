@@ -26,6 +26,8 @@ import lombok.NonNull;
 
 final class NettyHAProxySupportHandler extends ByteToMessageDecoder {
 
+  public static final String HANDLER_NAME = "ha-proxy-bridge";
+
   private final HttpProxyMode mode;
 
   public NettyHAProxySupportHandler(@NonNull HttpProxyMode mode) {
@@ -54,12 +56,8 @@ final class NettyHAProxySupportHandler extends ByteToMessageDecoder {
   }
 
   private void insertHaProtocolHandlers(@NonNull ChannelPipeline pipeline) {
-    // insert the ha decoder and our message reader
     pipeline
-      .addFirst("ha-proxy-message-handler", NettyHAProxyMessageHandler.INSTANCE)
-      .addFirst("ha-proxy-message-decoder", new HAProxyMessageDecoder());
-
-    // remove our handler from the pipeline
-    pipeline.remove(this);
+      .addAfter(HANDLER_NAME, "ha-proxy-message-handler", NettyHAProxyMessageHandler.INSTANCE)
+      .replace(this, "ha-proxy-message-decoder", new HAProxyMessageDecoder());
   }
 }

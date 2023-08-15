@@ -70,7 +70,7 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
     // add the HA proxy handler, if needed
     var haProxyMode = componentConfig.haProxyMode();
     if (haProxyMode != HttpProxyMode.DISABLED) {
-      ch.pipeline().addLast("ha-proxy-bridge", new NettyHAProxySupportHandler(haProxyMode));
+      ch.pipeline().addLast(NettyHAProxySupportHandler.HANDLER_NAME, new NettyHAProxySupportHandler(haProxyMode));
     }
 
     // add the ssl handler if needed

@@ -25,8 +25,16 @@ import java.time.Duration;
 import java.util.List;
 import lombok.NonNull;
 
+/**
+ * A processor for the {@code @CrossOrigin} annotation.
+ *
+ * @since 4.0
+ */
 public final class CrossOriginProcessor implements HttpAnnotationProcessor {
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void buildPreprocessor(
     @NonNull HttpHandlerConfig.Builder config,

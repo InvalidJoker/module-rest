@@ -163,33 +163,29 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
     var matchingTreeNode = this.nettyHttpServer.handlerRegistry().findHandler(fullPath, context);
 
     if (matchingTreeNode == null) {
-      channel
-        .writeAndFlush(new DefaultHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.NOT_FOUND))
-        .addListener(channel, ChannelFutureListeners.CLOSE);
-      return;
-    }
-
-    var preflightRequestInfo = this.corsRequestProcessor.extractInfoFromPreflightRequest(context.request());
-    if (preflightRequestInfo != null) {
-      // preflight request info is present, respond accordingly to the request
-      var targetHandler = matchingTreeNode.pathNode().findHandlerForMethod(preflightRequestInfo.requestMethod());
-      var handlerConfig = targetHandler != null ? targetHandler.config() : null;
-      this.corsRequestProcessor.processPreflightRequest(context, preflightRequestInfo, handlerConfig);
+      // no matching node found - fallback
+      this.postToFallbackHandler(context);
     } else {
-      // validate that the target handler for the request is present
-      var targetHandler = matchingTreeNode.pathNode().findHandlerForMethod(httpRequest.method().name());
-      if (targetHandler == null) {
-        channel
-          .writeAndFlush(new DefaultHttpResponse(httpRequest.protocolVersion(), HttpResponseStatus.NOT_FOUND))
-          .addListener(channel, ChannelFutureListeners.CLOSE);
-        return;
-      }
-
-      // validate that the request conforms to the CORS policy before handling
-      if (this.corsRequestProcessor.processNormalRequest(context, targetHandler.config())) {
-        var handlerResponse = this.postRequestToHandler(context, targetHandler);
-        if (handlerResponse != null) {
-          handlerResponse.serializeIntoResponse(context.response());
+      var preflightRequestInfo = this.corsRequestProcessor.extractInfoFromPreflightRequest(context.request());
+      if (preflightRequestInfo != null) {
+        // preflight request info is present, respond accordingly to the request
+        var targetHandler = matchingTreeNode.pathNode().findHandlerForMethod(preflightRequestInfo.requestMethod());
+        var handlerConfig = targetHandler != null ? targetHandler.config() : null;
+        this.corsRequestProcessor.processPreflightRequest(context, preflightRequestInfo, handlerConfig);
+      } else {
+        // validate that the target handler for the request is present
+        var targetHandler = matchingTreeNode.pathNode().findHandlerForMethod(httpRequest.method().name());
+        if (targetHandler == null) {
+          // no target handler found - fallback
+          this.postToFallbackHandler(context);
+        } else {
+          // validate that the request conforms to the CORS policy before handling
+          if (this.corsRequestProcessor.processNormalRequest(context, targetHandler.config())) {
+            var handlerResponse = this.postRequestToHandler(context, targetHandler);
+            if (handlerResponse != null) {
+              handlerResponse.serializeIntoResponse(context.response());
+            }
+          }
         }
       }
     }
@@ -230,6 +226,18 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
       if (context.closeAfter) {
         future.addListener(channel, ChannelFutureListeners.CLOSE);
       }
+    }
+  }
+
+  private void postToFallbackHandler(@NonNull NettyHttpServerContext context) {
+    var fallbackHandler = this.nettyHttpServer.componentConfig().fallbackHttpHandler();
+    try {
+      var response = fallbackHandler.handle(context).intoResponse();
+      response.serializeIntoResponse(context.response());
+    } catch (Exception exception) {
+      // unable to handle the exception
+      LOGGER.debug("Exception in post-processing exception handler", exception);
+      context.response().status(HttpResponseCode.INTERNAL_SERVER_ERROR);
     }
   }
 

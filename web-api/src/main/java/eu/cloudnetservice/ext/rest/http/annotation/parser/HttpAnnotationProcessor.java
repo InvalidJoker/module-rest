@@ -16,12 +16,9 @@
 
 package eu.cloudnetservice.ext.rest.http.annotation.parser;
 
-import eu.cloudnetservice.ext.rest.http.config.ComponentConfig;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
-import eu.cloudnetservice.ext.rest.http.config.HttpHandlerInterceptor;
 import java.lang.reflect.Method;
 import lombok.NonNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A processor for an annotation which can be added to a http handler parameter.
@@ -40,7 +37,7 @@ public interface HttpAnnotationProcessor {
    * <p>
    * If this processor returns null it indicates that it has no interest in adding a preprocessor.
    *
-   * @param config //TODO
+   * @param config          //TODO
    * @param method          the method which gets processed currently.
    * @param handlerInstance the instance of the handler class in which the method is located.
    * @throws NullPointerException if the given method or handler instance is null.

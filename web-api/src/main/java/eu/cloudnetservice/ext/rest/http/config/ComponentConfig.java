@@ -16,8 +16,12 @@
 
 package eu.cloudnetservice.ext.rest.http.config;
 
+import eu.cloudnetservice.ext.rest.http.HttpContext;
+import eu.cloudnetservice.ext.rest.http.HttpHandler;
 import eu.cloudnetservice.ext.rest.http.connection.EmptyConnectionInfoResolver;
 import eu.cloudnetservice.ext.rest.http.connection.HttpConnectionInfoResolver;
+import eu.cloudnetservice.ext.rest.http.response.IntoResponse;
+import eu.cloudnetservice.ext.rest.http.response.type.PlainTextResponse;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,28 +29,48 @@ public record ComponentConfig(
   boolean disableNativeTransport,
   @NonNull CorsConfig corsConfig,
   @NonNull HttpProxyMode haProxyMode,
+  @NonNull HttpHandler fallbackHttpHandler,
   @Nullable SslConfiguration sslConfiguration,
   @NonNull HttpConnectionInfoResolver connectionInfoResolver
 ) {
+
+  private static final HttpHandler DEFAULT_FALLBACK_HANDLER = new HttpHandler() {
+    @Override
+    public @NonNull IntoResponse<?> handle(@NonNull HttpContext context) {
+      return PlainTextResponse.builder().body("Resource not found.").notFound();
+    }
+  };
 
   public static @NonNull Builder builder() {
     return new Builder();
   }
 
-  public static @NonNull Builder builder(@NonNull ComponentConfig contextConfig) {
-    return new Builder().corsConfig(contextConfig.corsConfig());
+  public static @NonNull Builder builder(@NonNull ComponentConfig componentConfig) {
+    return new Builder()
+      .disableNativeTransport(componentConfig.disableNativeTransport())
+      .corsConfig(componentConfig.corsConfig())
+      .haProxyMode(componentConfig.haProxyMode())
+      .fallbackHttpHandler(componentConfig.fallbackHttpHandler())
+      .sslConfiguration(componentConfig.sslConfiguration())
+      .connectionInfoResolver(componentConfig.connectionInfoResolver());
   }
 
   public static final class Builder {
 
     private boolean disableNativeTransport;
+    private HttpHandler fallbackHttpHandler = DEFAULT_FALLBACK_HANDLER;
     private SslConfiguration sslConfiguration;
     private HttpProxyMode haProxyMode = HttpProxyMode.DISABLED;
     private CorsConfig.Builder corsConfigBuilder = CorsConfig.builder();
     private HttpConnectionInfoResolver connectionInfoResolver = EmptyConnectionInfoResolver.INSTANCE;
 
-    public @NonNull Builder disableNativeTransport() {
-      this.disableNativeTransport = true;
+    public @NonNull Builder disableNativeTransport(boolean disableNativeTransport) {
+      this.disableNativeTransport = disableNativeTransport;
+      return this;
+    }
+
+    public @NonNull Builder fallbackHttpHandler(@NonNull HttpHandler fallbackHttpHandler) {
+      this.fallbackHttpHandler = fallbackHttpHandler;
       return this;
     }
 
@@ -85,6 +109,7 @@ public record ComponentConfig(
         this.disableNativeTransport,
         this.corsConfigBuilder.build(),
         this.haProxyMode,
+        this.fallbackHttpHandler,
         this.sslConfiguration,
         this.connectionInfoResolver);
     }
