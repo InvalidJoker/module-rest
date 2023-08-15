@@ -1,0 +1,103 @@
+/*
+ * Copyright 2019-2023 CloudNetService team & contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package eu.cloudnetservice.ext.rest.http.annotation.parser.processor;
+
+import com.google.common.net.MediaType;
+import dev.derklaro.reflexion.MethodAccessor;
+import dev.derklaro.reflexion.Reflexion;
+import dev.derklaro.reflexion.Result;
+import eu.cloudnetservice.ext.rest.http.HttpContext;
+import eu.cloudnetservice.ext.rest.http.HttpHandler;
+import eu.cloudnetservice.ext.rest.http.HttpRequest;
+import eu.cloudnetservice.ext.rest.http.annotation.RequestTypedBody;
+import eu.cloudnetservice.ext.rest.http.annotation.parser.DefaultHttpAnnotationParser;
+import eu.cloudnetservice.ext.rest.http.annotation.parser.HttpAnnotationProcessor;
+import eu.cloudnetservice.ext.rest.http.annotation.parser.HttpAnnotationProcessorUtil;
+import eu.cloudnetservice.ext.rest.http.codec.CodecProvider;
+import eu.cloudnetservice.ext.rest.http.codec.DataformatCodec;
+import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
+import eu.cloudnetservice.ext.rest.http.config.HttpHandlerInterceptor;
+import io.netty5.handler.codec.http.HttpHeaderNames;
+import java.lang.reflect.Method;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import lombok.NonNull;
+
+public final class RequestTypedBodyProcessor implements HttpAnnotationProcessor {
+
+  private static @NonNull Charset extractRequestCharsetOrUtf8(@NonNull HttpRequest request) {
+    // get the content type header - if not present we just assume UTF8
+    var contentType = request.header(HttpHeaderNames.CONTENT_TYPE.toString());
+    if (contentType == null) {
+      return StandardCharsets.UTF_8;
+    }
+
+    try {
+      var mediaType = MediaType.parse(contentType);
+      return mediaType.charset().or(StandardCharsets.UTF_8);
+    } catch (IllegalArgumentException exception) {
+      return StandardCharsets.UTF_8;
+    }
+  }
+
+  @Override
+  public void buildPreprocessor(
+    @NonNull HttpHandlerConfig.Builder config,
+    @NonNull Method method,
+    @NonNull Object handlerInstance
+  ) {
+    var hints = HttpAnnotationProcessorUtil.mapParameters(
+      method,
+      RequestTypedBody.class,
+      (param, annotation) -> {
+        var type = param.getParameterizedType();
+        var deserializer = this.constructDeserializer(annotation.deserializationCodec());
+
+        return context -> {
+          var request = context.request();
+          var requestCharset = extractRequestCharsetOrUtf8(request);
+
+          return deserializer.deserialize(requestCharset, type, request.bodyStream());
+        };
+      });
+    config.addHandlerInterceptor(new HttpHandlerInterceptor() {
+      @Override
+      public boolean preProcess(
+        @NonNull HttpContext context,
+        @NonNull HttpHandler handler,
+        @NonNull HttpHandlerConfig config
+      ) {
+        context.addInvocationHints(DefaultHttpAnnotationParser.PARAM_INVOCATION_HINT_KEY, hints);
+        return true;
+      }
+    });
+  }
+
+  private @NonNull DataformatCodec constructDeserializer(
+    @NonNull Class<? extends DataformatCodec> codecClass
+  ) {
+    if (codecClass.isInterface()) {
+      return CodecProvider.resolveCodec(codecClass);
+    } else {
+      return Reflexion.on(codecClass).findConstructor()
+        .map(MethodAccessor::<DataformatCodec>invoke)
+        .map(Result::getOrThrow)
+        .orElseThrow(() -> new IllegalArgumentException(
+          "Missing no-args constructor in DataformatCodec class: " + codecClass));
+    }
+  }
+}

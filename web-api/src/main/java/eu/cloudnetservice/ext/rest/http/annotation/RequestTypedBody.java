@@ -16,41 +16,19 @@
 
 package eu.cloudnetservice.ext.rest.http.annotation;
 
-import eu.cloudnetservice.ext.rest.http.HttpRequest;
-import java.io.InputStream;
+import eu.cloudnetservice.ext.rest.http.codec.DataformatCodec;
+import eu.cloudnetservice.ext.rest.http.codec.builtin.JsonCodec;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.Type;
 import lombok.NonNull;
 
 @Documented
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RequestJsonBody {
+public @interface RequestTypedBody {
 
-  Class<? extends JsonDeserializer> jsonDeserializer() default DefaultJsonDeserializer.class;
-
-  @FunctionalInterface
-  interface JsonDeserializer {
-
-    @NonNull Object deserialize(
-      @NonNull HttpRequest request,
-      @NonNull Type objectType,
-      @NonNull InputStream bodyStream);
-  }
-
-  final class DefaultJsonDeserializer implements JsonDeserializer {
-
-    @Override
-    public @NonNull Object deserialize(
-      @NonNull HttpRequest req,
-      @NonNull Type objectType,
-      @NonNull InputStream bodyStream
-    ) {
-      throw new UnsupportedOperationException("should never call this directly");
-    }
-  }
+  @NonNull Class<? extends DataformatCodec> deserializationCodec() default JsonCodec.class;
 }

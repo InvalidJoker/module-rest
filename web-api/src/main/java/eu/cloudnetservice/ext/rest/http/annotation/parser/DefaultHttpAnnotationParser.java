@@ -20,12 +20,12 @@ import eu.cloudnetservice.ext.rest.http.annotation.RequestHandler;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.ContentTypeProcessor;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.CrossOriginProcessor;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.FirstRequestQueryParamProcessor;
-import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.JsonBodyProcessor;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.RequestBodyProcessor;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.RequestHeaderProcessor;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.RequestPathParamProcessor;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.RequestPathProcessor;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.RequestQueryParamProcessor;
+import eu.cloudnetservice.ext.rest.http.annotation.parser.processor.RequestTypedBodyProcessor;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.http.registry.HttpHandlerRegistry;
 import java.lang.reflect.Modifier;
@@ -101,7 +101,7 @@ public final class DefaultHttpAnnotationParser implements HttpAnnotationParser {
       .registerAnnotationProcessor(new RequestPathParamProcessor())
       .registerAnnotationProcessor(new RequestQueryParamProcessor())
       .registerAnnotationProcessor(new ContentTypeProcessor())
-      .registerAnnotationProcessor(new JsonBodyProcessor())
+      .registerAnnotationProcessor(new RequestTypedBodyProcessor())
       .registerAnnotationProcessor(new CrossOriginProcessor());
   }
 

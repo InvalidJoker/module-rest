@@ -16,13 +16,13 @@
 
 package eu.cloudnetservice.ext.rest.netty;
 
-import eu.cloudnetservice.ext.rest.http.registry.DefaultHttpHandlerRegistry;
-import eu.cloudnetservice.ext.rest.http.registry.HttpHandlerRegistry;
 import eu.cloudnetservice.ext.rest.http.HttpServer;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.DefaultHttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.http.annotation.parser.HttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.http.config.ComponentConfig;
 import eu.cloudnetservice.ext.rest.http.config.SslConfiguration;
+import eu.cloudnetservice.ext.rest.http.registry.DefaultHttpHandlerRegistry;
+import eu.cloudnetservice.ext.rest.http.registry.HttpHandlerRegistry;
 import eu.cloudnetservice.ext.rest.http.util.HostAndPort;
 import io.netty5.bootstrap.ServerBootstrap;
 import io.netty5.channel.ChannelOption;
