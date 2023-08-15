@@ -17,13 +17,13 @@
 package eu.cloudnetservice.ext.rest.http.response.type;
 
 import com.google.common.base.Preconditions;
+import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
 import eu.cloudnetservice.ext.rest.http.HttpResponse;
 import eu.cloudnetservice.ext.rest.http.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.http.response.DefaultResponse;
 import eu.cloudnetservice.ext.rest.http.response.DefaultResponseBuilder;
 import eu.cloudnetservice.ext.rest.http.response.Response;
-import io.netty5.handler.codec.http.HttpHeaderNames;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -79,9 +79,9 @@ public final class FileResponse extends DefaultResponse<Path> {
         var fileName = this.body.getFileName();
         var attachment = String.format("attachment%s", fileName == null ? "" : "; filename=" + fileName);
 
-        this.httpHeaders.putIfAbsent(HttpHeaderNames.CONTENT_DISPOSITION.toString(), List.of(attachment));
+        this.httpHeaders.putIfAbsent(HttpHeaders.CONTENT_DISPOSITION, List.of(attachment));
         this.httpHeaders.putIfAbsent(
-          HttpHeaderNames.CONTENT_TYPE.toString(),
+          HttpHeaders.CONTENT_TYPE.toString(),
           List.of(MediaType.OCTET_STREAM.toString()));
       }
 

@@ -16,13 +16,13 @@
 
 package eu.cloudnetservice.ext.rest.http.response.type;
 
+import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
 import eu.cloudnetservice.ext.rest.http.HttpResponse;
 import eu.cloudnetservice.ext.rest.http.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.http.response.DefaultResponse;
 import eu.cloudnetservice.ext.rest.http.response.DefaultResponseBuilder;
 import eu.cloudnetservice.ext.rest.http.response.Response;
-import io.netty5.handler.codec.http.HttpHeaderNames;
 import java.util.List;
 import java.util.Map;
 import lombok.NonNull;
@@ -64,7 +64,7 @@ public final class PlainTextResponse extends DefaultResponse<String> {
     @Override
     public @NonNull Response<String> build() {
       this.httpHeaders.putIfAbsent(
-        HttpHeaderNames.CONTENT_TYPE.toString(),
+        HttpHeaders.CONTENT_TYPE,
         List.of(MediaType.PLAIN_TEXT_UTF_8.toString()));
 
       return new PlainTextResponse(this.body, this.responseCode, Map.copyOf(this.httpHeaders));

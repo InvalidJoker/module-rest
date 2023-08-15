@@ -16,7 +16,6 @@
 
 dependencies {
   compileOnly(libs.slf4j)
-  implementation(libs.gson)
   implementation(libs.guava)
   implementation(libs.reflexion)
   implementation(libs.nettyHandler)

@@ -17,15 +17,15 @@
 package eu.cloudnetservice.ext.rest.http.cors;
 
 import com.google.common.base.Splitter;
+import com.google.common.net.HttpHeaders;
 import eu.cloudnetservice.ext.rest.http.HttpContext;
+import eu.cloudnetservice.ext.rest.http.HttpMethod;
 import eu.cloudnetservice.ext.rest.http.HttpRequest;
 import eu.cloudnetservice.ext.rest.http.HttpResponse;
 import eu.cloudnetservice.ext.rest.http.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.http.config.CorsConfig;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.http.connection.BasicHttpConnectionInfo;
-import io.netty5.handler.codec.http.HttpHeaderNames;
-import io.netty5.handler.codec.http.HttpMethod;
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
 
+  private static final String ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK = "Access-Control-Request-Private-Network";
   private static final Splitter REQUEST_HEADERS_SPLITTER = Splitter.on(',').omitEmptyStrings().trimResults();
 
   @Override
@@ -46,14 +47,14 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
     }
 
     // check if the required headers origin & request method are present
-    var origin = request.header(HttpHeaderNames.ORIGIN.toString());
-    var clientRequestMethod = request.header(HttpHeaderNames.ACCESS_CONTROL_REQUEST_METHOD.toString());
+    var origin = request.header(HttpHeaders.ORIGIN);
+    var clientRequestMethod = request.header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD);
     if (origin == null || clientRequestMethod == null) {
       return null;
     }
 
     // extract the client request headers, default to empty list if not given
-    var clientRequestHeaders = request.header(HttpHeaderNames.ACCESS_CONTROL_REQUEST_HEADERS.toString());
+    var clientRequestHeaders = request.header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS);
     if (clientRequestHeaders == null) {
       return new CorsPreflightRequestInfo(origin, clientRequestMethod, List.of());
     }
@@ -127,7 +128,7 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
   private boolean filterAndPreprocessCorsRequest(
     @NonNull String origin,
     @NonNull String method,
-    @NonNull String allowedMethod,
+    @NonNull HttpMethod allowedMethod,
     @NonNull Collection<String> headerNames,
     @NonNull CorsConfig corsConfig,
     @NonNull HttpRequest httpRequest,
@@ -135,9 +136,9 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
     boolean preflight
   ) {
     // append information about the headers that on change might lead to a different handling result
-    httpResponse.addHeader(HttpHeaderNames.VARY.toString(), HttpHeaderNames.ORIGIN.toString());
-    httpResponse.addHeader(HttpHeaderNames.VARY.toString(), HttpHeaderNames.ACCESS_CONTROL_REQUEST_METHOD.toString());
-    httpResponse.addHeader(HttpHeaderNames.VARY.toString(), HttpHeaderNames.ACCESS_CONTROL_REQUEST_HEADERS.toString());
+    httpResponse.addHeader(HttpHeaders.VARY, HttpHeaders.ORIGIN);
+    httpResponse.addHeader(HttpHeaders.VARY, HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD);
+    httpResponse.addHeader(HttpHeaders.VARY, HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS);
 
     // check if the given origin is valid
     var validOrigin = corsConfig.findMatchingOrigin(origin);
@@ -147,7 +148,7 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
     }
 
     // check if the used request method is valid
-    if (!method.equalsIgnoreCase(allowedMethod)) {
+    if (!method.equalsIgnoreCase(allowedMethod.name())) {
       this.rejectRequest(httpResponse);
       return false;
     }
@@ -163,24 +164,24 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
       // respond with the allowed filtered headers
       if (!filteredHeaders.isEmpty()) {
         var allowedHeaderString = String.join(", ", filteredHeaders);
-        httpResponse.header(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS.toString(), allowedHeaderString);
+        httpResponse.header(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, allowedHeaderString);
       }
 
       // add info about the allowed method for the request
-      httpResponse.header(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS.toString(), allowedMethod);
+      httpResponse.header(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, allowedMethod.name());
 
       // add info about the max time the preflight response can be cached, if provided
       var maxAge = corsConfig.maxAge();
       if (maxAge != null) {
-        httpResponse.header(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE.toString(), Long.toString(maxAge.getSeconds()));
+        httpResponse.header(HttpHeaders.ACCESS_CONTROL_MAX_AGE, Long.toString(maxAge.getSeconds()));
       }
 
       // indicates to the browser is requests from public networks to private networks are allowed
       // https://developer.chrome.com/blog/private-network-access-preflight
-      if (httpRequest.hasHeader(HttpHeaderNames.ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK.toString())) {
+      if (httpRequest.hasHeader(ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK)) {
         var privateNetworkAllowed = Boolean.TRUE.equals(corsConfig.allowPrivateNetworks());
         httpResponse.header(
-          HttpHeaderNames.ACCESS_CONTROL_ALLOW_PRIVATE_NETWORK.toString(),
+          HttpHeaders.ACCESS_CONTROL_ALLOW_PRIVATE_NETWORK,
           Boolean.toString(privateNetworkAllowed));
       }
 
@@ -189,18 +190,18 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
     }
 
     // set the origin that we filtered out to be allowed
-    httpResponse.header(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN.toString(), validOrigin);
+    httpResponse.header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, validOrigin);
 
     // add the exposed headers to the response in case there are any
     var exposedHeaders = corsConfig.exposedHeaders();
     if (!exposedHeaders.isEmpty()) {
       var exposedHeadersString = String.join(", ", exposedHeaders);
-      httpResponse.header(HttpHeaderNames.ACCESS_CONTROL_EXPOSE_HEADERS.toString(), exposedHeadersString);
+      httpResponse.header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, exposedHeadersString);
     }
 
     // mark credentials to be allowed if configured
     if (Boolean.TRUE.equals(corsConfig.allowCredentials())) {
-      httpResponse.header(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS.toString(), "true");
+      httpResponse.header(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
     }
 
     return true;
@@ -216,7 +217,7 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
     @NonNull BasicHttpConnectionInfo connectionInfo
   ) {
     // check if the origin header is present
-    var origin = request.header(HttpHeaderNames.ORIGIN.toString());
+    var origin = request.header(HttpHeaders.ORIGIN);
     if (origin == null) {
       return null;
     }

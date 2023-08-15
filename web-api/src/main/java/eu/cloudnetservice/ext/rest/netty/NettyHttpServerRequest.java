@@ -16,6 +16,7 @@
 
 package eu.cloudnetservice.ext.rest.netty;
 
+import com.google.common.net.HttpHeaders;
 import com.google.common.primitives.Ints;
 import eu.cloudnetservice.ext.rest.http.HttpContext;
 import eu.cloudnetservice.ext.rest.http.HttpCookie;
@@ -23,7 +24,6 @@ import eu.cloudnetservice.ext.rest.http.HttpRequest;
 import eu.cloudnetservice.ext.rest.http.HttpVersion;
 import io.netty5.buffer.BufferInputStream;
 import io.netty5.handler.codec.http.FullHttpRequest;
-import io.netty5.handler.codec.http.HttpHeaderNames;
 import io.netty5.handler.codec.http.QueryStringDecoder;
 import io.netty5.handler.codec.http.headers.DefaultHttpCookiePair;
 import io.netty5.handler.codec.http.headers.HttpCookiePair;
@@ -347,7 +347,7 @@ final class NettyHttpServerRequest extends NettyHttpMessage implements HttpReque
    */
   @Override
   public @NonNull HttpRequest cookies(@NonNull Collection<HttpCookie> cookies) {
-    this.httpRequest.headers().remove(HttpHeaderNames.COOKIE);
+    this.httpRequest.headers().remove(HttpHeaders.COOKIE);
     cookies.forEach(this::addCookie);
     return this;
   }
@@ -376,7 +376,7 @@ final class NettyHttpServerRequest extends NettyHttpMessage implements HttpReque
    */
   @Override
   public @NonNull HttpRequest clearCookies() {
-    this.httpRequest.headers().remove(HttpHeaderNames.COOKIE);
+    this.httpRequest.headers().remove(HttpHeaders.COOKIE);
     return this;
   }
 

@@ -16,6 +16,7 @@
 
 package eu.cloudnetservice.ext.rest.http.annotation;
 
+import eu.cloudnetservice.ext.rest.http.HttpMethod;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -46,5 +47,5 @@ public @interface RequestHandler {
    *
    * @return the http request method the associated method is handling.
    */
-  @NonNull String method() default "GET";
+  @NonNull HttpMethod method() default HttpMethod.GET;
 }

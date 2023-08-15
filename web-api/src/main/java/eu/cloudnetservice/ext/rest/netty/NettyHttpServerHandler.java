@@ -16,6 +16,7 @@
 
 package eu.cloudnetservice.ext.rest.netty;
 
+import com.google.common.net.HttpHeaders;
 import eu.cloudnetservice.ext.rest.http.HttpContext;
 import eu.cloudnetservice.ext.rest.http.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.http.cors.CorsRequestProcessor;
@@ -30,7 +31,6 @@ import io.netty5.channel.SimpleChannelInboundHandler;
 import io.netty5.handler.codec.http.DefaultHttpResponse;
 import io.netty5.handler.codec.http.EmptyLastHttpContent;
 import io.netty5.handler.codec.http.HttpChunkedInput;
-import io.netty5.handler.codec.http.HttpHeaderNames;
 import io.netty5.handler.codec.http.HttpHeaderValues;
 import io.netty5.handler.codec.http.HttpRequest;
 import io.netty5.handler.codec.http.HttpResponseStatus;
@@ -197,7 +197,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
       // append the keep-alive header if requested
       var netty = response.httpResponse;
       if (!context.closeAfter) {
-        netty.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+        netty.headers().set(HttpHeaders.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
       }
 
       // transfer the data chunked to the client if a response stream was set, indicating a huge data chunk

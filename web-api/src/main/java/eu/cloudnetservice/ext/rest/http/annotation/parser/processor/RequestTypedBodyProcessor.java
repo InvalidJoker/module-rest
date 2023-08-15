@@ -16,6 +16,7 @@
 
 package eu.cloudnetservice.ext.rest.http.annotation.parser.processor;
 
+import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
 import dev.derklaro.reflexion.MethodAccessor;
 import dev.derklaro.reflexion.Reflexion;
@@ -31,7 +32,6 @@ import eu.cloudnetservice.ext.rest.http.codec.CodecProvider;
 import eu.cloudnetservice.ext.rest.http.codec.DataformatCodec;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerInterceptor;
-import io.netty5.handler.codec.http.HttpHeaderNames;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -41,7 +41,7 @@ public final class RequestTypedBodyProcessor implements HttpAnnotationProcessor 
 
   private static @NonNull Charset extractRequestCharsetOrUtf8(@NonNull HttpRequest request) {
     // get the content type header - if not present we just assume UTF8
-    var contentType = request.header(HttpHeaderNames.CONTENT_TYPE.toString());
+    var contentType = request.header(HttpHeaders.CONTENT_TYPE);
     if (contentType == null) {
       return StandardCharsets.UTF_8;
     }

@@ -16,6 +16,7 @@
 
 package eu.cloudnetservice.ext.rest.http.annotation.parser.processor;
 
+import com.google.common.net.HttpHeaders;
 import eu.cloudnetservice.ext.rest.http.HttpContext;
 import eu.cloudnetservice.ext.rest.http.HttpHandler;
 import eu.cloudnetservice.ext.rest.http.annotation.ContentType;
@@ -23,7 +24,6 @@ import eu.cloudnetservice.ext.rest.http.annotation.parser.HttpAnnotationProcesso
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.http.config.HttpHandlerInterceptor;
 import eu.cloudnetservice.ext.rest.http.response.Response;
-import io.netty5.handler.codec.http.HttpHeaderNames;
 import java.lang.reflect.Method;
 import lombok.NonNull;
 
@@ -53,7 +53,7 @@ public final class ContentTypeProcessor implements HttpAnnotationProcessor {
       ) {
         var annotation = method.getAnnotation(ContentType.class);
         if (annotation != null) {
-          context.response().header(HttpHeaderNames.CONTENT_TYPE.toString(), annotation.value());
+          context.response().header(HttpHeaders.CONTENT_TYPE, annotation.value());
         }
 
         return true;

@@ -56,7 +56,7 @@ abstract class DefaultHttpPathNode implements HttpPathNode {
   @Override
   public @Nullable HttpHandlerConfigPair findHandlerForMethod(@NonNull String method) {
     return this.handlers.stream()
-      .filter(pair -> pair.config().httpMethod().equalsIgnoreCase(method))
+      .filter(pair -> pair.config().httpMethod().name().equalsIgnoreCase(method))
       .findFirst()
       .orElse(null);
   }

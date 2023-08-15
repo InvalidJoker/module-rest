@@ -138,7 +138,7 @@ public final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
     }
 
     // ensure that there is no http handler for the current node yet
-    var existingHandler = lastSeenTreeNode.pathNode().findHandlerForMethod(config.httpMethod());
+    var existingHandler = lastSeenTreeNode.pathNode().findHandlerForMethod(config.httpMethod().name());
     if (existingHandler != null) {
       // todo: path
       throw new IllegalStateException("Detected duplicate http handler for path \"%s\"");

@@ -16,8 +16,8 @@
 
 package eu.cloudnetservice.ext.rest.http.response;
 
+import com.google.common.net.HttpHeaders;
 import eu.cloudnetservice.ext.rest.http.HttpResponseCode;
-import io.netty5.handler.codec.http.HttpHeaderNames;
 import java.net.URI;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -99,13 +99,13 @@ public abstract class DefaultResponseBuilder<T, B extends Response.Builder<T, B>
       etag += "\"";
     }
 
-    return this.header(HttpHeaderNames.ETAG.toString(), etag);
+    return this.header(HttpHeaders.ETAG, etag);
   }
 
   @Override
   public @NonNull B lastModified(@NonNull ZonedDateTime lastModified) {
     return this.header(
-      HttpHeaderNames.LAST_MODIFIED.toString(),
+      HttpHeaders.LAST_MODIFIED,
       DATE_FORMATTER.format(lastModified.withZoneSameInstant(GMT)));
   }
 
@@ -116,17 +116,17 @@ public abstract class DefaultResponseBuilder<T, B extends Response.Builder<T, B>
 
   @Override
   public @NonNull B location(@NonNull URI location) {
-    return this.header(HttpHeaderNames.LOCATION.toString(), location.toASCIIString());
+    return this.header(HttpHeaders.LOCATION, location.toASCIIString());
   }
 
   @Override
   public @NonNull B contentType(@NonNull String contentType) {
-    return this.header(HttpHeaderNames.CONTENT_TYPE.toString(), contentType);
+    return this.header(HttpHeaders.CONTENT_TYPE, contentType);
   }
 
   @Override
   public @NonNull B contentLength(long contentLength) {
-    return this.header(HttpHeaderNames.CONTENT_LENGTH.toString(), Long.toString(contentLength));
+    return this.header(HttpHeaders.CONTENT_LENGTH, Long.toString(contentLength));
   }
 
   @Override

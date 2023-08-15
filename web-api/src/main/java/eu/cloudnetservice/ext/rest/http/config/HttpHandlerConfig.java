@@ -19,6 +19,7 @@ package eu.cloudnetservice.ext.rest.http.config;
 import com.google.common.base.Preconditions;
 import eu.cloudnetservice.ext.rest.http.HttpContext;
 import eu.cloudnetservice.ext.rest.http.HttpHandler;
+import eu.cloudnetservice.ext.rest.http.HttpMethod;
 import eu.cloudnetservice.ext.rest.http.response.Response;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -28,7 +29,7 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 public record HttpHandlerConfig(
-  @NonNull String httpMethod,
+  @NonNull HttpMethod httpMethod,
   @Nullable CorsConfig corsConfig,
   @NonNull List<HttpHandlerInterceptor> handlerInterceptors
 ) {
@@ -84,14 +85,14 @@ public record HttpHandlerConfig(
 
   public static final class Builder {
 
-    private String httpMethod;
+    private HttpMethod httpMethod;
     private CorsConfig corsConfig;
     private List<HttpHandlerInterceptor> handlerInterceptors = new LinkedList<>();
 
     private Builder() {
     }
 
-    public @NonNull Builder httpMethod(@NonNull String httpMethod) {
+    public @NonNull Builder httpMethod(@NonNull HttpMethod httpMethod) {
       this.httpMethod = httpMethod;
       return this;
     }
