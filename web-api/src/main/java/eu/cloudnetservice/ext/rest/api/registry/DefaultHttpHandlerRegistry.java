@@ -40,6 +40,8 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
   private static final Splitter PATH_PARTS_SPLITTER = Splitter.on('/');
   private static final Pattern DYNAMIC_NODE_ID_PATTERN = Pattern.compile("^\\{(.*)}$");
 
+  private static final Predicate<HttpHandlerTree<HttpPathNode>> DYNAMIC_PATH_NODE_FILTER =
+    node -> node.pathNode() instanceof DynamicHttpPathNode;
   private static final Predicate<HttpHandlerTree<HttpPathNode>> CONSUMES_EVERYTHING_NODE_FILTER =
     node -> node.pathNode().consumesRemainingPath();
 
@@ -139,6 +141,14 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
               pathId, targetTreeNode.treePath(), pathPart);
           }
 
+          // ensure that there is only one dynamic node at the same handling level
+          var existingDirectDynamicNode = targetTreeNode.findMatchingDirectChild(DYNAMIC_PATH_NODE_FILTER);
+          if (existingDirectDynamicNode != null) {
+            throw new HttpHandlerRegisterException(
+              "Tried to register dynamic node '%s' alongside dynamic node '%s' at same path level: %s",
+              pathId, existingDirectDynamicNode.pathNode().pathId(), targetTreeNode.treePath());
+          }
+
           // register or re-use the existing child node
           var node = new DynamicHttpPathNode(pathId);
           targetTreeNode = targetTreeNode.registerChildNode(node);
@@ -185,21 +195,53 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
   @Override
   public void unregisterHandler(@NonNull HttpHandler handler) {
     this.rootHandlerTreeNode.visitFullTree(treeNode -> {
-      var handlers = treeNode.pathNode().handlers();
-      handlers.removeIf(handlerPair -> handlerPair.httpHandler() == handler);
+      var removedAnyHandler = treeNode.pathNode().unregisterHttpHandler(handler);
+      if (removedAnyHandler) {
+        this.unregisterTreeNodesWithoutHandler(treeNode);
+      }
     });
   }
 
   @Override
   public void unregisterHandlers(@NonNull ClassLoader classLoader) {
     this.rootHandlerTreeNode.visitFullTree(treeNode -> {
-      var handlers = treeNode.pathNode().handlers();
-      handlers.removeIf(handlerPair -> handlerPair.httpHandler().getClass().getClassLoader() == classLoader);
+      var removedAnyHandler = treeNode.pathNode()
+        .unregisterMatchingHandler(pair -> pair.httpHandler().getClass().getClassLoader() == classLoader);
+      if (removedAnyHandler) {
+        this.unregisterTreeNodesWithoutHandler(treeNode);
+      }
     });
   }
 
   @Override
   public void clearHandlers() {
     this.rootHandlerTreeNode.removeAllChildren();
+  }
+
+  private void unregisterTreeNodesWithoutHandler(@NonNull HttpHandlerTree<HttpPathNode> treeNode) {
+    if (!treeNode.pathNode().anyHandlerRegistered() && treeNode.childCount() == 0) {
+      var currentParent = treeNode.parentNode();
+      if (currentParent != null) {
+        do {
+          if (currentParent.root()
+            || currentParent.pathNode().anyHandlerRegistered()
+            || currentParent.childCount() > 1
+          ) {
+            // 2 cases that can happen:
+            //   1. parent node is the root node - we cannot unregister anything above that,
+            //      so we just unregister the current tree node from the parent (root) node.
+            //   2. the parent has registered handlers / child nodes, so we remove the current
+            //      tree node from that parent node to leave the node with handlers in the tree.
+            currentParent.unregisterChildNode(treeNode);
+            break;
+          }
+
+          // try the next tree entry: move the current node we're checking to the current parent and get the next parent
+          // node. due to the root check before, we should never hit a state where the next parent is null.
+          treeNode = currentParent;
+          currentParent = currentParent.parentNode();
+        } while (currentParent != null);
+      }
+    }
   }
 }

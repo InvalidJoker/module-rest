@@ -20,6 +20,7 @@ import eu.cloudnetservice.ext.rest.api.HttpHandler;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,5 +65,15 @@ abstract class DefaultHttpPathNode implements HttpPathNode {
   @Override
   public void registerHttpHandler(@NonNull HttpHandler httpHandler, @NonNull HttpHandlerConfig config) {
     this.handlers.add(new HttpHandlerConfigPair(httpHandler, config));
+  }
+
+  @Override
+  public boolean unregisterHttpHandler(@NonNull HttpHandler httpHandler) {
+    return this.unregisterMatchingHandler(pair -> pair.httpHandler() == httpHandler);
+  }
+
+  @Override
+  public boolean unregisterMatchingHandler(@NonNull Predicate<HttpHandlerConfigPair> filter) {
+    return this.handlers.removeIf(filter);
   }
 }

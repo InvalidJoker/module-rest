@@ -20,6 +20,7 @@ import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpHandler;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
 import java.util.List;
+import java.util.function.Predicate;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,4 +56,8 @@ public interface HttpPathNode extends Comparable<HttpPathNode> {
   void registerHttpHandler(@NonNull HttpHandler httpHandler, @NonNull HttpHandlerConfig config);
 
   boolean validateAndRegisterPathPart(@NonNull HttpContext context, @NonNull String pathPart);
+
+  boolean unregisterHttpHandler(@NonNull HttpHandler httpHandler);
+
+  boolean unregisterMatchingHandler(@NonNull Predicate<HttpHandlerConfigPair> filter);
 }

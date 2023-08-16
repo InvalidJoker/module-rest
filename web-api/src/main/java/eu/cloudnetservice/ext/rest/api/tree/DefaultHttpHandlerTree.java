@@ -54,6 +54,14 @@ final class DefaultHttpHandlerTree<N extends HttpPathNode> implements HttpHandle
    * {@inheritDoc}
    */
   @Override
+  public int childCount() {
+    return this.children.size();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public @NonNull String treePath() {
     Deque<String> pathEntries = new ArrayDeque<>();
 
