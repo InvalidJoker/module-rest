@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
  * The http server handler implementation responsible to handling http requests sent to the server and responding to
  * them.
  *
- * @since 4.0
+ * @since 1.0
  */
 final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpRequest> {
 

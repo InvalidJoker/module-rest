@@ -30,7 +30,7 @@ import lombok.NonNull;
  * open until the outbound write finished and the data flushed. This is also the main difference from the default
  * ReadTimeoutHandler directly provided by netty.
  *
- * @since 4.0
+ * @since 1.0
  */
 final class NettyIdleStateHandler extends IdleStateHandler {
 

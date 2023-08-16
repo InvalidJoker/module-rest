@@ -30,7 +30,7 @@ import org.jetbrains.annotations.ApiStatus;
  * <p>
  * This annotation must be used in combination with {@code @BasicAuth} or {@code @BearerAuth} to have any effect.
  *
- * @since 4.0
+ * @since 1.0
  */
 @Documented
 @ApiStatus.Experimental

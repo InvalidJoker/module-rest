@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Unmodifiable;
  *
  * @see Builder
  * @see RestUserManagement
- * @since 4.0
+ * @since 1.0
  */
 @ApiStatus.Experimental
 public interface RestUser {
@@ -97,7 +97,7 @@ public interface RestUser {
    *
    * @see RestUser
    * @see RestUserManagement
-   * @since 4.0
+   * @since 1.0
    */
   @ApiStatus.Experimental
   interface Builder {

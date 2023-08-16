@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
  * the {@code Set-Cookie} header. See the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies">mdn</a>
  * documentation about cookies for more details.
  *
- * @since 4.0
+ * @since 1.0
  */
 @ToString
 @EqualsAndHashCode

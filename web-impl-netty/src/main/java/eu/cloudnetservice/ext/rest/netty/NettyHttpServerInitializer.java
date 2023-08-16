@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The default channel initializer used to initialize http server connections.
  *
- * @since 4.0
+ * @since 1.0
  */
 final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
 

@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
  * @see RestUser
  * @see eu.cloudnetservice.driver.registry.injection.Service
  * @see eu.cloudnetservice.driver.registry.ServiceRegistry
- * @since 4.0
+ * @since 1.0
  */
 @ApiStatus.Experimental
 public interface RestUserManagement {

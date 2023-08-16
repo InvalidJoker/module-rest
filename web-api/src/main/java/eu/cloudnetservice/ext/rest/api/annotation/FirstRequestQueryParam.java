@@ -28,7 +28,7 @@ import lombok.NonNull;
  * Get the first value of the associated query key. The value passed to the associated parameter is {@code String}. This
  * annotation can be combined with {@code @Optional} to mark the parameter as optional.
  *
- * @since 4.0
+ * @since 1.0
  */
 @Documented
 @Target(ElementType.PARAMETER)

@@ -23,7 +23,7 @@ import lombok.NonNull;
 /**
  * Represents a http component which can be bound, receive and handle http messages.
  *
- * @since 4.0
+ * @since 1.0
  */
 public interface HttpServer extends HttpComponent<HttpServer> {
 

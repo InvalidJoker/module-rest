@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  * @param index         the index of the parameter to override.
  * @param target        the parameter this hint is associated with.
  * @param valueResolver the resolver of the value to inject into handling http methods depending on the context.
- * @since 4.0
+ * @since 1.0
  */
 public record ParameterInvocationHint(
   int index,

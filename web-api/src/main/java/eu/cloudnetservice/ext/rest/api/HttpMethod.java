@@ -19,6 +19,11 @@ package eu.cloudnetservice.ext.rest.api;
 import java.util.Locale;
 import lombok.NonNull;
 
+/**
+ * Represents a http request method. Supporting
+ *
+ * @since 1.0
+ */
 public enum HttpMethod {
 
   GET,

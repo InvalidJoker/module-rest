@@ -24,7 +24,7 @@ import lombok.NonNull;
  * directly into this handler. A request is only processed by one handler at a time. Handlers with a high priority will
  * get called before handlers with a low priority.
  *
- * @since 4.0
+ * @since 1.0
  */
 @FunctionalInterface
 public interface HttpHandler {

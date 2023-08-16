@@ -24,7 +24,7 @@ import lombok.NonNull;
  * A listener which can be registered to a web socket channel.
  *
  * @see WebSocketChannel#addListener(WebSocketListener...)
- * @since 4.0
+ * @since 1.0
  */
 @FunctionalInterface
 public interface WebSocketListener {

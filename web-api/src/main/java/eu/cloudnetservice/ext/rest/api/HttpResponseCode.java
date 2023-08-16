@@ -24,7 +24,7 @@ import lombok.NonNull;
  * All http response codes. See <a href="https://developer.mozilla.org/de/docs/Web/HTTP/Status">here</a> for a full list
  * with a detailed explanation of each response code.
  *
- * @since 4.0
+ * @since 1.0
  */
 public enum HttpResponseCode {
 

@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
  * control about the request flow.
  *
  * @see HttpHandler
- * @since 4.0
+ * @since 1.0
  */
 public interface HttpContext {
 

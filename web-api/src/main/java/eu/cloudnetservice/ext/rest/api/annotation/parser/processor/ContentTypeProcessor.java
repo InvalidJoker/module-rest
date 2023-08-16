@@ -30,7 +30,7 @@ import lombok.NonNull;
 /**
  * A processor for the {@code @ContentType} annotation.
  *
- * @since 4.0
+ * @since 1.0
  */
 public final class ContentTypeProcessor implements HttpAnnotationProcessor {
 

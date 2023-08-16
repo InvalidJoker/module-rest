@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The default netty based implementation of a web socket channel.
  *
- * @since 4.0
+ * @since 1.0
  */
 final class NettyWebSocketServerChannel implements WebSocketChannel {
 

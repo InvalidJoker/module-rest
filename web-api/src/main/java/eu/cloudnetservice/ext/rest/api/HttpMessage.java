@@ -29,7 +29,7 @@ import org.jetbrains.annotations.UnknownNullability;
  * @param <T> the generic type of the class implementing this interface.
  * @see HttpRequest
  * @see HttpResponse
- * @since 4.0
+ * @since 1.0
  */
 public interface HttpMessage<T extends HttpMessage<T>> extends HttpCookieAware<T> {
 
@@ -69,8 +69,15 @@ public interface HttpMessage<T extends HttpMessage<T>> extends HttpCookieAware<T
    */
   boolean headerAsBoolean(@NonNull String name);
 
-  // todo docs
-  @NonNull T header(@NonNull String name, @NonNull Collection<String> value);
+  /**
+   * Sets the given key-value pair, replacing an already existing pair.
+   *
+   * @param name the name of the header.
+   * @param values the value for the header to set.
+   * @return the same message as used to call the method, for chaining.
+   * @throws NullPointerException if either the given name or value is null.
+   */
+  @NonNull T header(@NonNull String name, @NonNull Collection<String> values);
 
   /**
    * Sets the given header, replacing the current one if already set.

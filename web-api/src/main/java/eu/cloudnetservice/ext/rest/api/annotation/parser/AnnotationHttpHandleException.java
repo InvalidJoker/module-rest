@@ -24,7 +24,7 @@ import lombok.NonNull;
 /**
  * A stackless exception which can be thrown when processing a http handler annotation.
  *
- * @since 4.0
+ * @since 1.0
  */
 public final class AnnotationHttpHandleException extends HttpHandleException {
 

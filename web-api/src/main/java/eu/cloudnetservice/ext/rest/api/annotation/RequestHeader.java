@@ -28,7 +28,7 @@ import lombok.NonNull;
  * Retrieves one header entry from the associated http request and passes it to the annotated method parameter. This
  * annotation can be combined with {@code @Optional} to mark the header as optional.
  *
- * @since 4.0
+ * @since 1.0
  */
 @Documented
 @Target(ElementType.PARAMETER)

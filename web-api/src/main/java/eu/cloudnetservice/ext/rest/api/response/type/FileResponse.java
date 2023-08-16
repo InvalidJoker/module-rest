@@ -81,7 +81,7 @@ public final class FileResponse extends DefaultResponse<Path> {
 
         this.httpHeaders.putIfAbsent(HttpHeaders.CONTENT_DISPOSITION, List.of(attachment));
         this.httpHeaders.putIfAbsent(
-          HttpHeaders.CONTENT_TYPE.toString(),
+          HttpHeaders.CONTENT_TYPE,
           List.of(MediaType.OCTET_STREAM.toString()));
       }
 

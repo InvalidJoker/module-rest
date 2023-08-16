@@ -21,7 +21,7 @@ import lombok.NonNull;
 /**
  * Represents a response http message transferred from a server to a client.
  *
- * @since 4.0
+ * @since 1.0
  */
 public interface HttpResponse extends HttpMessage<HttpResponse> {
 

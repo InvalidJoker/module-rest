@@ -41,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The default netty based implementation of a http request.
  *
- * @since 4.0
+ * @since 1.0
  */
 final class NettyHttpServerRequest extends NettyHttpMessage implements HttpRequest {
 
@@ -165,8 +165,8 @@ final class NettyHttpServerRequest extends NettyHttpMessage implements HttpReque
    * {@inheritDoc}
    */
   @Override
-  public @NonNull HttpRequest header(@NonNull String name, @NonNull Collection<String> value) {
-    this.httpRequest.headers().set(name, value);
+  public @NonNull HttpRequest header(@NonNull String name, @NonNull Collection<String> values) {
+    this.httpRequest.headers().set(name, values);
     return this;
   }
 

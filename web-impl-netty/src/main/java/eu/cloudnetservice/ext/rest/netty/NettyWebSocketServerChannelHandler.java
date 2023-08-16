@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 /**
  * The default netty based handler for web socket messages.
  *
- * @since 4.0
+ * @since 1.0
  */
 final class NettyWebSocketServerChannelHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
 

@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The default implementation of the web server, using netty as its backing mechanism.
  *
- * @since 4.0
+ * @since 1.0
  */
 final class NettyHttpServer implements HttpServer {
 

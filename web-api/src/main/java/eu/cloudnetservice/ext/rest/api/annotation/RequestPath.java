@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 /**
  * Requests the injection of the full http request path to which the associated request was sent.
  *
- * @since 4.0
+ * @since 1.0
  */
 @Documented
 @Target(ElementType.PARAMETER)

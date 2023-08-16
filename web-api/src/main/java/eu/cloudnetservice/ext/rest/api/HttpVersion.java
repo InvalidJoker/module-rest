@@ -19,7 +19,7 @@ package eu.cloudnetservice.ext.rest.api;
 /**
  * The version of a http request, currently only http 1.X is supported by CloudNet.
  *
- * @since 4.0
+ * @since 1.0
  */
 public enum HttpVersion {
 

@@ -24,7 +24,7 @@ import lombok.NonNull;
 /**
  * The default implementation of the http channel, delegating all method calls to netty.
  *
- * @since 4.0
+ * @since 1.0
  */
 record NettyHttpChannel(
   @NonNull Channel channel,

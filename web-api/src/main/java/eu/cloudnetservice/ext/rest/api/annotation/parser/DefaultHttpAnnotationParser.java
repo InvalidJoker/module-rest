@@ -40,7 +40,7 @@ import org.jetbrains.annotations.UnmodifiableView;
 /**
  * The default implementation of a http annotation parser.
  *
- * @since 4.0
+ * @since 1.0
  */
 public final class DefaultHttpAnnotationParser implements HttpAnnotationParser {
 

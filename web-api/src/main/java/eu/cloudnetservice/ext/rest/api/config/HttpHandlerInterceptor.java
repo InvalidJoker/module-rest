@@ -24,7 +24,7 @@ import lombok.NonNull;
 /**
  * A preprocessor for a http context which is passed to a http handler.
  *
- * @since 4.0
+ * @since 1.0
  */
 public interface HttpHandlerInterceptor {
 

@@ -22,7 +22,7 @@ import lombok.NonNull;
  * A wrapper object to construct a response from an object.
  *
  * @param <T> the type of the response body.
- * @since 4.0
+ * @since 1.0
  */
 public interface IntoResponse<T> {
 

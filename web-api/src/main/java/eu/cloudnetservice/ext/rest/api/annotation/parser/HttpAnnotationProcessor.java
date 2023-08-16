@@ -23,7 +23,7 @@ import lombok.NonNull;
 /**
  * A processor for an annotation which can be added to a http handler parameter.
  *
- * @since 4.0
+ * @since 1.0
  */
 @FunctionalInterface
 public interface HttpAnnotationProcessor {

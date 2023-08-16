@@ -23,7 +23,7 @@ import lombok.NonNull;
 /**
  * Represents a http message which got sent from a client to the server.
  *
- * @since 4.0
+ * @since 1.0
  */
 public interface HttpRequest extends HttpMessage<HttpRequest> {
 

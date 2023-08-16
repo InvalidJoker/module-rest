@@ -24,7 +24,7 @@ import org.jetbrains.annotations.UnmodifiableView;
 /**
  * A parser which can convert and register annotated http elements, supporting custom annotations as well.
  *
- * @since 4.0
+ * @since 1.0
  */
 public interface HttpAnnotationParser {
 

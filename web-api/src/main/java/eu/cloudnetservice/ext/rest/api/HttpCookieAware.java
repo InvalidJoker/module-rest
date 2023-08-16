@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
  * Some http message that is aware how to handle cookies (and therefore headers).
  *
  * @param <T> the type of the http message.
- * @since 4.0
+ * @since 1.0
  */
 public interface HttpCookieAware<T> {
 

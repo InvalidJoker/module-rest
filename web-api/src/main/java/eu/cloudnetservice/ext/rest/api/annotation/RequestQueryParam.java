@@ -28,7 +28,7 @@ import lombok.NonNull;
  * This annotation can be combined with {@code @Optional} to mark the parameter as optional, an empty list is passed to
  * the parameter in that case.
  *
- * @since 4.0
+ * @since 1.0
  */
 @Documented
 @Target(ElementType.PARAMETER)

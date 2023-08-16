@@ -23,7 +23,7 @@ import lombok.NonNull;
  * Represents an immutable host and port mapping. Validation of a host and port is up to the caller. A host of this
  * class might be an ipv4/ipv6 address, but can also be the path to a unix domain socket.
  *
- * @since 4.0
+ * @since 1.0
  */
 public record HostAndPort(@NonNull String host, int port) {
 
@@ -38,7 +38,7 @@ public record HostAndPort(@NonNull String host, int port) {
    * @throws IllegalArgumentException if the given port exceeds the port range.
    */
   public HostAndPort {
-    Preconditions.checkArgument(this.port() >= -1 && this.port() <= 0xFFFF, "invalid port given");
+    Preconditions.checkArgument(port >= -1 && port <= 0xFFFF, "invalid port given");
   }
 
   /**

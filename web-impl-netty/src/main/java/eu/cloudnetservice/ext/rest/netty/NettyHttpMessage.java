@@ -24,7 +24,7 @@ import lombok.NonNull;
  * conversion between CloudNet and netty. This class is not a direct subclass of a http message, to prevent the need of
  * a generic type.
  *
- * @since 4.0
+ * @since 1.0
  */
 abstract class NettyHttpMessage {
 

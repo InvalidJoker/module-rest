@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * An exception which can be thrown by a handler to set the status and body of the response for the current http
  * request. Throwing this exception will not prevent other handlers from processing the request as well.
  *
- * @since 4.0
+ * @since 1.0
  */
 public class HttpHandleException extends RuntimeException {
 

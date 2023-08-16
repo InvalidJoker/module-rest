@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * key is present, the parameter will receive a null value. If set to false and the value is missing, the request will
  * be discarded silently and not passed to the handler.
  *
- * @since 4.0
+ * @since 1.0
  */
 @Documented
 @Target(ElementType.PARAMETER)

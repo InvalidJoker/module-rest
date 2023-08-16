@@ -28,7 +28,7 @@ import lombok.NonNull;
  * A http handler which delegates its calls to a method invocation, resolving the parameters for that from the
  * preprocessed http context.
  *
- * @since 4.0
+ * @since 1.0
  */
 final class MethodHttpHandlerInvoker implements HttpHandler {
 

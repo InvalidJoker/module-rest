@@ -28,7 +28,7 @@ import lombok.NonNull;
  * Represents a method which can handle http requests sent to one of the provided paths using and request methods. The
  * first parameter of an annotated method must (and will) be the request HttpContext.
  *
- * @since 4.0
+ * @since 1.0
  */
 @Documented
 @Target(ElementType.METHOD)

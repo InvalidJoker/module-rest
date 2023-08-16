@@ -26,7 +26,7 @@ import lombok.NonNull;
  *
  * @param <T> the generic type of the component implementing this class.
  * @see HttpServer
- * @since 4.0
+ * @since 1.0
  */
 public interface HttpComponent<T extends HttpComponent<T>> extends AutoCloseable {
 

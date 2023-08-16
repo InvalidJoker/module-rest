@@ -41,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * The default netty implementation of a http handling context.
  *
- * @since 4.0
+ * @since 1.0
  */
 final class NettyHttpServerContext implements HttpContext {
 

@@ -26,7 +26,7 @@ import lombok.NonNull;
 /**
  * Retrieves one path parameter from the associated http request url and passes it to the annotated method parameter.
  *
- * @since 4.0
+ * @since 1.0
  */
 @Documented
 @Target(ElementType.PARAMETER)

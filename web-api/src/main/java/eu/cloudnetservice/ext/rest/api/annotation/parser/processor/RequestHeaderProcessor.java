@@ -32,7 +32,7 @@ import lombok.NonNull;
 /**
  * A processor for the {@code @RequestHeader} annotation.
  *
- * @since 4.0
+ * @since 1.0
  */
 public final class RequestHeaderProcessor implements HttpAnnotationProcessor {
 

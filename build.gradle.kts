@@ -43,6 +43,14 @@ allprojects {
     "compileOnly"(rootProject.libs.annotations)
     "compileOnly"(rootProject.libs.lombok)
     "annotationProcessor"(rootProject.libs.lombok)
+
+    "testImplementation"(rootProject.libs.mockito)
+    "testImplementation"(rootProject.libs.testContainers)
+    "testImplementation"(rootProject.libs.testContainersJunit)
+
+    "testRuntimeOnly"(rootProject.libs.junitEngine)
+    "testImplementation"(rootProject.libs.junitApi)
+    "testImplementation"(rootProject.libs.junitParams)
   }
 
   configurations.all {

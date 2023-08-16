@@ -20,7 +20,7 @@ package eu.cloudnetservice.ext.rest.api.websocket;
  * All types of web socket frames which are valid to send to a web socket channel. All of these types are defined in
  * <a href="https://datatracker.ietf.org/doc/html/rfc6455">RFC 6455</a> section 5.5 and 5.6.
  *
- * @since 4.0
+ * @since 1.0
  */
 public enum WebSocketFrameType {
 

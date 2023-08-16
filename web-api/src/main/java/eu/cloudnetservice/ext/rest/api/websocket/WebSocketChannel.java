@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
  * A web socket channel to which can be listened and written to after upgrading a http connection.
  *
  * @see HttpContext#upgrade()
- * @since 4.0
+ * @since 1.0
  */
 public interface WebSocketChannel extends AutoCloseable {
 

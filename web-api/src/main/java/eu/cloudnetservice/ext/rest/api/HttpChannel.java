@@ -23,7 +23,7 @@ import lombok.NonNull;
  * A http channel represented in the most basic form. The channel only provides basic information about the connection
  * to the client and allows to close it.
  *
- * @since 4.0
+ * @since 1.0
  */
 public interface HttpChannel extends AutoCloseable {
 
