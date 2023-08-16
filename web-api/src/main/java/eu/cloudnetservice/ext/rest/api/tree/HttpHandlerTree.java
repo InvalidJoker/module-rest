@@ -20,21 +20,31 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import lombok.NonNull;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.UnmodifiableView;
 
 public interface HttpHandlerTree<N extends HttpPathNode> {
+
+  @Contract("_ -> new")
+  static @NonNull <N extends HttpPathNode> HttpHandlerTree<N> newHandlerTree(@NonNull N rootPathNode) {
+    return new DefaultHttpHandlerTree<>(rootPathNode, null);
+  }
+
+  boolean root();
+
+  @NonNull String treePath();
 
   @NonNull N pathNode();
 
   @Nullable HttpHandlerTree<N> parentNode();
 
-  @UnmodifiableView
   @NonNull Collection<HttpHandlerTree<N>> children();
 
   void removeAllChildren();
 
   void visitFullTree(@NonNull Consumer<HttpHandlerTree<N>> nodeConsumer);
+
+  @Nullable HttpHandlerTree<N> findMatchingParent(@NonNull Predicate<HttpHandlerTree<N>> nodeFilter);
 
   /**
    * Performs a first level search for a node matching the given filter. Returns null in case no direct child matches
@@ -43,7 +53,7 @@ public interface HttpHandlerTree<N extends HttpPathNode> {
    * @param nodeFilter the filter.
    * @return the first node matching the given filter or null in case no child node matches.
    */
-  @Nullable HttpHandlerTree<N> findMatchingChildNode(@NonNull Predicate<HttpHandlerTree<N>> nodeFilter);
+  @Nullable HttpHandlerTree<N> findMatchingDirectChild(@NonNull Predicate<HttpHandlerTree<N>> nodeFilter);
 
   @NonNull HttpHandlerTree<N> registerChildNode(@NonNull N pathNode);
 

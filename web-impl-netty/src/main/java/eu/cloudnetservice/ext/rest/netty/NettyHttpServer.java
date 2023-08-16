@@ -21,7 +21,6 @@ import eu.cloudnetservice.ext.rest.api.annotation.parser.DefaultHttpAnnotationPa
 import eu.cloudnetservice.ext.rest.api.annotation.parser.HttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.api.config.ComponentConfig;
 import eu.cloudnetservice.ext.rest.api.config.SslConfiguration;
-import eu.cloudnetservice.ext.rest.api.registry.DefaultHttpHandlerRegistry;
 import eu.cloudnetservice.ext.rest.api.registry.HttpHandlerRegistry;
 import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
 import io.netty5.bootstrap.ServerBootstrap;
@@ -70,7 +69,7 @@ final class NettyHttpServer implements HttpServer {
    */
   public NettyHttpServer(@NonNull ComponentConfig componentConfig) {
     this.componentConfig = componentConfig;
-    this.httpHandlerRegistry = new DefaultHttpHandlerRegistry(componentConfig);
+    this.httpHandlerRegistry = HttpHandlerRegistry.newHandlerRegistry(componentConfig);
     this.annotationParser = DefaultHttpAnnotationParser.withDefaultProcessors(this.httpHandlerRegistry);
 
     // init ssl

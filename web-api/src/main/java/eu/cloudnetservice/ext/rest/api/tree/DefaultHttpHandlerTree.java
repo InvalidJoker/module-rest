@@ -19,53 +19,67 @@ package eu.cloudnetservice.ext.rest.api.tree;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.List;
 import java.util.Queue;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import lombok.NonNull;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.UnmodifiableView;
 
-@ApiStatus.Internal
-public final class DefaultHttpHandlerTree implements HttpHandlerTree<HttpPathNode> {
+final class DefaultHttpHandlerTree<N extends HttpPathNode> implements HttpHandlerTree<N> {
 
-  private static final HttpPathNode ROOT_PATH_NODE = new StaticHttpPathNode("/");
-  private static final Comparator<HttpHandlerTree<HttpPathNode>> PATH_NODE_COMPARATOR =
+  private static final Comparator<HttpHandlerTree<?>> PATH_NODE_COMPARATOR =
     Comparator.comparing(HttpHandlerTree::pathNode);
-  private final DefaultHttpHandlerTree parentNode;
-  private final List<DefaultHttpHandlerTree> children = new ArrayList<>(4);
-  private HttpPathNode pathNode;
 
-  private DefaultHttpHandlerTree(@NonNull HttpPathNode pathNode, @Nullable DefaultHttpHandlerTree parentNode) {
+  private final N pathNode;
+  private final HttpHandlerTree<N> parentNode;
+  private final List<HttpHandlerTree<N>> children = new ArrayList<>();
+
+  public DefaultHttpHandlerTree(@NonNull N pathNode, @Nullable HttpHandlerTree<N> parentNode) {
     this.pathNode = pathNode;
     this.parentNode = parentNode;
   }
 
-  public static @NonNull DefaultHttpHandlerTree newTree() {
-    return new DefaultHttpHandlerTree(ROOT_PATH_NODE, null);
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean root() {
+    return this.parentNode == null;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public @NonNull HttpPathNode pathNode() {
+  public @NonNull String treePath() {
+    Deque<String> pathEntries = new ArrayDeque<>();
+
+    // visit all path nodes from this node upwards in the tree
+    HttpHandlerTree<N> handlerTree = this;
+    do {
+      pathEntries.offerFirst(handlerTree.pathNode().displayName());
+    } while ((handlerTree = handlerTree.parentNode()) != null);
+
+    // convert the path to a string
+    return String.join(" -> ", pathEntries);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull N pathNode() {
     return this.pathNode;
   }
 
-  public void pathNode(@NonNull HttpPathNode pathNode) {
-    this.pathNode = pathNode;
-  }
-
   /**
    * {@inheritDoc}
    */
   @Override
-  public @Nullable DefaultHttpHandlerTree parentNode() {
+  public @Nullable HttpHandlerTree<N> parentNode() {
     return this.parentNode;
   }
 
@@ -73,9 +87,8 @@ public final class DefaultHttpHandlerTree implements HttpHandlerTree<HttpPathNod
    * {@inheritDoc}
    */
   @Override
-  @UnmodifiableView
-  public @NonNull Collection<HttpHandlerTree<HttpPathNode>> children() {
-    return Collections.unmodifiableCollection(this.children);
+  public @NonNull Collection<HttpHandlerTree<N>> children() {
+    return this.children;
   }
 
   /**
@@ -90,16 +103,16 @@ public final class DefaultHttpHandlerTree implements HttpHandlerTree<HttpPathNod
    * {@inheritDoc}
    */
   @Override
-  public void visitFullTree(@NonNull Consumer<HttpHandlerTree<HttpPathNode>> nodeConsumer) {
+  public void visitFullTree(@NonNull Consumer<HttpHandlerTree<N>> nodeConsumer) {
     // visit this node first
     nodeConsumer.accept(this);
 
     // visit all child nodes
-    DefaultHttpHandlerTree currentChild;
-    Queue<DefaultHttpHandlerTree> nodesToVisit = new ArrayDeque<>(this.children);
+    HttpHandlerTree<N> currentChild;
+    Queue<HttpHandlerTree<N>> nodesToVisit = new ArrayDeque<>(this.children);
     while ((currentChild = nodesToVisit.poll()) != null) {
       nodeConsumer.accept(currentChild);
-      nodesToVisit.addAll(currentChild.children);
+      nodesToVisit.addAll(currentChild.children());
     }
   }
 
@@ -107,9 +120,21 @@ public final class DefaultHttpHandlerTree implements HttpHandlerTree<HttpPathNod
    * {@inheritDoc}
    */
   @Override
-  public @Nullable DefaultHttpHandlerTree findMatchingChildNode(
-    @NonNull Predicate<HttpHandlerTree<HttpPathNode>> nodeFilter
-  ) {
+  public @Nullable HttpHandlerTree<N> findMatchingParent(@NonNull Predicate<HttpHandlerTree<N>> nodeFilter) {
+    HttpHandlerTree<N> handlerTree = this;
+    do {
+      if (nodeFilter.test(handlerTree)) {
+        return handlerTree;
+      }
+    } while ((handlerTree = handlerTree.parentNode()) != null);
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @Nullable HttpHandlerTree<N> findMatchingDirectChild(@NonNull Predicate<HttpHandlerTree<N>> nodeFilter) {
     for (var child : this.children) {
       if (nodeFilter.test(child)) {
         return child;
@@ -122,15 +147,15 @@ public final class DefaultHttpHandlerTree implements HttpHandlerTree<HttpPathNod
    * {@inheritDoc}
    */
   @Override
-  public @NonNull DefaultHttpHandlerTree registerChildNode(@NonNull HttpPathNode pathNode) {
+  public @NonNull HttpHandlerTree<N> registerChildNode(@NonNull N pathNode) {
     // return the currently registered node if any is already registered
-    var registeredChildNode = this.findMatchingChildNode(node -> node.pathNode().equals(pathNode));
+    var registeredChildNode = this.findMatchingDirectChild(node -> node.pathNode().equals(pathNode));
     if (registeredChildNode != null) {
       return registeredChildNode;
     }
 
     // register & return the new tree node
-    var childNode = new DefaultHttpHandlerTree(pathNode, this);
+    var childNode = new DefaultHttpHandlerTree<>(pathNode, this);
     this.children.add(childNode);
     this.children.sort(PATH_NODE_COMPARATOR);
     return childNode;
@@ -140,8 +165,7 @@ public final class DefaultHttpHandlerTree implements HttpHandlerTree<HttpPathNod
    * {@inheritDoc}
    */
   @Override
-  public boolean unregisterChildNode(@NonNull HttpHandlerTree<HttpPathNode> node) {
-    //noinspection SuspiciousMethodCalls
+  public boolean unregisterChildNode(@NonNull HttpHandlerTree<N> node) {
     return this.children.remove(node);
   }
 
@@ -153,9 +177,9 @@ public final class DefaultHttpHandlerTree implements HttpHandlerTree<HttpPathNod
     if (this == o) {
       return true;
     }
-    if (!(o instanceof DefaultHttpHandlerTree that)) {
+    if (!(o instanceof HttpHandlerTree<?> that)) {
       return false;
     }
-    return this.pathNode.equals(that.pathNode);
+    return this.pathNode.equals(that.pathNode());
   }
 }

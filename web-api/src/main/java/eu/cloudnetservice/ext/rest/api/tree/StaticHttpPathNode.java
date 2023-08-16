@@ -21,8 +21,15 @@ import lombok.NonNull;
 
 public final class StaticHttpPathNode extends DefaultHttpPathNode {
 
+  static final HttpPathNode ROOT_PATH_NODE = new StaticHttpPathNode("/");
+
   public StaticHttpPathNode(@NonNull String pathId) {
     super(pathId);
+  }
+
+  @Override
+  public @NonNull String displayName() {
+    return this.pathId;
   }
 
   @Override

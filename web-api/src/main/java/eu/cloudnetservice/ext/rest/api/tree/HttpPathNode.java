@@ -25,6 +25,10 @@ import org.jetbrains.annotations.Nullable;
 
 public interface HttpPathNode extends Comparable<HttpPathNode> {
 
+  static @NonNull HttpPathNode root() {
+    return StaticHttpPathNode.ROOT_PATH_NODE;
+  }
+
   static void validatePathId(@NonNull String candidate) {
     if (candidate.isBlank()) {
       throw new IllegalArgumentException("Empty path parts are not allowed");
@@ -32,6 +36,8 @@ public interface HttpPathNode extends Comparable<HttpPathNode> {
   }
 
   boolean consumesRemainingPath();
+
+  @NonNull String displayName();
 
   /**
    * Get the path entry that is represented by this node.

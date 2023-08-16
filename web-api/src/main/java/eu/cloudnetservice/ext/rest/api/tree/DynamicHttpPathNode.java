@@ -26,6 +26,11 @@ public final class DynamicHttpPathNode extends DefaultHttpPathNode {
   }
 
   @Override
+  public @NonNull String displayName() {
+    return '{' + this.pathId + '}';
+  }
+
+  @Override
   public boolean validateAndRegisterPathPart(@NonNull HttpContext context, @NonNull String pathPart) {
     // todo: maybe allow some kind of validation logic to be passed into this?
     context.request().pathParameters().put(this.pathId, pathPart);

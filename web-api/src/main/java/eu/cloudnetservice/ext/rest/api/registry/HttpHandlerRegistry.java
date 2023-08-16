@@ -18,6 +18,7 @@ package eu.cloudnetservice.ext.rest.api.registry;
 
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpHandler;
+import eu.cloudnetservice.ext.rest.api.config.ComponentConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.api.tree.HttpHandlerTree;
 import eu.cloudnetservice.ext.rest.api.tree.HttpPathNode;
@@ -27,6 +28,10 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 public interface HttpHandlerRegistry {
+
+  static @NonNull HttpHandlerRegistry newHandlerRegistry(@NonNull ComponentConfig componentConfig) {
+    return new DefaultHttpHandlerRegistry(componentConfig);
+  }
 
   @Unmodifiable
   @NonNull Collection<HttpHandler> registeredHandlers();
@@ -43,5 +48,4 @@ public interface HttpHandlerRegistry {
   void unregisterHandlers(@NonNull ClassLoader classLoader);
 
   void clearHandlers();
-
 }

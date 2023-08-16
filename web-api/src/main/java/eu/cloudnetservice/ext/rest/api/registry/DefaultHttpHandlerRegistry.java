@@ -16,11 +16,11 @@
 
 package eu.cloudnetservice.ext.rest.api.registry;
 
+import com.google.common.base.Splitter;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpHandler;
 import eu.cloudnetservice.ext.rest.api.config.ComponentConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
-import eu.cloudnetservice.ext.rest.api.tree.DefaultHttpHandlerTree;
 import eu.cloudnetservice.ext.rest.api.tree.DynamicHttpPathNode;
 import eu.cloudnetservice.ext.rest.api.tree.HttpHandlerTree;
 import eu.cloudnetservice.ext.rest.api.tree.HttpPathNode;
@@ -30,26 +30,40 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-public final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
+final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
 
-  private static final Predicate<HttpHandlerTree<HttpPathNode>> DYNAMIC_NODE_FILTER =
-    node -> node.pathNode() instanceof DynamicHttpPathNode;
+  private static final Splitter PATH_PARTS_SPLITTER = Splitter.on('/');
+  private static final Pattern DYNAMIC_NODE_ID_PATTERN = Pattern.compile("^\\{(.*)}$");
+
+  private static final Predicate<HttpHandlerTree<HttpPathNode>> CONSUMES_EVERYTHING_NODE_FILTER =
+    node -> node.pathNode().consumesRemainingPath();
 
   private final ComponentConfig componentConfig;
-  private final DefaultHttpHandlerTree handlerTree = DefaultHttpHandlerTree.newTree();
+  private final HttpHandlerTree<HttpPathNode> rootHandlerTreeNode;
 
   public DefaultHttpHandlerRegistry(@NonNull ComponentConfig componentConfig) {
     this.componentConfig = componentConfig;
+    this.rootHandlerTreeNode = HttpHandlerTree.newHandlerTree(HttpPathNode.root());
+  }
+
+  private static @NonNull String removeSlashPrefixSuffixFromPath(@NonNull String path) {
+    var prefixedWithSlash = path.startsWith("/");
+    var suffixedWithSlash = path.endsWith("/");
+    if (prefixedWithSlash || suffixedWithSlash) {
+      path = path.substring(prefixedWithSlash ? 1 : 0, suffixedWithSlash ? path.length() - 1 : path.length());
+    }
+    return path;
   }
 
   @Override
   public @Unmodifiable @NonNull Collection<HttpHandler> registeredHandlers() {
     List<HttpHandler> httpHandlers = new ArrayList<>();
-    this.handlerTree.visitFullTree(node -> {
+    this.rootHandlerTreeNode.visitFullTree(node -> {
       var handlerPairs = node.pathNode().handlers();
       if (!handlerPairs.isEmpty()) {
         for (var handler : handlerPairs) {
@@ -62,118 +76,130 @@ public final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
 
   @Override
   public @Nullable HttpHandlerTree<HttpPathNode> findHandler(@NonNull String path, @NonNull HttpContext context) {
-    var matchingTreeNode = this.handlerTree;
-    if (!path.equals("/")) {
-      // strip the leading slash
-      if (path.startsWith("/")) {
-        path = path.substring(1);
+    // check if the root handler was requested
+    if (path.isBlank() || path.equals("/")) {
+      return this.rootHandlerTreeNode;
+    }
+
+    // remove the / prefix and/or suffix from the given input path
+    path = removeSlashPrefixSuffixFromPath(path);
+
+    // basically filter for two things:
+    //  1. a fully matching node for the given request
+    //  2. a wildcard node that is located the deepest in the tree path
+    HttpHandlerTree<HttpPathNode> lastConsumingNode = null;
+    HttpHandlerTree<HttpPathNode> bestMatch = this.rootHandlerTreeNode;
+
+    // find the best matching node for the given path based on the supplied parts
+    var pathParts = PATH_PARTS_SPLITTER.split(path);
+    for (var pathPart : pathParts) {
+      // find a node that consumes the full path on the current best match
+      var consumingNode = bestMatch.findMatchingDirectChild(CONSUMES_EVERYTHING_NODE_FILTER);
+      if (consumingNode != null) {
+        lastConsumingNode = consumingNode;
       }
 
-      for (var pathPart : path.split("/")) {
-        // find the first node that accepts the path part as input; returns null in case no node does so
-        matchingTreeNode = matchingTreeNode.findMatchingChildNode(
-          node -> node.pathNode().validateAndRegisterPathPart(context, pathPart));
-        if (matchingTreeNode == null || matchingTreeNode.pathNode().consumesRemainingPath()) {
-          break;
-        }
+      // find a matching sub node or break in case no node is matching
+      bestMatch = bestMatch.findMatchingDirectChild(n -> n.pathNode().validateAndRegisterPathPart(context, pathPart));
+      if (bestMatch == null || CONSUMES_EVERYTHING_NODE_FILTER.test(bestMatch)) {
+        break;
       }
     }
-    return matchingTreeNode;
+
+    // we return either the best matching node or the last seen wildcard node
+    return bestMatch != null ? bestMatch : lastConsumingNode;
   }
 
   @Override
   public void registerHandler(@NonNull String path, @NonNull HttpHandler handler, @NonNull HttpHandlerConfig config) {
-    // ensure that the path ends with a / (if the path is not the root handler)
-    var lastSeenTreeNode = this.handlerTree;
-    if (!path.equals("/")) {
-      // strip the leading slash
-      if (path.startsWith("/")) {
-        path = path.substring(1);
-      }
+    // no need to do further checks if the root handler was requested
+    var targetTreeNode = this.rootHandlerTreeNode;
+    if (!path.isBlank() && !path.equals("/")) {
+      // remove the / prefix and/or suffix from the given input path
+      path = removeSlashPrefixSuffixFromPath(path);
 
-      var pathParts = path.split("/");
-      for (int i = 0; i < pathParts.length; i++) {
-        var pathPart = pathParts[i];
-        if (pathPart.startsWith("{") && pathPart.endsWith("}")) {
-          // extract the path id from the given input
-          var pathId = pathPart.substring(1, pathPart.length() - 1);
+      // split the path into separate parts after each slash
+      var pathParts = PATH_PARTS_SPLITTER.splitToList(path);
+      var lastPathPartIndex = pathParts.size() - 1;
+      for (int partIndex = 0; partIndex < pathParts.size(); partIndex++) {
+        var pathPart = pathParts.get(partIndex);
+
+        // check if the node is a dynamic node
+        var dynamicNodeIdMatcher = DYNAMIC_NODE_ID_PATTERN.matcher(pathPart);
+        if (dynamicNodeIdMatcher.matches()) {
+          var pathId = dynamicNodeIdMatcher.group(1);
           HttpPathNode.validatePathId(pathId);
 
-          // check if the current node already has a dynamic node
-          var existingDynamicNode = lastSeenTreeNode.findMatchingChildNode(DYNAMIC_NODE_FILTER);
+          // check if there is a dynamic node somewhere up the tree with the same name already
+          var existingDynamicNode = targetTreeNode.findMatchingParent(
+            node -> node.pathNode() instanceof DynamicHttpPathNode dynamicNode && dynamicNode.pathId().equals(pathId));
           if (existingDynamicNode != null) {
-            if (existingDynamicNode.pathNode().pathId().equals(pathId)) {
-              // there is an existing dynamic node with the same name, use that
-              lastSeenTreeNode = existingDynamicNode;
-            } else {
-              // there can't be two different dynamic named nodes at the same point in the tree
-              // todo: show node tree upwards
-              throw new IllegalStateException(String.format(
-                "Tried to register second dynamic node named \"%s\" alongside \"%s\" in http handler tree. Path chain: %s",
-                pathId,
-                existingDynamicNode.pathNode().pathId(),
-                ""));
-            }
-          } else {
-            // register the dynamic path node
-            var dynamicNode = new DynamicHttpPathNode(pathId);
-            lastSeenTreeNode = lastSeenTreeNode.registerChildNode(dynamicNode);
-          }
-        } else if (pathPart.equals("*")) {
-          // ensure that a wildcard node is only used at the end of the uri
-          if (i != (pathParts.length - 1)) {
-            throw new IllegalStateException("Invalid use of wildcard in middle of handler uri: " + path);
+            throw new HttpHandlerRegisterException(
+              "Tried to register dynamic node with same name '%s' as already registered in the path: %s -> [%s]",
+              pathId, targetTreeNode.treePath(), pathPart);
           }
 
-          // register the wildcard node
-          lastSeenTreeNode = lastSeenTreeNode.registerChildNode(new WildcardPathNode());
-        } else {
-          HttpPathNode.validatePathId(pathPart);
-
-          // register the static path node
-          var staticNode = new StaticHttpPathNode(pathPart);
-          lastSeenTreeNode = lastSeenTreeNode.registerChildNode(staticNode);
+          // register or re-use the existing child node
+          var node = new DynamicHttpPathNode(pathId);
+          targetTreeNode = targetTreeNode.registerChildNode(node);
+          continue;
         }
+
+        // check for a wildcard node
+        if (pathPart.equals("*")) {
+          // validate that the wildcard is not in the middle of the path
+          if (partIndex != lastPathPartIndex) {
+            throw new HttpHandlerRegisterException(
+              "Tried to register dynamic node in the middle of the handler uri '%s' while only allowed at the end",
+              path);
+          }
+
+          // register the wildcard node and break (there are no further parts following as validated before)
+          var node = new WildcardPathNode();
+          targetTreeNode = targetTreeNode.registerChildNode(node);
+          break;
+        }
+
+        // must be a static path node
+        HttpPathNode.validatePathId(pathPart);
+        var node = new StaticHttpPathNode(pathPart);
+        targetTreeNode = targetTreeNode.registerChildNode(node);
       }
     }
 
-    // ensure that there is no http handler for the current node yet
-    var existingHandler = lastSeenTreeNode.pathNode().findHandlerForMethod(config.httpMethod().name());
+    // ensure that there are not two handlers for the same http method on the same path
+    var targetPathNode = targetTreeNode.pathNode();
+    var existingHandler = targetPathNode.findHandlerForMethod(config.httpMethod().name());
     if (existingHandler != null) {
-      // todo: path
-      throw new IllegalStateException("Detected duplicate http handler for path \"%s\"");
+      throw new HttpHandlerRegisterException(
+        "Tried to register second http handler for method %s for path: %s",
+        config.httpMethod(), targetTreeNode.treePath());
     }
 
     // construct the final handler config & register the http handler
     var mergedCorsConfig = this.componentConfig.corsConfig().combine(config.corsConfig());
     var handlerConfig = HttpHandlerConfig.builder(config).corsConfiguration(mergedCorsConfig).build();
-    lastSeenTreeNode.pathNode().registerHttpHandler(handler, handlerConfig);
+    targetPathNode.registerHttpHandler(handler, handlerConfig);
   }
 
   @Override
   public void unregisterHandler(@NonNull HttpHandler handler) {
-    var nodeToUnregister = this.handlerTree.findMatchingChildNode(node -> {
-      var handlers = node.pathNode().handlers();
-      return handlers.stream().anyMatch(pair -> pair.httpHandler() == handler);
+    this.rootHandlerTreeNode.visitFullTree(treeNode -> {
+      var handlers = treeNode.pathNode().handlers();
+      handlers.removeIf(handlerPair -> handlerPair.httpHandler() == handler);
     });
-    if (nodeToUnregister != null) {
-      this.handlerTree.unregisterChildNode(nodeToUnregister);
-    }
   }
 
   @Override
   public void unregisterHandlers(@NonNull ClassLoader classLoader) {
-    var nodeToUnregister = this.handlerTree.findMatchingChildNode(node -> {
-      var httpHandler = node.pathNode().handlers();
-      return !httpHandler.isEmpty() && httpHandler.getClass().getClassLoader() == classLoader;
+    this.rootHandlerTreeNode.visitFullTree(treeNode -> {
+      var handlers = treeNode.pathNode().handlers();
+      handlers.removeIf(handlerPair -> handlerPair.httpHandler().getClass().getClassLoader() == classLoader);
     });
-    if (nodeToUnregister != null) {
-      this.handlerTree.unregisterChildNode(nodeToUnregister);
-    }
   }
 
   @Override
   public void clearHandlers() {
-    this.handlerTree.removeAllChildren();
+    this.rootHandlerTreeNode.removeAllChildren();
   }
 }
