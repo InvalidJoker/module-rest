@@ -23,6 +23,9 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * DO NOT STORE A REFERENCE!!!!
+ */
 public interface HttpHandlerTree<N extends HttpPathNode> {
 
   @Contract("_ -> new")
@@ -31,6 +34,8 @@ public interface HttpHandlerTree<N extends HttpPathNode> {
   }
 
   boolean root();
+
+  int childCount();
 
   @NonNull String treePath();
 
