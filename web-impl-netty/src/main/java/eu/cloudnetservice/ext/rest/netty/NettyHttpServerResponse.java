@@ -18,12 +18,12 @@ package eu.cloudnetservice.ext.rest.netty;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.net.HttpHeaders;
-import com.google.common.primitives.Ints;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpCookie;
 import eu.cloudnetservice.ext.rest.api.HttpResponse;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.HttpVersion;
+import eu.cloudnetservice.ext.rest.api.header.HttpHeaderMap;
 import io.netty5.buffer.DefaultBufferAllocators;
 import io.netty5.handler.codec.http.DefaultFullHttpResponse;
 import io.netty5.handler.codec.http.FullHttpResponse;
@@ -36,9 +36,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,6 +49,7 @@ import org.jetbrains.annotations.Nullable;
 final class NettyHttpServerResponse extends NettyHttpMessage implements HttpResponse {
 
   final FullHttpResponse httpResponse;
+  private final HttpHeaderMap httpHeaderMap;
   private final NettyHttpServerContext context;
 
   private InputStream responseInputStream;
@@ -68,6 +67,7 @@ final class NettyHttpServerResponse extends NettyHttpMessage implements HttpResp
       httpRequest.protocolVersion(),
       HttpResponseStatus.NOT_FOUND,
       DefaultBufferAllocators.offHeapAllocator().allocate(0));
+    this.httpHeaderMap = new NettyHttpHeaderMap(this.httpResponse.headers());
   }
 
   /**
@@ -99,97 +99,8 @@ final class NettyHttpServerResponse extends NettyHttpMessage implements HttpResp
    * {@inheritDoc}
    */
   @Override
-  public @Nullable String header(@NonNull String name) {
-    var headerValue = this.httpResponse.headers().get(name);
-    return headerValue == null ? null : headerValue.toString();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @Nullable Integer headerAsInt(@NonNull String name) {
-    var headerValue = this.header(name);
-    return headerValue == null ? null : Ints.tryParse(headerValue);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean headerAsBoolean(@NonNull String name) {
-    var headerValue = this.header(name);
-    return Boolean.parseBoolean(headerValue);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpResponse header(@NonNull String name, @NonNull Collection<String> values) {
-    this.httpResponse.headers().set(name, values);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpResponse header(@NonNull String name, @NonNull String value) {
-    this.httpResponse.headers().set(name, value);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpResponse addHeader(@NonNull String name, @NonNull String value) {
-    this.httpResponse.headers().add(name, value);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpResponse removeHeader(@NonNull String name) {
-    this.httpResponse.headers().remove(name);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpResponse clearHeaders() {
-    this.httpResponse.headers().clear();
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean hasHeader(@NonNull String name) {
-    return this.httpResponse.headers().contains(name);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull Map<String, String> headers() {
-    // init the target map to copy all headers into - that target map is immune to later resizes
-    var headers = this.httpResponse.headers();
-    Map<String, String> headerMap = new HashMap<>(headers.size() + 1, 1f);
-
-    // copy over all headers
-    for (var entry : headers) {
-      headerMap.put(entry.getKey().toString(), entry.getValue().toString());
-    }
-
-    return headerMap;
+  public @NonNull HttpHeaderMap headers() {
+    return this.httpHeaderMap;
   }
 
   /**

@@ -48,17 +48,32 @@ public final class RequestHeaderProcessor implements HttpAnnotationProcessor {
     var hints = HttpAnnotationProcessorUtil.mapParameters(
       method,
       RequestHeader.class,
-      (param, annotation) -> (context) -> {
-        // get the header and error out if no value is present but the header is required
-        var header = context.request().header(annotation.value());
-        if (!param.isAnnotationPresent(Optional.class) && header == null) {
-          throw new AnnotationHttpHandleException(
-            context.request(),
-            "Missing required header: " + annotation.value());
-        }
+      (param, annotation) -> {
+        var isOptionalAnnotation = param.isAnnotationPresent(Optional.class);
+        return (context) -> {
+          // check if all headers were requested
+          if (Iterable.class.isAssignableFrom(param.getType())) {
+            return context.request().headers().values(annotation.value());
+          }
 
-        // set the header in the context
-        return DefaultHttpAnnotationParser.applyDefault(annotation.def(), header);
+          // get the first header value or the default value supplied in the annotation
+          var headerValue = context.request().headers().firstValue(annotation.value());
+          var parameterValue = DefaultHttpAnnotationParser.applyDefault(annotation.def(), headerValue);
+
+          // check if the value was requested optionally
+          if (param.getType() == java.util.Optional.class) {
+            return java.util.Optional.ofNullable(parameterValue);
+          }
+
+          // ensure that the value for the header is present in case it wasn't defined otherwise
+          if (!isOptionalAnnotation && parameterValue == null) {
+            throw new AnnotationHttpHandleException(
+              context.request(),
+              "Missing required header: " + annotation.value());
+          }
+
+          return parameterValue;
+        };
       });
     config.addHandlerInterceptor(new HttpHandlerInterceptor() {
       @Override

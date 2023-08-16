@@ -41,7 +41,7 @@ public final class RequestTypedBodyProcessor implements HttpAnnotationProcessor 
 
   private static @NonNull Charset extractRequestCharsetOrUtf8(@NonNull HttpRequest request) {
     // get the content type header - if not present we just assume UTF8
-    var contentType = request.header(HttpHeaders.CONTENT_TYPE);
+    var contentType = request.headers().firstValue(HttpHeaders.CONTENT_TYPE);
     if (contentType == null) {
       return StandardCharsets.UTF_8;
     }

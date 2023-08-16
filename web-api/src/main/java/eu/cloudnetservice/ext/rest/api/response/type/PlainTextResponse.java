@@ -20,11 +20,11 @@ import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
 import eu.cloudnetservice.ext.rest.api.HttpResponse;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
+import eu.cloudnetservice.ext.rest.api.header.HttpHeaderMap;
 import eu.cloudnetservice.ext.rest.api.response.DefaultResponse;
 import eu.cloudnetservice.ext.rest.api.response.DefaultResponseBuilder;
 import eu.cloudnetservice.ext.rest.api.response.Response;
 import java.util.List;
-import java.util.Map;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,10 +32,10 @@ public final class PlainTextResponse extends DefaultResponse<String> {
 
   private PlainTextResponse(
     @Nullable String body,
-    @NonNull HttpResponseCode responseCode,
-    @NonNull Map<String, List<String>> headers
+    @NonNull HttpHeaderMap httpHeaderMap,
+    @NonNull HttpResponseCode responseCode
   ) {
-    super(body, responseCode, headers);
+    super(body, httpHeaderMap, responseCode);
   }
 
   public static @NonNull Builder builder() {
@@ -43,7 +43,7 @@ public final class PlainTextResponse extends DefaultResponse<String> {
   }
 
   public static @NonNull Builder builder(@NonNull Response<String> response) {
-    return builder().responseCode(response.responseCode()).headers(response.headers()).body(response.body());
+    return builder().responseCode(response.responseCode()).header(response.headers()).body(response.body());
   }
 
   @Override
@@ -63,11 +63,10 @@ public final class PlainTextResponse extends DefaultResponse<String> {
 
     @Override
     public @NonNull Response<String> build() {
-      this.httpHeaders.putIfAbsent(
+      this.httpHeaderMap.setIfAbsent(
         HttpHeaders.CONTENT_TYPE,
         List.of(MediaType.PLAIN_TEXT_UTF_8.toString()));
-
-      return new PlainTextResponse(this.body, this.responseCode, Map.copyOf(this.httpHeaders));
+      return new PlainTextResponse(this.body, this.httpHeaderMap.unmodifiableClone(), this.responseCode);
     }
   }
 }

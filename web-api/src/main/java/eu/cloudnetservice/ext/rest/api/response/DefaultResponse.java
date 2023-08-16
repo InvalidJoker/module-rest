@@ -18,8 +18,7 @@ package eu.cloudnetservice.ext.rest.api.response;
 
 import eu.cloudnetservice.ext.rest.api.HttpResponse;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
-import java.util.List;
-import java.util.Map;
+import eu.cloudnetservice.ext.rest.api.header.HttpHeaderMap;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
@@ -27,17 +26,17 @@ import org.jetbrains.annotations.Unmodifiable;
 public abstract class DefaultResponse<T> implements Response<T> {
 
   protected final T body;
+  protected final HttpHeaderMap httpHeaderMap;
   protected final HttpResponseCode responseCode;
-  protected final Map<String, List<String>> headers;
 
   protected DefaultResponse(
     @Nullable T body,
-    @NonNull HttpResponseCode responseCode,
-    @NonNull Map<String, List<String>> headers
+    @NonNull HttpHeaderMap httpHeaderMap,
+    @NonNull HttpResponseCode responseCode
   ) {
     this.body = body;
+    this.httpHeaderMap = httpHeaderMap;
     this.responseCode = responseCode;
-    this.headers = headers;
   }
 
   @Override
@@ -51,14 +50,14 @@ public abstract class DefaultResponse<T> implements Response<T> {
   }
 
   @Override
-  public @Unmodifiable @NonNull Map<String, List<String>> headers() {
-    return this.headers;
+  public @Unmodifiable @NonNull HttpHeaderMap headers() {
+    return this.httpHeaderMap;
   }
 
   @Override
   public void serializeIntoResponse(@NonNull HttpResponse response) {
     response.status(this.responseCode);
-    this.headers.forEach(response::header);
+    response.headers().add(this.httpHeaderMap);
 
     if (this.body != null) {
       this.serializeBody(response, this.body);

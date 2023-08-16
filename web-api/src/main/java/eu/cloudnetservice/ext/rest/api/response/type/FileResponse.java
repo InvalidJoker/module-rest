@@ -21,6 +21,7 @@ import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
 import eu.cloudnetservice.ext.rest.api.HttpResponse;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
+import eu.cloudnetservice.ext.rest.api.header.HttpHeaderMap;
 import eu.cloudnetservice.ext.rest.api.response.DefaultResponse;
 import eu.cloudnetservice.ext.rest.api.response.DefaultResponseBuilder;
 import eu.cloudnetservice.ext.rest.api.response.Response;
@@ -30,7 +31,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
-import java.util.Map;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,10 +38,10 @@ public final class FileResponse extends DefaultResponse<Path> {
 
   private FileResponse(
     @Nullable Path body,
-    @NonNull HttpResponseCode responseCode,
-    @NonNull Map<String, List<String>> headers
+    @NonNull HttpHeaderMap httpHeaderMap,
+    @NonNull HttpResponseCode responseCode
   ) {
-    super(body, responseCode, headers);
+    super(body, httpHeaderMap, responseCode);
   }
 
   public static @NonNull Builder builder() {
@@ -49,7 +49,7 @@ public final class FileResponse extends DefaultResponse<Path> {
   }
 
   public static @NonNull Builder builder(@NonNull Response<Path> response) {
-    return builder().responseCode(response.responseCode()).headers(response.headers()).body(response.body());
+    return builder().responseCode(response.responseCode()).header(response.headers()).body(response.body());
   }
 
   @Override
@@ -79,13 +79,14 @@ public final class FileResponse extends DefaultResponse<Path> {
         var fileName = this.body.getFileName();
         var attachment = String.format("attachment%s", fileName == null ? "" : "; filename=" + fileName);
 
-        this.httpHeaders.putIfAbsent(HttpHeaders.CONTENT_DISPOSITION, List.of(attachment));
-        this.httpHeaders.putIfAbsent(
-          HttpHeaders.CONTENT_TYPE,
-          List.of(MediaType.OCTET_STREAM.toString()));
+        this.httpHeaderMap
+          .setIfAbsent(HttpHeaders.CONTENT_DISPOSITION, List.of(attachment))
+          .setIfAbsent(
+            HttpHeaders.CONTENT_TYPE,
+            List.of(MediaType.OCTET_STREAM.toString()));
       }
 
-      return new FileResponse(this.body, this.responseCode, Map.copyOf(this.httpHeaders));
+      return new FileResponse(this.body, this.httpHeaderMap.unmodifiableClone(), this.responseCode);
     }
   }
 }

@@ -17,11 +17,11 @@
 package eu.cloudnetservice.ext.rest.netty;
 
 import com.google.common.net.HttpHeaders;
-import com.google.common.primitives.Ints;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpCookie;
 import eu.cloudnetservice.ext.rest.api.HttpRequest;
 import eu.cloudnetservice.ext.rest.api.HttpVersion;
+import eu.cloudnetservice.ext.rest.api.header.HttpHeaderMap;
 import io.netty5.buffer.BufferInputStream;
 import io.netty5.handler.codec.http.FullHttpRequest;
 import io.netty5.handler.codec.http.QueryStringDecoder;
@@ -32,7 +32,6 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.NonNull;
@@ -48,6 +47,7 @@ final class NettyHttpServerRequest extends NettyHttpMessage implements HttpReque
   private final NettyHttpServerContext context;
 
   private final URI uri;
+  private final HttpHeaderMap httpHeaderMap;
   private final io.netty5.handler.codec.http.HttpRequest httpRequest;
 
   private final Map<String, String> pathParameters;
@@ -74,6 +74,7 @@ final class NettyHttpServerRequest extends NettyHttpMessage implements HttpReque
     this.httpRequest = httpRequest;
     this.uri = uri;
     this.pathParameters = pathParameters;
+    this.httpHeaderMap = new NettyHttpHeaderMap(httpRequest.headers());
     this.queryParameters = new QueryStringDecoder(httpRequest.uri()).parameters();
   }
 
@@ -129,97 +130,8 @@ final class NettyHttpServerRequest extends NettyHttpMessage implements HttpReque
    * {@inheritDoc}
    */
   @Override
-  public @Nullable String header(@NonNull String name) {
-    var headerValue = this.httpRequest.headers().get(name);
-    return headerValue == null ? null : headerValue.toString();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @Nullable Integer headerAsInt(@NonNull String name) {
-    var headerValue = this.header(name);
-    return headerValue == null ? null : Ints.tryParse(headerValue);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean headerAsBoolean(@NonNull String name) {
-    var headerValue = this.header(name);
-    return Boolean.parseBoolean(headerValue);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpRequest header(@NonNull String name, @NonNull String value) {
-    this.httpRequest.headers().set(name, value);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpRequest header(@NonNull String name, @NonNull Collection<String> values) {
-    this.httpRequest.headers().set(name, values);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpRequest addHeader(@NonNull String name, @NonNull String value) {
-    this.httpRequest.headers().add(name, value);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpRequest removeHeader(@NonNull String name) {
-    this.httpRequest.headers().remove(name);
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull HttpRequest clearHeaders() {
-    this.httpRequest.headers().clear();
-    return this;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean hasHeader(@NonNull String name) {
-    return this.httpRequest.headers().contains(name);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public @NonNull Map<String, String> headers() {
-    // init the target map to copy all headers into - that target map is immune to later resizes
-    var headers = this.httpRequest.headers();
-    Map<String, String> headerMap = new HashMap<>(headers.size() + 1, 1f);
-
-    // copy over all headers
-    for (var entry : headers) {
-      headerMap.put(entry.getKey().toString(), entry.getValue().toString());
-    }
-
-    return headerMap;
+  public @NonNull HttpHeaderMap headers() {
+    return this.httpHeaderMap;
   }
 
   /**

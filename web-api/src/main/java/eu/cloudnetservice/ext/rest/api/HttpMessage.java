@@ -16,9 +16,8 @@
 
 package eu.cloudnetservice.ext.rest.api;
 
+import eu.cloudnetservice.ext.rest.api.header.HttpHeaderMap;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.Map;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
@@ -40,97 +39,7 @@ public interface HttpMessage<T extends HttpMessage<T>> extends HttpCookieAware<T
    */
   @NonNull HttpContext context();
 
-  /**
-   * Get a header value by the given name.
-   *
-   * @param name the name of the header to get.
-   * @return the header value or null if the header does not exist.
-   * @throws NullPointerException if the given name is null.
-   */
-  @Nullable String header(@NonNull String name);
-
-  /**
-   * Get a header value by the given name, converted to an int. Returns null if the header cannot be converted to an int
-   * or does not exist.
-   *
-   * @param name the name of the header to get.
-   * @return the header value converted to an int or null.
-   * @throws NullPointerException if the given name is null.
-   */
-  @Nullable Integer headerAsInt(@NonNull String name);
-
-  /**
-   * Get the header value by the given name, converted to a bool. If the header does not exist the method defaults to
-   * false.
-   *
-   * @param name the name of the header to get.
-   * @return the value converted to a bool or false if the header does not exist.
-   * @throws NullPointerException if the given name is null.
-   */
-  boolean headerAsBoolean(@NonNull String name);
-
-  /**
-   * Sets the given key-value pair, replacing an already existing pair.
-   *
-   * @param name the name of the header.
-   * @param values the value for the header to set.
-   * @return the same message as used to call the method, for chaining.
-   * @throws NullPointerException if either the given name or value is null.
-   */
-  @NonNull T header(@NonNull String name, @NonNull Collection<String> values);
-
-  /**
-   * Sets the given header, replacing the current one if already set.
-   *
-   * @param name  the name of the header.
-   * @param value the value of the header.
-   * @return the same message as used to call the method, for chaining.
-   * @throws NullPointerException if either the given name or value is null.
-   */
-  @NonNull T header(@NonNull String name, @NonNull String value);
-
-  /**
-   * Adds the given header key-value mapping.
-   *
-   * @param name  the name of the header.
-   * @param value the value of the header.
-   * @return the same message as used to call the method, for chaining.
-   * @throws NullPointerException if either the given name or value is null.
-   */
-  @NonNull T addHeader(@NonNull String name, @NonNull String value);
-
-  /**
-   * Removes a header by the given name from this message.
-   *
-   * @param name the name of the header to remove.
-   * @return the same message as used to call the method, for chaining.
-   * @throws NullPointerException if the given name is null.
-   */
-  @NonNull T removeHeader(@NonNull String name);
-
-  /**
-   * Removes all headers from this message.
-   *
-   * @return the same message as used to call the method, for chaining.
-   */
-  @NonNull T clearHeaders();
-
-  /**
-   * Checks if this message has a header with the given name set.
-   *
-   * @param name the name of the header to check.
-   * @return true if the header is present, false otherwise.
-   * @throws NullPointerException if the given name is null.
-   */
-  boolean hasHeader(@NonNull String name);
-
-  /**
-   * Get all headers of this message converted to a map. The key of the map represents the name of the header, the value
-   * of the map represents the value of the header. This map does not allow duplicates.
-   *
-   * @return all headers of the message collected to a map, duplication free.
-   */
-  @NonNull Map<String, String> headers();
+  @NonNull HttpHeaderMap headers();
 
   /**
    * Get the http version of this http message. CloudNet currently only supports Http 1 and Http 1.1.

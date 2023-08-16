@@ -16,9 +16,11 @@
 
 package eu.cloudnetservice.ext.rest.api.connection.parse;
 
+import com.google.common.net.HttpHeaders;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpRequest;
 import eu.cloudnetservice.ext.rest.api.connection.BasicHttpConnectionInfo;
+import eu.cloudnetservice.ext.rest.api.header.HttpHeaderMap;
 import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -32,11 +34,11 @@ public class ForwardedHeaderTest {
     EMPTY_HOST,
     EMPTY_HOST);
 
-  public HttpContext setupContext(String headerValue) {
+  public HttpContext setupContext(HttpHeaderMap httpHeaderMap) {
     var context = Mockito.mock(HttpContext.class);
     var request = Mockito.mock(HttpRequest.class);
     Mockito.when(context.request()).thenReturn(request);
-    Mockito.when(request.header(Mockito.anyString())).thenReturn(headerValue);
+    Mockito.when(request.headers()).thenReturn(httpHeaderMap);
 
     return context;
   }
@@ -44,7 +46,8 @@ public class ForwardedHeaderTest {
   @Test
   public void testForwardedHeader() {
     var resolver = new ForwardedSyntaxConnectionInfoResolver("Forwarded");
-    var context = this.setupContext("for=192.0.2.60;proto=http;host=203.0.113.43");
+    var context = this.setupContext(HttpHeaderMap.newHeaderMap()
+      .add(HttpHeaders.FORWARDED, "for=192.0.2.60;proto=http;host=203.0.113.43"));
 
     var info = resolver.extractConnectionInfo(context, EMPTY_INFO);
 

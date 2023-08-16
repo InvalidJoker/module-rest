@@ -36,7 +36,7 @@ public final class HostHeaderConnectionInfoResolver implements HttpConnectionInf
   ) {
     // extract the server target information from the given host header
     // see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host
-    var hostHeaderValue = context.request().header(HttpHeaders.HOST);
+    var hostHeaderValue = context.request().headers().firstValue(HttpHeaders.HOST);
     if (hostHeaderValue != null) {
       var defaultPort = baseInfo.defaultPortForScheme();
       var parsedAddress = AddressParseUtil.parseHostAndPort("Host", hostHeaderValue, defaultPort);

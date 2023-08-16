@@ -53,7 +53,7 @@ public final class ContentTypeProcessor implements HttpAnnotationProcessor {
       ) {
         var annotation = method.getAnnotation(ContentType.class);
         if (annotation != null) {
-          context.response().header(HttpHeaders.CONTENT_TYPE, annotation.value());
+          context.response().headers().setIfAbsent(HttpHeaders.CONTENT_TYPE, annotation.value());
         }
 
         return true;

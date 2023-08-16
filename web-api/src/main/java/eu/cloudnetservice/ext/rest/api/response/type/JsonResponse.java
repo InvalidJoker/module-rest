@@ -22,11 +22,11 @@ import eu.cloudnetservice.ext.rest.api.HttpResponse;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.codec.CodecProvider;
 import eu.cloudnetservice.ext.rest.api.codec.builtin.JsonCodec;
+import eu.cloudnetservice.ext.rest.api.header.HttpHeaderMap;
 import eu.cloudnetservice.ext.rest.api.response.DefaultResponse;
 import eu.cloudnetservice.ext.rest.api.response.DefaultResponseBuilder;
 import eu.cloudnetservice.ext.rest.api.response.Response;
 import java.util.List;
-import java.util.Map;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,10 +34,10 @@ public final class JsonResponse<T> extends DefaultResponse<T> {
 
   private JsonResponse(
     @Nullable T body,
-    @NonNull HttpResponseCode responseCode,
-    @NonNull Map<String, List<String>> headers
+    @NonNull HttpHeaderMap httpHeaderMap,
+    @NonNull HttpResponseCode responseCode
   ) {
-    super(body, responseCode, headers);
+    super(body, httpHeaderMap, responseCode);
   }
 
   public static <T> @NonNull Builder<T> builder() {
@@ -47,7 +47,7 @@ public final class JsonResponse<T> extends DefaultResponse<T> {
   public static <T> @NonNull Builder<T> builder(@NonNull Response<? extends T> response) {
     return JsonResponse.<T>builder()
       .responseCode(response.responseCode())
-      .headers(response.headers())
+      .header(response.headers())
       .body(response.body());
   }
 
@@ -69,8 +69,8 @@ public final class JsonResponse<T> extends DefaultResponse<T> {
 
     @Override
     public @NonNull Response<T> build() {
-      this.httpHeaders.putIfAbsent(HttpHeaders.CONTENT_TYPE, List.of(MediaType.JSON_UTF_8.toString()));
-      return new JsonResponse<>(this.body, this.responseCode, Map.copyOf(this.httpHeaders));
+      this.httpHeaderMap.setIfAbsent(HttpHeaders.CONTENT_TYPE, List.of(MediaType.JSON_UTF_8.toString()));
+      return new JsonResponse<>(this.body, this.httpHeaderMap.unmodifiableClone(), this.responseCode);
     }
   }
 }

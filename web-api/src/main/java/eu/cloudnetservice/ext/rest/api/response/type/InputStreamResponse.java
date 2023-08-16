@@ -20,12 +20,12 @@ import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
 import eu.cloudnetservice.ext.rest.api.HttpResponse;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
+import eu.cloudnetservice.ext.rest.api.header.HttpHeaderMap;
 import eu.cloudnetservice.ext.rest.api.response.DefaultResponse;
 import eu.cloudnetservice.ext.rest.api.response.DefaultResponseBuilder;
 import eu.cloudnetservice.ext.rest.api.response.Response;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,10 +33,10 @@ public final class InputStreamResponse extends DefaultResponse<InputStream> {
 
   private InputStreamResponse(
     @Nullable InputStream body,
-    @NonNull HttpResponseCode responseCode,
-    @NonNull Map<String, List<String>> headers
+    @NonNull HttpHeaderMap httpHeaderMap,
+    @NonNull HttpResponseCode responseCode
   ) {
-    super(body, responseCode, headers);
+    super(body, httpHeaderMap, responseCode);
   }
 
   public static @NonNull Builder builder() {
@@ -44,7 +44,7 @@ public final class InputStreamResponse extends DefaultResponse<InputStream> {
   }
 
   public static @NonNull Builder builder(@NonNull Response<InputStream> response) {
-    return builder().responseCode(response.responseCode()).headers(response.headers()).body(response.body());
+    return builder().responseCode(response.responseCode()).header(response.headers()).body(response.body());
   }
 
   @Override
@@ -64,8 +64,8 @@ public final class InputStreamResponse extends DefaultResponse<InputStream> {
 
     @Override
     public @NonNull Response<InputStream> build() {
-      this.httpHeaders.putIfAbsent(HttpHeaders.CONTENT_TYPE, List.of(MediaType.OCTET_STREAM.toString()));
-      return new InputStreamResponse(this.body, this.responseCode, Map.copyOf(this.httpHeaders));
+      this.httpHeaderMap.setIfAbsent(HttpHeaders.CONTENT_TYPE, List.of(MediaType.OCTET_STREAM.toString()));
+      return new InputStreamResponse(this.body, this.httpHeaderMap.unmodifiableClone(), this.responseCode);
     }
   }
 }

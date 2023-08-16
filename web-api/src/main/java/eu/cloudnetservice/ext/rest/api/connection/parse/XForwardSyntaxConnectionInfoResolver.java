@@ -44,7 +44,7 @@ public final class XForwardSyntaxConnectionInfoResolver implements HttpConnectio
   }
 
   private static @Nullable String headerValue(@NonNull HttpRequest request, @Nullable String headerName) {
-    return headerName == null ? null : request.header(headerName);
+    return headerName == null ? null : request.headers().firstValue(headerName);
   }
 
   @Override

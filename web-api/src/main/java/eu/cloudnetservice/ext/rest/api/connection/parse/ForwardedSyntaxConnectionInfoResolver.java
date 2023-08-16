@@ -40,7 +40,7 @@ public final class ForwardedSyntaxConnectionInfoResolver implements HttpConnecti
     @NonNull BasicHttpConnectionInfo baseInfo
   ) {
     // extract the forwarded information - break in case the info is not present
-    var forwardedHeaderValue = context.request().header(this.headerName);
+    var forwardedHeaderValue = context.request().headers().firstValue(this.headerName);
     if (forwardedHeaderValue == null) {
       return baseInfo;
     }

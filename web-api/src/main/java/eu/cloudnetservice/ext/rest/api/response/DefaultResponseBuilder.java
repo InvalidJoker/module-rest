@@ -18,16 +18,13 @@ package eu.cloudnetservice.ext.rest.api.response;
 
 import com.google.common.net.HttpHeaders;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
+import eu.cloudnetservice.ext.rest.api.header.HttpHeaderMap;
 import java.net.URI;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.function.Consumer;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,7 +40,7 @@ public abstract class DefaultResponseBuilder<T, B extends Response.Builder<T, B>
 
   protected T body;
   protected HttpResponseCode responseCode = HttpResponseCode.OK;
-  protected Map<String, List<String>> httpHeaders = new HashMap<>();
+  protected HttpHeaderMap httpHeaderMap = HttpHeaderMap.newHeaderMap();
 
   @Override
   public @NonNull B responseCode(@NonNull HttpResponseCode responseCode) {
@@ -72,20 +69,20 @@ public abstract class DefaultResponseBuilder<T, B extends Response.Builder<T, B>
   }
 
   @Override
+  public @NonNull B header(@NonNull HttpHeaderMap httpHeaderMap) {
+    this.httpHeaderMap.set(httpHeaderMap);
+    return this.self();
+  }
+
+  @Override
   public @NonNull B header(@NonNull String name, String... values) {
-    this.httpHeaders.computeIfAbsent(name, __ -> new ArrayList<>(values.length)).addAll(List.of(values));
+    this.httpHeaderMap.add(name, values);
     return this.self();
   }
 
   @Override
-  public @NonNull B headers(@NonNull Map<String, List<String>> headers) {
-    this.httpHeaders = new HashMap<>(headers);
-    return this.self();
-  }
-
-  @Override
-  public @NonNull B modifyHeaders(@NonNull Consumer<Map<String, List<String>>> headerModifier) {
-    headerModifier.accept(this.httpHeaders);
+  public @NonNull B modifyHeaders(@NonNull Consumer<HttpHeaderMap> headerModifier) {
+    headerModifier.accept(this.httpHeaderMap);
     return this.self();
   }
 

@@ -18,11 +18,10 @@ package eu.cloudnetservice.ext.rest.api.response;
 
 import eu.cloudnetservice.ext.rest.api.HttpResponse;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
+import eu.cloudnetservice.ext.rest.api.header.HttpHeaderMap;
 import java.net.URI;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +34,7 @@ public interface Response<T> extends IntoResponse<T> {
   @NonNull HttpResponseCode responseCode();
 
   @Unmodifiable
-  @NonNull Map<String, List<String>> headers();
+  @NonNull HttpHeaderMap headers();
 
   void serializeIntoResponse(@NonNull HttpResponse response);
 
@@ -51,11 +50,11 @@ public interface Response<T> extends IntoResponse<T> {
 
     @NonNull B forbidden();
 
+    @NonNull B header(@NonNull HttpHeaderMap httpHeaderMap);
+
     @NonNull B header(@NonNull String name, String... values);
 
-    @NonNull B headers(@NonNull Map<String, List<String>> headers);
-
-    @NonNull B modifyHeaders(@NonNull Consumer<Map<String, List<String>>> headerModifier);
+    @NonNull B modifyHeaders(@NonNull Consumer<HttpHeaderMap> headerModifier);
 
     @NonNull B eTag(@NonNull String etag);
 
