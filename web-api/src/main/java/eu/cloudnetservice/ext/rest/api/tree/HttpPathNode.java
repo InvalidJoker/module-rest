@@ -47,7 +47,7 @@ public interface HttpPathNode extends Comparable<HttpPathNode> {
    */
   @NonNull String pathId();
 
-  boolean anyHandlerRegistered();
+  int handlerCount();
 
   @NonNull List<HttpHandlerConfigPair> handlers();
 

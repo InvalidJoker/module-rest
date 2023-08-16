@@ -45,8 +45,8 @@ abstract class DefaultHttpPathNode implements HttpPathNode {
   }
 
   @Override
-  public boolean anyHandlerRegistered() {
-    return !this.handlers.isEmpty();
+  public int handlerCount() {
+    return this.handlers.size();
   }
 
   @Override

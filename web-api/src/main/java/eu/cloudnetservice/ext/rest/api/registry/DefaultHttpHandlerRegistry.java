@@ -219,13 +219,13 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
   }
 
   private void unregisterTreeNodesWithoutHandler(@NonNull HttpHandlerTree<HttpPathNode> treeNode) {
-    if (!treeNode.pathNode().anyHandlerRegistered() && treeNode.childCount() == 0) {
+    if (treeNode.pathNode().handlerCount() == 0 && treeNode.childCount() == 0) {
       var currentParent = treeNode.parentNode();
       if (currentParent != null) {
         do {
           if (currentParent.root()
-            || currentParent.pathNode().anyHandlerRegistered()
             || currentParent.childCount() > 1
+            || currentParent.pathNode().handlerCount() > 0
           ) {
             // 2 cases that can happen:
             //   1. parent node is the root node - we cannot unregister anything above that,
