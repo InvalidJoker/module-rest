@@ -36,14 +36,14 @@ import lombok.NonNull;
 public @interface RequestHandler {
 
   /**
-   * Get the paths to which the request can be sent in order to call the associated handling method.
+   * Gets the paths to which the request can be sent in order to call the associated handling method.
    *
    * @return the url paths the associated method is handling.
    */
   @NonNull String path();
 
   /**
-   * Get the method which can be used to call the associated handling method, defaults to GET.
+   * Gets the method which can be used to call the associated handling method, defaults to GET.
    *
    * @return the http request method the associated method is handling.
    */

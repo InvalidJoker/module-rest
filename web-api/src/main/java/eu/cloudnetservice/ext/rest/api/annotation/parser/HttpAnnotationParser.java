@@ -29,7 +29,7 @@ import org.jetbrains.annotations.UnmodifiableView;
 public interface HttpAnnotationParser {
 
   /**
-   * Get an unmodifiable view of all annotation processors which were registered to this parser.
+   * Gets an unmodifiable view of all annotation processors which were registered to this parser.
    *
    * @return all annotation processors registered to this parser.
    */

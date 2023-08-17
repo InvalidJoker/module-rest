@@ -35,6 +35,11 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
+/**
+ * The default implementation of the http handler registry.
+ *
+ * @since 1.0
+ */
 final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
 
   private static final Splitter PATH_PARTS_SPLITTER = Splitter.on('/');
@@ -48,11 +53,24 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
   private final ComponentConfig componentConfig;
   private final HttpHandlerTree<HttpPathNode> rootHandlerTreeNode;
 
+  /**
+   * Constructs a new http handler registry with the given component config to configure the registry.
+   *
+   * @param componentConfig the component config used to configure the registry.
+   * @throws NullPointerException if the given component config is null.
+   */
   public DefaultHttpHandlerRegistry(@NonNull ComponentConfig componentConfig) {
     this.componentConfig = componentConfig;
     this.rootHandlerTreeNode = HttpHandlerTree.newHandlerTree(HttpPathNode.root());
   }
 
+  /**
+   * Removes a leading and trailing slash from the given path.
+   *
+   * @param path the path to strip the slashes from.
+   * @return the path with stripped slashes.
+   * @throws NullPointerException if the given path is null.
+   */
   private static @NonNull String removeSlashPrefixSuffixFromPath(@NonNull String path) {
     var prefixedWithSlash = path.startsWith("/");
     var suffixedWithSlash = path.endsWith("/");
@@ -62,6 +80,9 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
     return path;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @Unmodifiable @NonNull Collection<HttpHandler> registeredHandlers() {
     List<HttpHandler> httpHandlers = new ArrayList<>();
@@ -76,6 +97,9 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
     return httpHandlers;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @Nullable HttpHandlerTree<HttpPathNode> findHandler(@NonNull String path, @NonNull HttpContext context) {
     // check if the root handler was requested
@@ -112,6 +136,9 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
     return bestMatch != null ? bestMatch : lastConsumingNode;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void registerHandler(@NonNull String path, @NonNull HttpHandler handler, @NonNull HttpHandlerConfig config) {
     // no need to do further checks if the root handler was requested
@@ -193,6 +220,9 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
     targetPathNode.registerHttpHandler(handler, handlerConfig);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void unregisterHandler(@NonNull HttpHandler handler) {
     this.rootHandlerTreeNode.visitFullTree(treeNode -> {
@@ -203,6 +233,9 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
     });
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void unregisterHandlers(@NonNull ClassLoader classLoader) {
     this.rootHandlerTreeNode.visitFullTree(treeNode -> {
@@ -214,6 +247,9 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
     });
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void clearHandlers() {
     this.rootHandlerTreeNode.removeAllChildren();

@@ -34,6 +34,13 @@ import java.util.List;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * The file response implementation which is capable of serializing the content of a file at a given location into the
+ * response for the request.
+ *
+ * @see Response
+ * @since 1.0
+ */
 public final class FileResponse extends DefaultResponse<Path> {
 
   private FileResponse(
@@ -44,14 +51,29 @@ public final class FileResponse extends DefaultResponse<Path> {
     super(body, httpHeaderMap, responseCode);
   }
 
+  /**
+   * Constructs a new empty file response builder.
+   *
+   * @return a new empty file response builder.
+   */
   public static @NonNull Builder builder() {
     return new Builder();
   }
 
+  /**
+   * Constructs a new file response builder copying all values from the given response.
+   *
+   * @param response the response to copy the values from.
+   * @return a new file response builder copying all values from the given response.
+   * @throws NullPointerException if the given response is null.
+   */
   public static @NonNull Builder builder(@NonNull Response<Path> response) {
     return builder().responseCode(response.responseCode()).header(response.headers()).body(response.body());
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   protected void serializeBody(@NonNull HttpResponse response, @NonNull Path body) {
     try {
@@ -61,16 +83,30 @@ public final class FileResponse extends DefaultResponse<Path> {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull Response.Builder<Path, ?> intoResponseBuilder() {
     return FileResponse.builder(this);
   }
 
+  /**
+   * The file response builder implementation applying the last response specific build setup.
+   *
+   * @see eu.cloudnetservice.ext.rest.api.response.Response.Builder
+   * @since 1.0
+   */
   public static final class Builder extends DefaultResponseBuilder<Path, Builder> {
 
     private Builder() {
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws IllegalArgumentException if the given file does not exist.
+     */
     @Override
     public @NonNull Response<Path> build() {
       if (this.body != null) {

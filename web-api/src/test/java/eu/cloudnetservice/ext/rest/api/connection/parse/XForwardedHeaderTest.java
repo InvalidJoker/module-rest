@@ -24,7 +24,7 @@ import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public final class ForwardedHeaderTest {
+public final class XForwardedHeaderTest {
 
   private static final HostAndPort EMPTY_HOST = new HostAndPort("INVALID", -1);
   private static final BasicHttpConnectionInfo EMPTY_INFO = new BasicHttpConnectionInfo(
@@ -33,10 +33,17 @@ public final class ForwardedHeaderTest {
     EMPTY_HOST);
 
   @Test
-  public void testForwardedHeader() {
-    var resolver = new ForwardedSyntaxConnectionInfoResolver(HttpHeaders.FORWARDED);
+  public void testXForwardedHeader() {
+    var resolver = new XForwardSyntaxConnectionInfoResolver(
+      HttpHeaders.X_FORWARDED_FOR,
+      HttpHeaders.X_FORWARDED_HOST,
+      HttpHeaders.X_FORWARDED_PORT,
+      HttpHeaders.X_FORWARDED_PROTO);
     var context = HeaderMockUtil.setupContext(HttpHeaderMap.newHeaderMap()
-      .add(HttpHeaders.FORWARDED, "for=192.0.2.60;proto=http;host=203.0.113.43"));
+      .add(HttpHeaders.X_FORWARDED_FOR, "192.0.2.60")
+      .add(HttpHeaders.X_FORWARDED_HOST, "203.0.113.43")
+      .add(HttpHeaders.X_FORWARDED_PORT, "80")
+      .add(HttpHeaders.X_FORWARDED_PROTO, "http"));
 
     var info = resolver.extractConnectionInfo(context, EMPTY_INFO);
 
@@ -44,4 +51,5 @@ public final class ForwardedHeaderTest {
     Assertions.assertEquals(new HostAndPort("203.0.113.43", 80), info.hostAddress());
     Assertions.assertEquals(new HostAndPort("192.0.2.60", -1), info.clientAddress());
   }
+
 }

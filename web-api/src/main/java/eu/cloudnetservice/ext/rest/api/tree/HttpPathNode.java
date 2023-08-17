@@ -41,7 +41,7 @@ public interface HttpPathNode extends Comparable<HttpPathNode> {
   @NonNull String displayName();
 
   /**
-   * Get the path entry that is represented by this node.
+   * Gets the path entry that is represented by this node.
    *
    * @return the id of this path node.
    */

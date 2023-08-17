@@ -20,7 +20,8 @@ import java.util.Locale;
 import lombok.NonNull;
 
 /**
- * Represents a http request method. Supporting
+ * Represents a http request method. Supporting the all request methods except {@code CONNECT} from the <a
+ * href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods">specification</a>.
  *
  * @since 1.0
  */
@@ -35,6 +36,14 @@ public enum HttpMethod {
   DELETE,
   OPTIONS;
 
+  /**
+   * Getss the corresponding http method for the given input string.
+   *
+   * @param name the name of the http method.
+   * @return the http method with the corresponding name.
+   * @throws IllegalStateException if an unknown method is requested.
+   * @throws NullPointerException  if the given name is null.
+   */
   public static @NonNull HttpMethod fromName(@NonNull String name) {
     return switch (name.toUpperCase(Locale.ROOT)) {
       case "GET" -> GET;
@@ -45,7 +54,7 @@ public enum HttpMethod {
       case "TRACE" -> TRACE;
       case "DELETE" -> DELETE;
       case "OPTIONS" -> OPTIONS;
-      default -> throw new IllegalStateException("Unexpected http method name: " + name);
+      default -> throw new IllegalArgumentException("Unexpected http method name: " + name);
     };
   }
 }

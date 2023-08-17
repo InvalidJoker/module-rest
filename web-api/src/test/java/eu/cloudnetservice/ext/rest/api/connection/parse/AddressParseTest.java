@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.api.function.ThrowingSupplier;
 
-public class AddressParseTest {
+public final class AddressParseTest {
 
   @Test
   public void testIpv4() throws Throwable {

@@ -66,7 +66,7 @@ public interface WebSocketChannel extends AutoCloseable {
   @NonNull WebSocketChannel clearListeners();
 
   /**
-   * Get all listeners which were registered to this channel previously.
+   * Gets all listeners which were registered to this channel previously.
    *
    * @return all registered listeners on this channel.
    */
@@ -108,7 +108,7 @@ public interface WebSocketChannel extends AutoCloseable {
   void close(int statusCode, @Nullable String reasonText);
 
   /**
-   * Get the underlying channel which was upgraded to this web socket channel.
+   * Gets the underlying channel which was upgraded to this web socket channel.
    *
    * @return the original, now upgraded channel.
    */
