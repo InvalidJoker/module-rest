@@ -29,6 +29,14 @@ import java.util.function.Consumer;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Abstract default implementation of a response builder applying all values not bound to the body itself.
+ *
+ * @param <T> the generic type of the body.
+ * @param <B> the generic type of the builder itself.
+ * @see Response.Builder
+ * @since 1.0
+ */
 public abstract class DefaultResponseBuilder<T, B extends Response.Builder<T, B>> implements Response.Builder<T, B> {
 
   // RFC 9110 Section 8.8.2
@@ -42,50 +50,77 @@ public abstract class DefaultResponseBuilder<T, B extends Response.Builder<T, B>
   protected HttpResponseCode responseCode = HttpResponseCode.OK;
   protected HttpHeaderMap httpHeaderMap = HttpHeaderMap.newHeaderMap();
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull B responseCode(@NonNull HttpResponseCode responseCode) {
     this.responseCode = responseCode;
     return this.self();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull B notFound() {
     return this.responseCode(HttpResponseCode.NOT_FOUND);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull B noContent() {
     return this.responseCode(HttpResponseCode.NO_CONTENT);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull B badRequest() {
     return this.responseCode(HttpResponseCode.BAD_REQUEST);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull B forbidden() {
     return this.responseCode(HttpResponseCode.FORBIDDEN);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull B header(@NonNull HttpHeaderMap httpHeaderMap) {
-    this.httpHeaderMap.set(httpHeaderMap);
+    this.httpHeaderMap = HttpHeaderMap.newHeaderMap().set(httpHeaderMap);
     return this.self();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public @NonNull B header(@NonNull String name, String... values) {
+  public @NonNull B header(@NonNull String name, @NonNull String... values) {
     this.httpHeaderMap.add(name, values);
     return this.self();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull B modifyHeaders(@NonNull Consumer<HttpHeaderMap> headerModifier) {
     headerModifier.accept(this.httpHeaderMap);
     return this.self();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull B eTag(@NonNull String etag) {
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag
@@ -99,6 +134,9 @@ public abstract class DefaultResponseBuilder<T, B extends Response.Builder<T, B>
     return this.header(HttpHeaders.ETAG, etag);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull B lastModified(@NonNull ZonedDateTime lastModified) {
     return this.header(
@@ -106,32 +144,50 @@ public abstract class DefaultResponseBuilder<T, B extends Response.Builder<T, B>
       DATE_FORMATTER.format(lastModified.withZoneSameInstant(GMT)));
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull B lastModified(@NonNull Instant lastModified) {
     return this.lastModified(ZonedDateTime.ofInstant(lastModified, GMT));
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull B location(@NonNull URI location) {
     return this.header(HttpHeaders.LOCATION, location.toASCIIString());
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull B contentType(@NonNull String contentType) {
     return this.header(HttpHeaders.CONTENT_TYPE, contentType);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull B contentLength(long contentLength) {
     return this.header(HttpHeaders.CONTENT_LENGTH, Long.toString(contentLength));
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull B body(@Nullable T body) {
     this.body = body;
     return this.self();
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull Response.Builder<T, ?> intoResponseBuilder() {
     return this;

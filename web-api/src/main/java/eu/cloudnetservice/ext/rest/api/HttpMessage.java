@@ -39,6 +39,11 @@ public interface HttpMessage<T extends HttpMessage<T>> extends HttpCookieAware<T
    */
   @NonNull HttpContext context();
 
+  /**
+   * Gets the http header map containing all set headers for this http message.
+   *
+   * @return the http header map for this http message.
+   */
   @NonNull HttpHeaderMap headers();
 
   /**

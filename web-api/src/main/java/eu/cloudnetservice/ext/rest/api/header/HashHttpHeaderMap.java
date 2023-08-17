@@ -114,7 +114,7 @@ final class HashHttpHeaderMap implements HttpHeaderMap {
 
   @Override
   public @NonNull HttpHeaderMap add(@NonNull String headerName, @NonNull String... headerValues) {
-    for (String headerValue : headerValues) {
+    for (var headerValue : headerValues) {
       this.add(headerName, headerValue);
     }
     return this;

@@ -23,6 +23,13 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
+/**
+ * Abstract default implementation of a response handling everything except the response specific serialization.
+ *
+ * @param <T> the generic type of the body.
+ * @see Response
+ * @since 1.0
+ */
 public abstract class DefaultResponse<T> implements Response<T> {
 
   protected final T body;
@@ -39,21 +46,33 @@ public abstract class DefaultResponse<T> implements Response<T> {
     this.responseCode = responseCode;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @Nullable T body() {
     return this.body;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull HttpResponseCode responseCode() {
     return this.responseCode;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @Unmodifiable @NonNull HttpHeaderMap headers() {
     return this.httpHeaderMap;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void serializeIntoResponse(@NonNull HttpResponse response) {
     response.status(this.responseCode);
@@ -64,10 +83,20 @@ public abstract class DefaultResponse<T> implements Response<T> {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull Response<T> intoResponse() {
     return this;
   }
 
+  /**
+   * Serializes the given body into the given response.
+   *
+   * @param response the response to serialize into.
+   * @param body     the body to serialize.
+   * @throws NullPointerException if the given response or body is null.
+   */
   protected abstract void serializeBody(@NonNull HttpResponse response, @NonNull T body);
 }

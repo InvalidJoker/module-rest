@@ -31,7 +31,7 @@ import lombok.NonNull;
 public interface HttpComponent<T extends HttpComponent<T>> extends AutoCloseable {
 
   /**
-   * Gets whether this component has ssl enabled or not.
+   * Get whether this component has ssl enabled or not.
    *
    * @return whether this component has ssl enabled or not.
    */
@@ -52,5 +52,13 @@ public interface HttpComponent<T extends HttpComponent<T>> extends AutoCloseable
    */
   @NonNull HttpAnnotationParser annotationParser();
 
+  /**
+   * Get a http handler registry which is associated with this component and can therefore be used to register and
+   * unregister http handlers.
+   * <p>
+   * Unlike with the {@link #annotationParser()} you can't register annotated handlers directly to this component.
+   *
+   * @return the associated http handler registry instance.
+   */
   @NonNull HttpHandlerRegistry handlerRegistry();
 }
