@@ -22,7 +22,7 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class HttpPathNodeTest {
+public final class HttpPathNodeTest {
 
   @Test
   public void testPathNodeComparison() {
@@ -37,5 +37,4 @@ public class HttpPathNodeTest {
     Assertions.assertEquals(dynamicNode, nodes.get(1));
     Assertions.assertEquals(wildcardNode, nodes.get(2));
   }
-
 }

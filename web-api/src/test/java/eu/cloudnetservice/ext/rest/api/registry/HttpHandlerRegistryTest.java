@@ -31,7 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-public class HttpHandlerRegistryTest {
+public final class HttpHandlerRegistryTest {
 
   @SuppressWarnings("DataFlowIssue")
   private static final HttpHandler EMPTY_HTTP_HANDLER = context -> null;
@@ -56,7 +56,7 @@ public class HttpHandlerRegistryTest {
 
     Assertions.assertDoesNotThrow(() -> this.registry.registerHandler("api/test/{name}", EMPTY_HTTP_HANDLER, config));
     Assertions.assertThrows(
-      IllegalStateException.class,
+      HttpHandlerRegisterException.class,
       () -> this.registry.registerHandler("api/test/{other}", EMPTY_HTTP_HANDLER, config));
 
     Assertions.assertNotNull(this.registry.findHandler("api/test/playo", this.context));

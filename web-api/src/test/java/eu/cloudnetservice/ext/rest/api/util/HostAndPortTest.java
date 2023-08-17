@@ -19,7 +19,7 @@ package eu.cloudnetservice.ext.rest.api.util;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class HostAndPortTest {
+public final class HostAndPortTest {
 
   @Test
   public void testInvalidPorts() {
