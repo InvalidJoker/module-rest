@@ -55,14 +55,17 @@ public final class HttpHandlerRegistryTest {
     var config = HttpHandlerConfig.builder().httpMethod(HttpMethod.GET).build();
 
     Assertions.assertDoesNotThrow(() -> this.registry.registerHandler("api/test/{name}", EMPTY_HTTP_HANDLER, config));
+    Assertions.assertDoesNotThrow(
+      () -> this.registry.registerHandler("api/test/{name}/kick", EMPTY_HTTP_HANDLER, config));
     Assertions.assertThrows(
       HttpHandlerRegisterException.class,
       () -> this.registry.registerHandler("api/test/{other}", EMPTY_HTTP_HANDLER, config));
 
     Assertions.assertNotNull(this.registry.findHandler("api/test/playo", this.context));
+    Assertions.assertNotNull(this.registry.findHandler("api/test/playo/kick", this.context));
     Assertions.assertNull(this.registry.findHandler("api/test/playo/other", this.context));
 
-    Assertions.assertEquals(1, this.registry.registeredHandlers().size());
+    Assertions.assertEquals(2, this.registry.registeredHandlers().size());
   }
 
   @Test

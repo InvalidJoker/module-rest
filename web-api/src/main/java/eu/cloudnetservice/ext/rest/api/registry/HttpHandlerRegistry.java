@@ -78,6 +78,9 @@ public interface HttpHandlerRegistry {
    *   <li>A path is not allowed to have multiple dynamic nodes with the same node.
    *   While {@code api/v2/player/{name}/connect/{server}} is allowed,
    *   {@code api/v2/player/{name}/connect/{name}} is <strong>NOT</strong> allowed.</li>
+   *   <li>Different handlers must have the same dynamic node on the same level.
+   *   While {@code api/v2/{name}/kick} and {@code api/v2/{name}/connect} is allowed,
+   *   {@code api/v2/{name}/kick} and {@code api/v2/{player}/connect} is <strong>NOT</strong> allowed.</li>
    * </ul>
    *
    * @param path    the path to register the handler for.

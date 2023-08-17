@@ -33,6 +33,8 @@ import org.jetbrains.annotations.Unmodifiable;
 /**
  * An implementation of the problem details response body described in <a
  * href="https://datatracker.ietf.org/doc/html/rfc7807">RFC 7807</a>.
+ *
+ * @since 1.0
  */
 public final class ProblemDetail implements IntoResponse<Map<String, Object>> {
 
@@ -63,10 +65,22 @@ public final class ProblemDetail implements IntoResponse<Map<String, Object>> {
     this.additionalFields = additionalFields;
   }
 
+  /**
+   * Constructs a new empty problem detail builder.
+   *
+   * @return a new empty problem detail builder.
+   */
   public static @NonNull Builder builder() {
     return new Builder();
   }
 
+  /**
+   * Constructs a new problem detail builder copying all values from the given problem detail.
+   *
+   * @param problemDetail the problem detail to copy the values from.
+   * @return a new problem detail builder copying all values from the given problem detail.
+   * @throws NullPointerException if the given problem detail is null.
+   */
   public static @NonNull Builder builder(@NonNull ProblemDetail problemDetail) {
     return builder()
       .type(problemDetail.type())
@@ -77,31 +91,68 @@ public final class ProblemDetail implements IntoResponse<Map<String, Object>> {
       .additionalFields(problemDetail.additionalFields());
   }
 
+  /**
+   * Gets the status code of the problem detail.
+   *
+   * @return the status code of the problem detail.
+   */
   public @NonNull HttpResponseCode status() {
     return this.status;
   }
 
+  /**
+   * Gets the optional type of the problem detail. The type is an uri used to identify the problem type.
+   *
+   * @return the optional type of the problem detail, null if not given.
+   */
   public @Nullable URI type() {
     return this.type;
   }
 
+  /**
+   * Gets the optional title of the problem detail. The title is a short human-readable summary of the problem.
+   *
+   * @return the optional title of the problem detail, null if not given.
+   */
   public @Nullable String title() {
     return this.title;
   }
 
+  /**
+   * Gets the optional detail of the problem detail. The detail is a longer explanation for the problem that occurred.
+   *
+   * @return the optional detail of the problem detail, null if not given.
+   */
   public @Nullable String detail() {
     return this.detail;
   }
 
+  /**
+   * Gets the optional instance of the problem. The instance is any string that points to a specific instance or call
+   * that caused the problem.
+   *
+   * @return the optional instance of the problem, null if not given.
+   */
   public @Nullable String instance() {
     return this.instance;
   }
 
+  /**
+   * Gets an unmodifiable map with all additional fields of the problem detail. The map might contain information like a
+   * timestamp.
+   *
+   * @return an unmodifiable map with all additional fields of the problem detail.
+   */
   @Unmodifiable
   public @NonNull Map<String, Object> additionalFields() {
     return this.additionalFields;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * The problem detail is always serialized into json and flattened before doing so.
+   */
   @Override
   public @NonNull Response.Builder<Map<String, Object>, ?> intoResponseBuilder() {
     // serializes the members of the problem details body
@@ -120,6 +171,14 @@ public final class ProblemDetail implements IntoResponse<Map<String, Object>> {
       .body(Map.copyOf(serializedProblemDetail));
   }
 
+  /**
+   * Registers the key-value pair to the given map if the value is present.
+   *
+   * @param properties the map to insert the pair into.
+   * @param key        the key.
+   * @param value      the value.
+   * @throws NullPointerException if the given map or key is null.
+   */
   private void registerFieldToSerialize(
     @NonNull Map<String, Object> properties,
     @NonNull String key,
@@ -130,6 +189,11 @@ public final class ProblemDetail implements IntoResponse<Map<String, Object>> {
     }
   }
 
+  /**
+   * A builder for a problem detail.
+   *
+   * @since 1.0
+   */
   public static final class Builder {
 
     private Map<String, Object> additionalFields = new HashMap<>();
@@ -140,46 +204,106 @@ public final class ProblemDetail implements IntoResponse<Map<String, Object>> {
     private String detail;
     private String instance;
 
+    /**
+     * Sets the status code for the problem detail which is passed into the response.
+     *
+     * @param statusCode the response code.
+     * @return the same instance as used to call the method, for chaining.
+     * @throws NullPointerException if the given response code is null.
+     */
     public @NonNull Builder status(@NonNull HttpResponseCode statusCode) {
       this.status = statusCode;
       return this;
     }
 
+    /**
+     * Sets the optional type of the problem detail. The type is an uri used to identify the problem type.
+     *
+     * @param type the optional type of the problem detail.
+     * @return the same instance as used to call the method, for chaining.
+     */
     public @NonNull Builder type(@Nullable URI type) {
       this.type = type;
       return this;
     }
 
+    /**
+     * Sets the optional title of the problem detail. The title is a short human-readable summary of the problem.
+     *
+     * @param title the optional title of the problem detail.
+     * @return the same instance as used to call the method, for chaining.
+     */
     public @NonNull Builder title(@Nullable String title) {
       this.title = title;
       return this;
     }
 
+    /**
+     * Sets the optional detail of the problem detail. The detail is a longer explanation for the problem that
+     * occurred.
+     *
+     * @param detail the optional detail of the problem detail.
+     * @return the same instance as used to call the method, for chaining.
+     */
     public @NonNull Builder detail(@Nullable String detail) {
       this.detail = detail;
       return this;
     }
 
+    /**
+     * Sets the optional instance of the problem. The instance is any string that points to a specific instance or call
+     * that caused the problem.
+     *
+     * @param instance the optional instance of the problem.
+     * @return the same instance as used to call the method, for chaining.
+     */
     public @NonNull Builder instance(@Nullable String instance) {
       this.instance = instance;
       return this;
     }
 
+    /**
+     * Adds an additional field to the problem detail.
+     *
+     * @param key the key of the additional field.
+     * @param value the value of the additional field.
+     * @return the same instance as used to call the method, for chaining.
+     * @throws NullPointerException if the given key or value is null.
+     */
     public @NonNull Builder addAdditionalFields(@NonNull String key, @NonNull Object value) {
       this.additionalFields.put(key, value);
       return this;
     }
 
+    /**
+     * Sets the additional fields of the problem detail, replacing already set fields.
+     *
+     * @param additionalFields the fields to set.
+     * @return the same instance as used to call the method, for chaining.
+     * @throws NullPointerException if the given field map is null.
+     */
     public @NonNull Builder additionalFields(@NonNull Map<String, Object> additionalFields) {
       this.additionalFields = new HashMap<>(additionalFields);
       return this;
     }
 
+    /**
+     * Modifies the additional fields of the problem detail.
+     *
+     * @param modifier the additional field modifier.
+     * @return the same instance as used to call the method, for chaining.
+     * @throws NullPointerException if the given modifier is null.
+     */
     public @NonNull Builder modifyAdditionalFields(@NonNull Consumer<Map<String, Object>> modifier) {
       modifier.accept(this.additionalFields);
       return this;
     }
 
+    /**
+     * Constructs a new problem detail from this builder.
+     *
+     * @return a new problem detail.
+     */
     public @NonNull ProblemDetail build() {
       return new ProblemDetail(
         this.type,
