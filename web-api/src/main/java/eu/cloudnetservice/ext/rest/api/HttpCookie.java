@@ -110,7 +110,7 @@ public class HttpCookie {
   }
 
   /**
-   * Get the name of this cookie.
+   * Gets the name of this cookie.
    *
    * @return the name of this cookie.
    */
@@ -119,7 +119,7 @@ public class HttpCookie {
   }
 
   /**
-   * Get the value of this cookie.
+   * Gets the value of this cookie.
    *
    * @return the value of this cookie.
    */
@@ -128,7 +128,7 @@ public class HttpCookie {
   }
 
   /**
-   * Get the domain which is allowed to receive the cookie. If not set only the current domain is allowed to receive the
+   * Gets the domain which is allowed to receive the cookie. If not set only the current domain is allowed to receive the
    * cookie, excluding subdomains. If set to the current domain then subdomains are always included.
    *
    * @return the domain which is allowed to receive the cookie.
@@ -138,7 +138,7 @@ public class HttpCookie {
   }
 
   /**
-   * Get the path which must be present in the request uri to send the cookie to the server. For example, if the path is
+   * Gets the path which must be present in the request uri to send the cookie to the server. For example, if the path is
    * set to {@code /docs} then the following uris would receive the cookie:
    * <ol>
    *   <li>/docs
@@ -159,7 +159,7 @@ public class HttpCookie {
   }
 
   /**
-   * Get the max age this cookie persists on the client side until it gets emitted.
+   * Gets the max age this cookie persists on the client side until it gets emitted.
    *
    * @return the max age of this cookie.
    */
@@ -168,7 +168,7 @@ public class HttpCookie {
   }
 
   /**
-   * Get if the cookie is only visible to http request, blocking access to the cookie from e.g. scripts running in the
+   * Gets if the cookie is only visible to http request, blocking access to the cookie from e.g. scripts running in the
    * browser.
    *
    * @return if the cookie is only visible to http request.
@@ -178,7 +178,7 @@ public class HttpCookie {
   }
 
   /**
-   * Get if this cookie should only get transferred to the server if the server connection is encrypted (using https).
+   * Gets if this cookie should only get transferred to the server if the server connection is encrypted (using https).
    * The only point when it is transmitted to the server even when using http is to localhost.
    *
    * @return if this cookie should only get transferred to the server if the server connection is encrypted.
@@ -188,7 +188,7 @@ public class HttpCookie {
   }
 
   /**
-   * Get if the value of this cookie is wrapped in double quotes. This is an en-/de- coder only option which is not
+   * Gets if the value of this cookie is wrapped in double quotes. This is an en-/de- coder only option which is not
    * visible on the client side.
    *
    * @return if the value of this cookie is wrapped in double quotes

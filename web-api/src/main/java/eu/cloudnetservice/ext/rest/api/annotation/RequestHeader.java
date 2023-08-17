@@ -36,14 +36,14 @@ import lombok.NonNull;
 public @interface RequestHeader {
 
   /**
-   * Get the key of the header to retrieve from the associated http request.
+   * Gets the key of the header to retrieve from the associated http request.
    *
    * @return the key of the header.
    */
   @NonNull String value();
 
   /**
-   * Gets the default value to inject if no header with the specified key is given and the parameter marked as optional.
+   * Getss the default value to inject if no header with the specified key is given and the parameter marked as optional.
    * This defaults to {@code __NULL__} which will inject null for the parameter.
    *
    * @return the default value to inject if this header is not present.

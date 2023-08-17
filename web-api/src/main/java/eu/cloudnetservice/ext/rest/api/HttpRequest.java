@@ -39,21 +39,21 @@ public interface HttpRequest extends HttpMessage<HttpRequest> {
   @NonNull Map<String, String> pathParameters();
 
   /**
-   * Get the full, originally requested path.
+   * Gets the full, originally requested path.
    *
    * @return the full, originally requested path.
    */
   @NonNull String path();
 
   /**
-   * Get the full requested uri.
+   * Gets the full requested uri.
    *
    * @return the full requested uri.
    */
   @NonNull String uri();
 
   /**
-   * Get the method used for this request. The method might be one of
+   * Gets the method used for this request. The method might be one of
    * <ul>
    *   <li>OPTIONS
    *   <li>GET
@@ -74,7 +74,7 @@ public interface HttpRequest extends HttpMessage<HttpRequest> {
   @NonNull String method();
 
   /**
-   * Get all query parameters mapped by the key of it to the value. Each query parameter can have multiple values set.
+   * Gets all query parameters mapped by the key of it to the value. Each query parameter can have multiple values set.
    * The maximum amount of query parameters which will get decoded for a request are 1024.
    *
    * @return the query parameters supplied in the request uri.

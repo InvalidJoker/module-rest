@@ -46,7 +46,7 @@ public interface RestUserManagement {
   Pattern SCOPE_NAMING_PATTERN = Pattern.compile(SCOPE_NAMING_REGEX);
 
   /**
-   * Gets the rest user associated with the given id. The rest user must have been created previously using
+   * Getss the rest user associated with the given id. The rest user must have been created previously using
    * {@link #saveRestUser(RestUser)}.
    * <p>
    * The rest user is always retrieved from the database, there is no caching.

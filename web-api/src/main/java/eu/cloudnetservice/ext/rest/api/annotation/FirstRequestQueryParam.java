@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 import lombok.NonNull;
 
 /**
- * Get the first value of the associated query key. The value passed to the associated parameter is {@code String}. This
+ * Gets the first value of the associated query key. The value passed to the associated parameter is {@code String}. This
  * annotation can be combined with {@code @Optional} to mark the parameter as optional.
  *
  * @since 1.0
@@ -36,14 +36,14 @@ import lombok.NonNull;
 public @interface FirstRequestQueryParam {
 
   /**
-   * Get the key of the first query parameter to retrieve.
+   * Gets the key of the first query parameter to retrieve.
    *
    * @return the key of the first query parameter to retrieve.
    */
   @NonNull String value();
 
   /**
-   * Gets the default value to inject if no query parameter with the specified key is given and the parameter marked as
+   * Getss the default value to inject if no query parameter with the specified key is given and the parameter marked as
    * optional. This defaults to {@code __NULL__} which will inject null for the parameter.
    *
    * @return the default value to inject if this query parameter is not present.

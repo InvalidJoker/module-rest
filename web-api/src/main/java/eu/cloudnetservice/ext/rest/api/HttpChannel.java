@@ -35,14 +35,14 @@ public interface HttpChannel extends AutoCloseable {
   @NonNull String scheme();
 
   /**
-   * Get the host and port of the server binding the client is connected to.
+   * Gets the host and port of the server binding the client is connected to.
    *
    * @return the host and port of the server.
    */
   @NonNull HostAndPort serverAddress();
 
   /**
-   * Get the host and port of the client which is connected to the server.
+   * Gets the host and port of the client which is connected to the server.
    *
    * @return the host and port of the client.
    */

@@ -33,21 +33,21 @@ import org.jetbrains.annotations.UnknownNullability;
 public interface HttpMessage<T extends HttpMessage<T>> extends HttpCookieAware<T> {
 
   /**
-   * Get the context this message is processed in.
+   * Gets the context this message is processed in.
    *
    * @return the associated context of this message.
    */
   @NonNull HttpContext context();
 
   /**
-   * Gets the http header map containing all set headers for this http message.
+   * Getss the http header map containing all set headers for this http message.
    *
    * @return the http header map for this http message.
    */
   @NonNull HttpHeaderMap headers();
 
   /**
-   * Get the http version of this http message. CloudNet currently only supports Http 1 and Http 1.1.
+   * Gets the http version of this http message. CloudNet currently only supports Http 1 and Http 1.1.
    *
    * @return the version of this http message.
    */
@@ -63,7 +63,7 @@ public interface HttpMessage<T extends HttpMessage<T>> extends HttpCookieAware<T
   @NonNull T version(@NonNull HttpVersion version);
 
   /**
-   * Get the body content of this http message converted to a byte array. If there is no need to read the body fully
+   * Gets the body content of this http message converted to a byte array. If there is no need to read the body fully
    * into the heap, prefer {@link #bodyStream()} instead.
    *
    * @return the body content of this http message.
@@ -97,7 +97,7 @@ public interface HttpMessage<T extends HttpMessage<T>> extends HttpCookieAware<T
   @NonNull T body(@NonNull String text);
 
   /**
-   * Get the body as a streamable content source to reduce the heap load when reading the body content. This method
+   * Gets the body as a streamable content source to reduce the heap load when reading the body content. This method
    * returns null if no http body is provided in the message.
    *
    * @return the body as a content stream, or null if the message has no http body.
@@ -115,7 +115,7 @@ public interface HttpMessage<T extends HttpMessage<T>> extends HttpCookieAware<T
   @NonNull T body(@Nullable InputStream body);
 
   /**
-   * Get if the current http message has a body present.
+   * Gets if the current http message has a body present.
    *
    * @return if a body is present.
    */

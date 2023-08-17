@@ -45,7 +45,7 @@ public class HttpHandleException extends RuntimeException {
   }
 
   /**
-   * Get the body to set in the response, null to reset the body.
+   * Gets the body to set in the response, null to reset the body.
    *
    * @return the body to set in the response to the current processing request.
    */
@@ -54,7 +54,7 @@ public class HttpHandleException extends RuntimeException {
   }
 
   /**
-   * Get the status code to set in the response to the current processing request.
+   * Gets the status code to set in the response to the current processing request.
    *
    * @return the status code to set in the response.
    */

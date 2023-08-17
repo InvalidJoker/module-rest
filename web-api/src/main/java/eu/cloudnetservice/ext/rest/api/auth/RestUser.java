@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Unmodifiable;
 public interface RestUser {
 
   /**
-   * Gets the id of this rest user.
+   * Getss the id of this rest user.
    *
    * @return the id of this rest user.
    */
@@ -52,7 +52,7 @@ public interface RestUser {
   boolean verifyPassword(@NonNull String password);
 
   /**
-   * Gets the hashed password of the rest user, {@code null} if no password was set.
+   * Getss the hashed password of the rest user, {@code null} if no password was set.
    *
    * @return hashed password of the rest user.
    */
@@ -85,7 +85,7 @@ public interface RestUser {
   }
 
   /**
-   * Gets an unmodifiable view of the scopes the rest user has.
+   * Getss an unmodifiable view of the scopes the rest user has.
    *
    * @return an unmodifiable view of the scopes the rest user has.
    */

@@ -22,7 +22,7 @@ import lombok.NonNull;
 /**
  * A handler for a http request. Each request, matching the given attributes supplied when registering, will be called
  * directly into this handler. A request is only processed by one handler at a time. Handlers with a high priority will
- * get called before handlers with a low priority.
+ * Gets called before handlers with a low priority.
  *
  * @since 1.0
  */

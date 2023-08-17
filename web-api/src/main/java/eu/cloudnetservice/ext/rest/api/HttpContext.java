@@ -57,7 +57,7 @@ public interface HttpContext {
   @NonNull CompletableFuture<WebSocketChannel> upgrade();
 
   /**
-   * Get the web socket channel to which this request was upgraded. If the request was not upgraded, or the upgrade was
+   * Gets the web socket channel to which this request was upgraded. If the request was not upgraded, or the upgrade was
    * not possible this method returns null.
    *
    * @return the upgraded web socket channel, or null if the connection upgrade was not done or failed.
@@ -65,35 +65,35 @@ public interface HttpContext {
   @Nullable WebSocketChannel webSocketChannel();
 
   /**
-   * Get the channel to which the request came which is currently processed.
+   * Gets the channel to which the request came which is currently processed.
    *
    * @return the channel to which the request came.
    */
   @NonNull HttpChannel channel();
 
   /**
-   * Get the current request which is handled in this context.
+   * Gets the current request which is handled in this context.
    *
    * @return the current request.
    */
   @NonNull HttpRequest request();
 
   /**
-   * Get the current response which will be sent to the client.
+   * Gets the current response which will be sent to the client.
    *
    * @return the current response.
    */
   @NonNull HttpResponse response();
 
   /**
-   * Get the http component which received the request wrapped by this context.
+   * Gets the http component which received the request wrapped by this context.
    *
    * @return the http component which received the request.
    */
   @NonNull HttpComponent<?> component();
 
   /**
-   * Get the extracted connection info about the client that requested the server information and the actual requested
+   * Gets the extracted connection info about the client that requested the server information and the actual requested
    * server host. This information might for example be extracted from the Forwarded and Host HTTP header.
    * <p>
    * The final extraction of the information is done by using the resolver supplied by the http component that is
@@ -124,7 +124,7 @@ public interface HttpContext {
   boolean closeAfter();
 
   /**
-   * Get all invocation hints which are registered for the given key. Invocation hints are only valid for the current
+   * Gets all invocation hints which are registered for the given key. Invocation hints are only valid for the current
    * handler call chain, and will be reset after a handler was called. Hints can for example get registered in a http
    * context preprocessor.
    * <p>

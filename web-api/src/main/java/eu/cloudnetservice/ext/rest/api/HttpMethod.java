@@ -37,7 +37,7 @@ public enum HttpMethod {
   OPTIONS;
 
   /**
-   * Gets the corresponding http method for the given input string.
+   * Getss the corresponding http method for the given input string.
    *
    * @param name the name of the http method.
    * @return the http method with the corresponding name.

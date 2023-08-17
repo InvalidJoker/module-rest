@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
 import lombok.NonNull;
 
 /**
- * Get all values of the associated query key. The value passed to the associated parameter is {@code List<String>}.
+ * Gets all values of the associated query key. The value passed to the associated parameter is {@code List<String>}.
  * This annotation can be combined with {@code @Optional} to mark the parameter as optional, an empty list is passed to
  * the parameter in that case.
  *
@@ -36,7 +36,7 @@ import lombok.NonNull;
 public @interface RequestQueryParam {
 
   /**
-   * Get the key of the query parameters to retrieve.
+   * Gets the key of the query parameters to retrieve.
    *
    * @return the key of the query parameters to retrieve.
    */

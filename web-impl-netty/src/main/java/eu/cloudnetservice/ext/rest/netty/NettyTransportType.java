@@ -138,7 +138,7 @@ enum NettyTransportType {
   }
 
   /**
-   * Get the display name of the transport.
+   * Gets the display name of the transport.
    *
    * @return the display name.
    */
@@ -147,7 +147,7 @@ enum NettyTransportType {
   }
 
   /**
-   * Get if this transport type is native.
+   * Gets if this transport type is native.
    *
    * @return if this transport type is native.
    */
@@ -156,7 +156,7 @@ enum NettyTransportType {
   }
 
   /**
-   * Get the factory for server channels of this transport.
+   * Gets the factory for server channels of this transport.
    *
    * @return the factory for server channels of this transport.
    */

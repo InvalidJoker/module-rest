@@ -50,21 +50,21 @@ import org.jetbrains.annotations.Unmodifiable;
 public interface Response<T> extends IntoResponse<T> {
 
   /**
-   * Get the body of this response. The body is serialized based on the used implementation of this response.
+   * Gets the body of this response. The body is serialized based on the used implementation of this response.
    *
    * @return the body of this response, null if no body was set.
    */
   @Nullable T body();
 
   /**
-   * Get the response code set for this response to sent back to the requester.
+   * Gets the response code set for this response to sent back to the requester.
    *
    * @return the http response code.
    */
   @NonNull HttpResponseCode responseCode();
 
   /**
-   * Get the http header map of this response containing all headers that are sent back to the requester.
+   * Gets the http header map of this response containing all headers that are sent back to the requester.
    * <p>
    * This header map is unmodifiable and modifications will result in an {@link UnsupportedOperationException}.
    *
