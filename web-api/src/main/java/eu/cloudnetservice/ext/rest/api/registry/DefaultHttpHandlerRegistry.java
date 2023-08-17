@@ -161,7 +161,7 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
 
           // check if there is a dynamic node somewhere up the tree with the same name already
           var existingDynamicNode = targetTreeNode.findMatchingParent(
-            node -> node.pathNode() instanceof DynamicHttpPathNode dynamicNode && dynamicNode.pathId().equals(pathId));
+            DYNAMIC_PATH_NODE_FILTER.and(node -> node.pathNode().pathId().equals(pathId)));
           if (existingDynamicNode != null) {
             throw new HttpHandlerRegisterException(
               "Tried to register dynamic node with same name '%s' as already registered in the path: %s -> [%s]",
