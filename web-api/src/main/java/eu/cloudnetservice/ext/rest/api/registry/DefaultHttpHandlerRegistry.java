@@ -142,7 +142,8 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
           }
 
           // ensure that there is only one dynamic node at the same handling level
-          var existingDirectDynamicNode = targetTreeNode.findMatchingDirectChild(DYNAMIC_PATH_NODE_FILTER);
+          var existingDirectDynamicNode = targetTreeNode.findMatchingDirectChild(
+            DYNAMIC_PATH_NODE_FILTER.and(node -> !node.pathNode().pathId().equals(pathId)));
           if (existingDirectDynamicNode != null) {
             throw new HttpHandlerRegisterException(
               "Tried to register dynamic node '%s' alongside dynamic node '%s' at same path level: %s",
