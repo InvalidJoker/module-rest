@@ -25,8 +25,7 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
-// TODO(derklaro): consider sealing this
-public interface HttpPathNode extends Comparable<HttpPathNode> {
+public sealed interface HttpPathNode extends Comparable<HttpPathNode> permits DefaultHttpPathNode {
 
   @Contract(value = " -> new", pure = true)
   static @NonNull HttpPathNode newRootNode() {

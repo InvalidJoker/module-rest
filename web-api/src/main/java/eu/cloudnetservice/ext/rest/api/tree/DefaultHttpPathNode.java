@@ -24,7 +24,9 @@ import java.util.function.Predicate;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
-abstract class DefaultHttpPathNode implements HttpPathNode {
+abstract sealed class DefaultHttpPathNode
+  implements HttpPathNode
+  permits DynamicHttpPathNode, StaticHttpPathNode, WildcardPathNode {
 
   protected final String pathId;
   protected final List<HttpHandlerConfigPair> handlers;
