@@ -19,6 +19,15 @@ package eu.cloudnetservice.ext.rest.api.cors;
 import java.util.List;
 import lombok.NonNull;
 
+/**
+ * A cors preflight request info holder providing essential information when working with CORS and preflight requests.
+ *
+ * @param origin         the origin that sent the preflight request.
+ * @param requestMethod  the requested http method.
+ * @param requestHeaders the requested headers.
+ * @see CorsRequestProcessor
+ * @since 1.0
+ */
 public record CorsPreflightRequestInfo(
   @NonNull String origin,
   @NonNull String requestMethod,

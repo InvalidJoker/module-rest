@@ -33,11 +33,20 @@ import java.util.Objects;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Default implementation of the cors request processor.
+ *
+ * @see CorsRequestProcessor
+ * @since 1.0
+ */
 public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
 
   private static final String ACCESS_CONTROL_REQUEST_PRIVATE_NETWORK = "Access-Control-Request-Private-Network";
   private static final Splitter REQUEST_HEADERS_SPLITTER = Splitter.on(',').omitEmptyStrings().trimResults();
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @Nullable CorsPreflightRequestInfo extractInfoFromPreflightRequest(@NonNull HttpRequest request) {
     // check if the request method is the expected
@@ -65,6 +74,9 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
       REQUEST_HEADERS_SPLITTER.splitToList(clientRequestHeaders));
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void processPreflightRequest(
     @NonNull HttpContext context,
@@ -95,6 +107,9 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
       true);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean processNormalRequest(@NonNull HttpContext context, @NonNull HttpHandlerConfig httpHandlerConfig) {
     // check if the request needs CORS information

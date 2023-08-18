@@ -20,11 +20,38 @@ import eu.cloudnetservice.ext.rest.api.HttpComponent;
 import eu.cloudnetservice.ext.rest.api.config.ComponentConfig;
 import lombok.NonNull;
 
+/**
+ * A http component factory allowing to construct new http components based on the implementation loaded in the runtime
+ * without needing to access the implementation at compile time.
+ * <p>
+ * Use the {@link HttpComponentFactoryLoader} to load the component factory needed to construct the desired component.
+ *
+ * @param <T> the component this factory constructs.
+ * @see HttpComponentFactoryLoader
+ * @since 1.0
+ */
 public interface HttpComponentFactory<T extends HttpComponent<T>> {
 
+  /**
+   * The name of the constructed component.
+   *
+   * @return name of the constructed component.
+   */
   @NonNull String componentTypeName();
 
+  /**
+   * Gets the supported component type for this component factory.
+   *
+   * @return the supported component type for this component factory.
+   */
   @NonNull Class<T> supportedComponentType();
 
+  /**
+   * Constructs a new instance of the component this factory targets.
+   *
+   * @param componentConfig the component config for the component.
+   * @return the newly constructed component.
+   * @throws NullPointerException if the given component config is null.
+   */
   @NonNull T construct(@NonNull ComponentConfig componentConfig);
 }
