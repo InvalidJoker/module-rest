@@ -22,125 +22,318 @@ import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpRequest;
 import eu.cloudnetservice.ext.rest.api.config.ComponentConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
+import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
+import eu.cloudnetservice.ext.rest.api.response.type.PlainTextResponse;
 import eu.cloudnetservice.ext.rest.api.tree.DynamicHttpPathNode;
 import eu.cloudnetservice.ext.rest.api.tree.StaticHttpPathNode;
 import eu.cloudnetservice.ext.rest.api.tree.WildcardPathNode;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public final class HttpHandlerRegistryTest {
 
-  @SuppressWarnings("DataFlowIssue")
-  private static final HttpHandler EMPTY_HTTP_HANDLER = context -> null;
+  private static final HttpHandler EMPTY_HTTP_HANDLER = context -> PlainTextResponse.builder();
+  private static final ComponentConfig EMPTY_COMPONENT_CONFIG = ComponentConfig.builder().build();
 
-  private HttpContext context;
+  @Mock
+  private HttpContext httpContext;
   private HttpHandlerRegistry registry;
-  private final ComponentConfig componentConfig = ComponentConfig.builder().build();
+
+  private void setupRequestMock(Consumer<HttpRequest> requestDecorator) {
+    var mockedRequest = Mockito.mock(HttpRequest.class);
+    requestDecorator.accept(mockedRequest);
+    Mockito.when(this.httpContext.request()).thenReturn(mockedRequest);
+  }
 
   @BeforeEach
-  public void setupEach() {
-    this.context = Mockito.mock(HttpContext.class);
-    var request = Mockito.mock(HttpRequest.class);
-    Mockito.when(this.context.request()).thenReturn(request);
-    Mockito.when(request.pathParameters()).thenReturn(new HashMap<>());
-
-    this.registry = new DefaultHttpHandlerRegistry(this.componentConfig);
+  void constructRegistry() {
+    this.registry = new DefaultHttpHandlerRegistry(EMPTY_COMPONENT_CONFIG);
   }
 
   @Test
-  public void testDynamic() {
+  void testRootPath() {
+    var httpContext = Mockito.mock(HttpContext.class);
+    var registry = new DefaultHttpHandlerRegistry(EMPTY_COMPONENT_CONFIG);
+
+    Assertions.assertDoesNotThrow(() -> registry.registerHandler(
+      "/",
+      EMPTY_HTTP_HANDLER,
+      HttpHandlerConfig.builder().httpMethod(HttpMethod.GET).build()));
+    Assertions.assertDoesNotThrow(() -> registry.registerHandler(
+      "",
+      EMPTY_HTTP_HANDLER,
+      HttpHandlerConfig.builder().httpMethod(HttpMethod.POST).build()));
+
+    Assertions.assertEquals(2, registry.registeredHandlers().size());
+
+    Assertions.assertNotNull(registry.findHandler("/", httpContext));
+    Assertions.assertNotNull(registry.findHandler("//", httpContext));
+    Assertions.assertNotNull(registry.findHandler("///", httpContext));
+    Assertions.assertNotNull(registry.findHandler("", httpContext));
+
+    Assertions.assertNull(registry.findHandler("/world", httpContext));
+    Assertions.assertNull(registry.findHandler("////////", httpContext));
+  }
+
+  @Test
+  void testDynamic() {
+    Map<String, String> pathParameters = Mockito.spy(new HashMap<>());
+    this.setupRequestMock(request -> Mockito.when(request.pathParameters()).thenReturn(pathParameters));
+
     var config = HttpHandlerConfig.builder().httpMethod(HttpMethod.GET).build();
 
-    Assertions.assertDoesNotThrow(() -> this.registry.registerHandler("api/test/{name}", EMPTY_HTTP_HANDLER, config));
+    Assertions.assertDoesNotThrow(
+      () -> this.registry.registerHandler("api/test/{name}", EMPTY_HTTP_HANDLER, config));
     Assertions.assertDoesNotThrow(
       () -> this.registry.registerHandler("api/test/{name}/kick", EMPTY_HTTP_HANDLER, config));
+    Assertions.assertDoesNotThrow(
+      () -> this.registry.registerHandler("api/test/{name}/ban", EMPTY_HTTP_HANDLER, config));
+
+    Assertions.assertThrows(
+      HttpHandlerRegisterException.class,
+      () -> this.registry.registerHandler("api/test/{name}", EMPTY_HTTP_HANDLER, config));
     Assertions.assertThrows(
       HttpHandlerRegisterException.class,
       () -> this.registry.registerHandler("api/test/{other}", EMPTY_HTTP_HANDLER, config));
+    Assertions.assertThrows(
+      IllegalArgumentException.class,
+      () -> this.registry.registerHandler("api/test/{}", EMPTY_HTTP_HANDLER, config));
 
-    Assertions.assertNotNull(this.registry.findHandler("api/test/playo", this.context));
-    Assertions.assertNotNull(this.registry.findHandler("api/test/playo/kick", this.context));
-    Assertions.assertNull(this.registry.findHandler("api/test/playo/other", this.context));
+    Assertions.assertEquals(3, this.registry.registeredHandlers().size());
+
+    Assertions.assertNotNull(this.registry.findHandler("api/test/playo", this.httpContext));
+    Assertions.assertNotNull(this.registry.findHandler("api/test/playo/kick", this.httpContext));
+    Assertions.assertNotNull(this.registry.findHandler("api/test/playo/ban", this.httpContext));
+
+    Assertions.assertNull(this.registry.findHandler("api/test/playo/other", this.httpContext));
+    Assertions.assertNull(this.registry.findHandler("api/v2/test/playo", this.httpContext));
+
+    Mockito.verify(pathParameters, Mockito.times(4)).put("name", "playo");
+    Assertions.assertEquals("playo", pathParameters.get("name"));
+  }
+
+  @Test
+  void testStatic() {
+    var config = HttpHandlerConfig.builder().httpMethod(HttpMethod.GET).build();
+
+    Assertions.assertDoesNotThrow(
+      () -> this.registry.registerHandler("api/test/static/", EMPTY_HTTP_HANDLER, config));
+    Assertions.assertDoesNotThrow(
+      () -> this.registry.registerHandler("api/test/static/void/", EMPTY_HTTP_HANDLER, config));
+    Assertions.assertDoesNotThrow(
+      () -> this.registry.registerHandler("/api/test/google/", EMPTY_HTTP_HANDLER, config));
+
+    Assertions.assertThrows(
+      HttpHandlerRegisterException.class,
+      () -> this.registry.registerHandler("api/test/google/", EMPTY_HTTP_HANDLER, config));
+
+    Assertions.assertEquals(3, this.registry.registeredHandlers().size());
+
+    Assertions.assertNotNull(this.registry.findHandler("api/test/static", this.httpContext));
+    Assertions.assertNotNull(this.registry.findHandler("api/test/STATIC", this.httpContext));
+    Assertions.assertNotNull(this.registry.findHandler("api/test/static/void", this.httpContext));
+    Assertions.assertNotNull(this.registry.findHandler("api/test/google", this.httpContext));
+    Assertions.assertNotNull(this.registry.findHandler("/api/test/google", this.httpContext));
+    Assertions.assertNotNull(this.registry.findHandler("/Api/TeSt/GooGle/", this.httpContext));
+
+    Assertions.assertNull(this.registry.findHandler("/api/test/static/unknown", this.httpContext));
+    Assertions.assertNull(this.registry.findHandler("api/test/static/other", this.httpContext));
+  }
+
+  @Test
+  void testWildcard() {
+    var config = HttpHandlerConfig.builder().httpMethod(HttpMethod.GET).build();
+
+    Assertions.assertDoesNotThrow(
+      () -> this.registry.registerHandler("api/test/*", EMPTY_HTTP_HANDLER, config));
+    Assertions.assertDoesNotThrow(
+      () -> this.registry.registerHandler("api/test/wildcard/*", EMPTY_HTTP_HANDLER, config));
+
+    Assertions.assertThrows(
+      HttpHandlerRegisterException.class,
+      () -> this.registry.registerHandler("api/test/*", EMPTY_HTTP_HANDLER, config));
+    Assertions.assertThrows(
+      HttpHandlerRegisterException.class,
+      () -> this.registry.registerHandler("api/test/*/world", EMPTY_HTTP_HANDLER, config));
+
+    Assertions.assertEquals(2, this.registry.registeredHandlers().size());
+
+    var deepHandlerA = this.registry.findHandler("api/test/wildcard", this.httpContext);
+    Assertions.assertNotNull(deepHandlerA);
+    Assertions.assertEquals("/ -> api -> test -> wildcard", deepHandlerA.treePath());
+
+    var deepHandlerB = this.registry.findHandler("api/test/wildcard/hello/world/", this.httpContext);
+    Assertions.assertNotNull(deepHandlerB);
+    Assertions.assertEquals("/ -> api -> test -> wildcard -> *", deepHandlerB.treePath());
+
+    var deepHandlerC = this.registry.findHandler("api/test", this.httpContext);
+    Assertions.assertNotNull(deepHandlerC);
+    Assertions.assertEquals("/ -> api -> test", deepHandlerC.treePath());
+
+    var deepHandlerD = this.registry.findHandler("api/test/hello/world/123^3", this.httpContext);
+    Assertions.assertNotNull(deepHandlerD);
+    Assertions.assertEquals("/ -> api -> test -> *", deepHandlerD.treePath());
+  }
+
+  @Test
+  void testMultipleHandlerRegister() {
+    Assertions.assertDoesNotThrow(() -> this.registry.registerHandler(
+      "/api/v2/test",
+      context -> PlainTextResponse.builder(),
+      HttpHandlerConfig.builder().httpMethod(HttpMethod.GET).build()));
+    Assertions.assertDoesNotThrow(() -> this.registry.registerHandler(
+      "/api/v2/test",
+      context -> JsonResponse.builder(),
+      HttpHandlerConfig.builder().httpMethod(HttpMethod.POST).build()));
+    Assertions.assertDoesNotThrow(() -> this.registry.registerHandler(
+      "/api/v2/test",
+      context -> PlainTextResponse.builder(),
+      HttpHandlerConfig.builder().httpMethod(HttpMethod.DELETE).build()));
+
+    Assertions.assertEquals(3, this.registry.registeredHandlers().size());
+
+    var treeNode = this.registry.findHandler("/api/v2/test", this.httpContext);
+    Assertions.assertNotNull(treeNode);
+
+    var pathNode = treeNode.pathNode();
+    Assertions.assertInstanceOf(StaticHttpPathNode.class, pathNode);
+    Assertions.assertEquals(3, pathNode.handlers().size());
+
+    var getHandler = pathNode.findHandlerForMethod(HttpMethod.GET.name());
+    Assertions.assertNotNull(getHandler);
+
+    var postHandler = pathNode.findHandlerForMethod(HttpMethod.POST.name());
+    Assertions.assertNotNull(postHandler);
+    Assertions.assertNotSame(getHandler, postHandler);
+
+    var deleteHandler = pathNode.findHandlerForMethod(HttpMethod.DELETE.name());
+    Assertions.assertNotNull(deleteHandler);
+    Assertions.assertNotSame(getHandler, deleteHandler);
+    Assertions.assertNotSame(postHandler, deleteHandler);
+
+    Assertions.assertTrue(pathNode.unregisterMatchingHandler(pair -> pair.config().httpMethod() == HttpMethod.DELETE));
+    var deleteHandlerB = pathNode.findHandlerForMethod(HttpMethod.DELETE.name());
+    Assertions.assertNull(deleteHandlerB);
 
     Assertions.assertEquals(2, this.registry.registeredHandlers().size());
   }
 
   @Test
-  public void testStatic() {
-    var config = HttpHandlerConfig.builder().httpMethod(HttpMethod.GET).build();
+  void testDynamicWildcardPathMix() {
+    // this test specifically ensures that if a dynamic node path was taken and later down the tree we realize
+    // that the path cannot work, that the dynamic elements are removed from the path before returning the wildcard
+    // handler - this ensures that the wildcard handler does not receive parameters that are irrelevant (or simply wrong)
+    //
+    // in other words: this test is checking if the path parameter is unregistered in case the go over a dynamic node
+    // but end up returning a wildcard node due to a missing handler further down the tree:
+    //  1. '/api/service/Lobby-1/stop/c': actual registered path, parameter 'name' should be registered
+    //  2. '/api/service/Lobby-1/stop/delete': path is not registered but the wildcard at '/api/service/*' matches -
+    //                                         the path parameter 'name' should not be registered
 
-    this.registry.registerHandler("api/test/static", EMPTY_HTTP_HANDLER, config);
+    // pre-fill the tree in the following way:
+    //                /api
+    //      player      |             service
+    //                  *   |          {name}           |    list
+    //                          start       |      stop
+    //                                          c   |   b
+    var handlerConfig = HttpHandlerConfig.builder().httpMethod(HttpMethod.GET).build();
+    this.registry.registerHandler("/api/player", EMPTY_HTTP_HANDLER, handlerConfig);
+    this.registry.registerHandler("/api/service/*", EMPTY_HTTP_HANDLER, handlerConfig);
+    this.registry.registerHandler("/api/service/list", EMPTY_HTTP_HANDLER, handlerConfig);
+    this.registry.registerHandler("/api/service/{name}/start", EMPTY_HTTP_HANDLER, handlerConfig);
+    this.registry.registerHandler("/api/service/{name}/stop/c", EMPTY_HTTP_HANDLER, handlerConfig);
+    this.registry.registerHandler("/api/service/{name}/stop/b", EMPTY_HTTP_HANDLER, handlerConfig);
 
-    Assertions.assertNotNull(this.registry.findHandler("api/test/static", this.context));
-    Assertions.assertNull(this.registry.findHandler("api/test/static/other", this.context));
+    var serviceListNode = this.registry.findHandler("/api/service/list", this.httpContext);
+    Assertions.assertNotNull(serviceListNode);
+    Assertions.assertEquals(1, serviceListNode.pathNode().handlerCount());
 
-    Assertions.assertEquals(1, this.registry.registeredHandlers().size());
+    Map<String, String> pathParametersForActualStopCall = Mockito.spy(new HashMap<>());
+    this.setupRequestMock(req -> Mockito.when(req.pathParameters()).thenReturn(pathParametersForActualStopCall));
+    var stopCNode = this.registry.findHandler("/api/service/Lobby-1/stop/c", this.httpContext);
+    Assertions.assertNotNull(stopCNode);
+    Assertions.assertEquals(1, stopCNode.pathNode().handlerCount());
+    Assertions.assertEquals("/ -> api -> service -> {name} -> stop -> c", stopCNode.treePath());
+    Mockito.verify(pathParametersForActualStopCall, Mockito.atMostOnce()).put(Mockito.eq("name"), Mockito.anyString());
+    Assertions.assertEquals("Lobby-1", pathParametersForActualStopCall.get("name"));
+    Assertions.assertEquals(1, pathParametersForActualStopCall.size());
+
+    Map<String, String> parametersForWildcardCall = Mockito.spy(new HashMap<>());
+    this.setupRequestMock(req -> Mockito.when(req.pathParameters()).thenReturn(parametersForWildcardCall));
+    var wildCardNode = this.registry.findHandler("/api/service/Lobby-1/stop/delete", this.httpContext);
+    Assertions.assertNotNull(wildCardNode);
+    Assertions.assertEquals(1, wildCardNode.pathNode().handlerCount());
+    Assertions.assertEquals("/ -> api -> service -> *", wildCardNode.treePath());
+    Mockito.verify(pathParametersForActualStopCall, Mockito.atMostOnce()).put(Mockito.eq("name"), Mockito.anyString());
+    Assertions.assertFalse(parametersForWildcardCall.containsKey("name"));
+    Assertions.assertTrue(parametersForWildcardCall.isEmpty());
   }
 
   @Test
-  public void testWildcard() {
+  void testPriority() {
     var config = HttpHandlerConfig.builder().httpMethod(HttpMethod.GET).build();
-
-    this.registry.registerHandler("api/test/wildcard/*", EMPTY_HTTP_HANDLER, config);
-
-    Assertions.assertNotNull(this.registry.findHandler("api/test/wildcard", this.context));
-    Assertions.assertNotNull(this.registry.findHandler("api/test/wildcard/other/more", this.context));
-
-    Assertions.assertEquals(1, this.registry.registeredHandlers().size());
-  }
-
-  @Test
-  public void testPriority() {
-    var config = HttpHandlerConfig.builder().httpMethod(HttpMethod.GET).build();
+    this.setupRequestMock(request -> Mockito.when(request.pathParameters()).thenReturn(new HashMap<>()));
 
     this.registry.registerHandler("api/test/static", EMPTY_HTTP_HANDLER, config);
     this.registry.registerHandler("api/test/{static}", EMPTY_HTTP_HANDLER, config);
     this.registry.registerHandler("api/test/*", EMPTY_HTTP_HANDLER, config);
 
-    var staticResult = this.registry.findHandler("api/test/static", this.context);
+    var staticResult = this.registry.findHandler("api/test/static", this.httpContext);
     Assertions.assertNotNull(staticResult);
     Assertions.assertInstanceOf(StaticHttpPathNode.class, staticResult.pathNode());
 
-    var dynamicResult = this.registry.findHandler("api/test/other", this.context);
+    var dynamicResult = this.registry.findHandler("api/test/other", this.httpContext);
     Assertions.assertNotNull(dynamicResult);
     Assertions.assertInstanceOf(DynamicHttpPathNode.class, dynamicResult.pathNode());
 
-    var wildcardResult = this.registry.findHandler("api/test/static/more", this.context);
+    var wildcardResult = this.registry.findHandler("api/test/static/more", this.httpContext);
     Assertions.assertNotNull(wildcardResult);
     Assertions.assertInstanceOf(WildcardPathNode.class, wildcardResult.pathNode());
   }
 
   @Test
-  public void testUnregister() {
+  void testUnregister() {
     var config = HttpHandlerConfig.builder().httpMethod(HttpMethod.GET).build();
 
-    this.registry.registerHandler("api/hello/world", EMPTY_HTTP_HANDLER, config);
+    HttpHandler handlerA = context -> PlainTextResponse.builder();
+    HttpHandler handlerB = context -> JsonResponse.builder();
 
-    var tree = this.registry.findHandler("api/hello/world", this.context);
-    Assertions.assertNotNull(tree);
+    this.registry.registerHandler("api/hello/world", handlerA, config);
+    this.registry.registerHandler("api/v2/testing", handlerB, config);
+
+    Assertions.assertEquals(2, this.registry.registeredHandlers().size());
+
+    var treeNode = this.registry.findHandler("api/hello/world", this.httpContext);
+    Assertions.assertNotNull(treeNode);
+
+    var handlerPair = treeNode.pathNode().findHandlerForMethod(HttpMethod.GET.name());
+    Assertions.assertNotNull(handlerPair);
+    Assertions.assertSame(handlerA, handlerPair.httpHandler());
+
+    this.registry.unregisterHandler(handlerPair.httpHandler());
+    Assertions.assertNull(this.registry.findHandler("api/hello/world", this.httpContext));
     Assertions.assertEquals(1, this.registry.registeredHandlers().size());
-
-    var handler = tree.pathNode().findHandlerForMethod(HttpMethod.GET.name());
-    Assertions.assertNotNull(handler);
-
-    this.registry.unregisterHandler(handler.httpHandler());
-    Assertions.assertNull(this.registry.findHandler("api/hello/world", this.context));
-    Assertions.assertEquals(0, this.registry.registeredHandlers().size());
   }
 
   @Test
-  public void testClassLoaderUnregister() {
+  void testClassLoaderUnregister() {
     var config = HttpHandlerConfig.builder().httpMethod(HttpMethod.GET).build();
 
     this.registry.registerHandler("api/hello/world", EMPTY_HTTP_HANDLER, config);
-    Assertions.assertNotNull(this.registry.findHandler("api/hello/world", this.context));
+    Assertions.assertNotNull(this.registry.findHandler("api/hello/world", this.httpContext));
     Assertions.assertEquals(1, this.registry.registeredHandlers().size());
 
     this.registry.unregisterHandlers(this.getClass().getClassLoader());
-    Assertions.assertNull(this.registry.findHandler("api/hello/world", this.context));
+    Assertions.assertNull(this.registry.findHandler("api/hello/world", this.httpContext));
     Assertions.assertEquals(0, this.registry.registeredHandlers().size());
   }
 
@@ -149,11 +342,11 @@ public final class HttpHandlerRegistryTest {
     var config = HttpHandlerConfig.builder().httpMethod(HttpMethod.GET).build();
 
     this.registry.registerHandler("api/hello/world", EMPTY_HTTP_HANDLER, config);
-    Assertions.assertNotNull(this.registry.findHandler("api/hello/world", this.context));
+    Assertions.assertNotNull(this.registry.findHandler("api/hello/world", this.httpContext));
     Assertions.assertEquals(1, this.registry.registeredHandlers().size());
 
     this.registry.clearHandlers();
-    Assertions.assertNull(this.registry.findHandler("api/hello/world", this.context));
+    Assertions.assertNull(this.registry.findHandler("api/hello/world", this.httpContext));
     Assertions.assertEquals(0, this.registry.registeredHandlers().size());
   }
 }

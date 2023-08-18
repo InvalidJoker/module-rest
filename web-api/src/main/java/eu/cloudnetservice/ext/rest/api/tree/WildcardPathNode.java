@@ -36,6 +36,10 @@ public final class WildcardPathNode extends DefaultHttpPathNode {
   }
 
   @Override
+  public void unregisterPathPart(@NonNull HttpContext httpContext) {
+  }
+
+  @Override
   public boolean validateAndRegisterPathPart(@NonNull HttpContext context, @NonNull String pathPart) {
     return true;
   }

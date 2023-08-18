@@ -22,12 +22,15 @@ import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
 import java.util.List;
 import java.util.function.Predicate;
 import lombok.NonNull;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
+// TODO(derklaro): consider sealing this
 public interface HttpPathNode extends Comparable<HttpPathNode> {
 
-  static @NonNull HttpPathNode root() {
-    return StaticHttpPathNode.ROOT_PATH_NODE;
+  @Contract(value = " -> new", pure = true)
+  static @NonNull HttpPathNode newRootNode() {
+    return new StaticHttpPathNode("/");
   }
 
   static void validatePathId(@NonNull String candidate) {
@@ -54,6 +57,12 @@ public interface HttpPathNode extends Comparable<HttpPathNode> {
   @Nullable HttpHandlerConfigPair findHandlerForMethod(@NonNull String method);
 
   void registerHttpHandler(@NonNull HttpHandler httpHandler, @NonNull HttpHandlerConfig config);
+
+  // note for later docs: called when a path ends, and we want to continue the depth-first search
+  // this method MUST unregister everything it previously registered to the context in order to
+  // allow a clean handling
+  // see the note above: maybe we should seal this interface to disallow anyone to break that logic
+  void unregisterPathPart(@NonNull HttpContext httpContext);
 
   boolean validateAndRegisterPathPart(@NonNull HttpContext context, @NonNull String pathPart);
 

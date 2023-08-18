@@ -21,8 +21,6 @@ import lombok.NonNull;
 
 public final class StaticHttpPathNode extends DefaultHttpPathNode {
 
-  static final HttpPathNode ROOT_PATH_NODE = new StaticHttpPathNode("/");
-
   public StaticHttpPathNode(@NonNull String pathId) {
     super(pathId);
   }
@@ -33,24 +31,12 @@ public final class StaticHttpPathNode extends DefaultHttpPathNode {
   }
 
   @Override
+  public void unregisterPathPart(@NonNull HttpContext httpContext) {
+  }
+
+  @Override
   public boolean validateAndRegisterPathPart(@NonNull HttpContext context, @NonNull String pathPart) {
     return this.pathId.equalsIgnoreCase(pathPart);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof StaticHttpPathNode that)) {
-      return false;
-    }
-    return this.pathId.equals(that.pathId);
-  }
-
-  @Override
-  public int hashCode() {
-    return this.pathId.hashCode();
   }
 
   @Override

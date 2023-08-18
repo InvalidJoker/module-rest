@@ -157,7 +157,10 @@ final class DefaultHttpHandlerTree<N extends HttpPathNode> implements HttpHandle
   @Override
   public @NonNull HttpHandlerTree<N> registerChildNode(@NonNull N pathNode) {
     // return the currently registered node if any is already registered
-    var registeredChildNode = this.findMatchingDirectChild(node -> node.pathNode().equals(pathNode));
+    var registeredChildNode = this.findMatchingDirectChild(node -> {
+      var registeredNode = node.pathNode();
+      return registeredNode.pathId().equals(pathNode.pathId()) && registeredNode.getClass().equals(pathNode.getClass());
+    });
     if (registeredChildNode != null) {
       return registeredChildNode;
     }

@@ -31,26 +31,15 @@ public final class DynamicHttpPathNode extends DefaultHttpPathNode {
   }
 
   @Override
+  public void unregisterPathPart(@NonNull HttpContext httpContext) {
+    httpContext.request().pathParameters().remove(this.pathId);
+  }
+
+  @Override
   public boolean validateAndRegisterPathPart(@NonNull HttpContext context, @NonNull String pathPart) {
     // todo: maybe allow some kind of validation logic to be passed into this?
     context.request().pathParameters().put(this.pathId, pathPart);
     return true;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof DynamicHttpPathNode that)) {
-      return false;
-    }
-    return this.pathId.equals(that.pathId);
-  }
-
-  @Override
-  public int hashCode() {
-    return this.pathId.hashCode();
   }
 
   @Override

@@ -26,8 +26,10 @@ import eu.cloudnetservice.ext.rest.api.tree.HttpHandlerTree;
 import eu.cloudnetservice.ext.rest.api.tree.HttpPathNode;
 import eu.cloudnetservice.ext.rest.api.tree.StaticHttpPathNode;
 import eu.cloudnetservice.ext.rest.api.tree.WildcardPathNode;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -61,7 +63,7 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
    */
   public DefaultHttpHandlerRegistry(@NonNull ComponentConfig componentConfig) {
     this.componentConfig = componentConfig;
-    this.rootHandlerTreeNode = HttpHandlerTree.newHandlerTree(HttpPathNode.root());
+    this.rootHandlerTreeNode = HttpHandlerTree.newHandlerTree(HttpPathNode.newRootNode());
   }
 
   /**
@@ -73,7 +75,7 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
    */
   private static @NonNull String removeSlashPrefixSuffixFromPath(@NonNull String path) {
     var prefixedWithSlash = path.startsWith("/");
-    var suffixedWithSlash = path.endsWith("/");
+    var suffixedWithSlash = (!prefixedWithSlash || path.length() > 1) && path.endsWith("/");
     if (prefixedWithSlash || suffixedWithSlash) {
       path = path.substring(prefixedWithSlash ? 1 : 0, suffixedWithSlash ? path.length() - 1 : path.length());
     }
@@ -102,19 +104,24 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
    */
   @Override
   public @Nullable HttpHandlerTree<HttpPathNode> findHandler(@NonNull String path, @NonNull HttpContext context) {
+    // remove the / prefix and/or suffix from the given input path
+    path = removeSlashPrefixSuffixFromPath(path);
+
     // check if the root handler was requested
     if (path.isBlank() || path.equals("/")) {
       return this.rootHandlerTreeNode;
     }
-
-    // remove the / prefix and/or suffix from the given input path
-    path = removeSlashPrefixSuffixFromPath(path);
 
     // basically filter for two things:
     //  1. a fully matching node for the given request
     //  2. a wildcard node that is located the deepest in the tree path
     HttpHandlerTree<HttpPathNode> lastConsumingNode = null;
     HttpHandlerTree<HttpPathNode> bestMatch = this.rootHandlerTreeNode;
+
+    // a stack of the nodes that were visited since the last node that consumes the rest of the path
+    // null in case no such node was encountered before
+    // this uses a Deque rather than a java.util.Stack as advised in the Stack javadocs
+    Deque<HttpHandlerTree<HttpPathNode>> visitedNodesSinceLastConsumingNode = null;
 
     // find the best matching node for the given path based on the supplied parts
     var pathParts = PATH_PARTS_SPLITTER.split(path);
@@ -123,6 +130,7 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
       var consumingNode = bestMatch.findMatchingDirectChild(CONSUMES_EVERYTHING_NODE_FILTER);
       if (consumingNode != null) {
         lastConsumingNode = consumingNode;
+        visitedNodesSinceLastConsumingNode = new ArrayDeque<>(5);
       }
 
       // find a matching sub node or break in case no node is matching
@@ -130,10 +138,29 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
       if (bestMatch == null || CONSUMES_EVERYTHING_NODE_FILTER.test(bestMatch)) {
         break;
       }
+
+      // push the matching node as visited in the current stack
+      // in case we found a node that consumes the full path before
+      if (visitedNodesSinceLastConsumingNode != null) {
+        visitedNodesSinceLastConsumingNode.addFirst(bestMatch);
+      }
     }
 
-    // we return either the best matching node or the last seen wildcard node
-    return bestMatch != null ? bestMatch : lastConsumingNode;
+    // return the best matching node in case we found one
+    if (bestMatch != null) {
+      return bestMatch;
+    }
+
+    // rollback the changes made to the handling context that were caused by nodes after the last consuming node
+    if (visitedNodesSinceLastConsumingNode != null) {
+      HttpHandlerTree<HttpPathNode> treeEntry;
+      while ((treeEntry = visitedNodesSinceLastConsumingNode.pollFirst()) != null) {
+        treeEntry.pathNode().unregisterPathPart(context);
+      }
+    }
+
+    // returns either the last consuming node or null in case we found no such node
+    return lastConsumingNode;
   }
 
   /**
