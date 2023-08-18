@@ -45,7 +45,8 @@ import org.jetbrains.annotations.Unmodifiable;
 final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
 
   private static final Splitter PATH_PARTS_SPLITTER = Splitter.on('/');
-  private static final Pattern DYNAMIC_NODE_ID_PATTERN = Pattern.compile("^\\{(.*)}$");
+  private static final Pattern DYNAMIC_NODE_PATTERN =
+    Pattern.compile("^\\{\\s*(?:<[^>]+>\\s*)?([^}]+)\\s*}(?:\\s*;(.+?)(?:;([123imsug]*))?$)?$");
 
   private static final Predicate<HttpHandlerTree<HttpPathNode>> DYNAMIC_PATH_NODE_FILTER =
     node -> node.pathNode() instanceof DynamicHttpPathNode;
@@ -181,9 +182,9 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
         var pathPart = pathParts.get(partIndex);
 
         // check if the node is a dynamic node
-        var dynamicNodeIdMatcher = DYNAMIC_NODE_ID_PATTERN.matcher(pathPart);
-        if (dynamicNodeIdMatcher.matches()) {
-          var pathId = dynamicNodeIdMatcher.group(1);
+        var dynamicNodeMatcher = DYNAMIC_NODE_PATTERN.matcher(pathPart);
+        if (dynamicNodeMatcher.matches()) {
+          var pathId = dynamicNodeMatcher.group(1);
           HttpPathNode.validatePathId(pathId);
 
           // check if there is a dynamic node somewhere up the tree with the same name already
@@ -205,7 +206,7 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
           }
 
           // register or re-use the existing child node
-          var node = new DynamicHttpPathNode(pathId);
+          var node = DynamicHttpPathNode.parse(pathId, dynamicNodeMatcher.group(2), dynamicNodeMatcher.group(3));
           targetTreeNode = targetTreeNode.registerChildNode(node);
           continue;
         }

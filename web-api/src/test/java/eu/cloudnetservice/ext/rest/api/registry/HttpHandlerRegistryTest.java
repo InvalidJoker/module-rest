@@ -30,6 +30,7 @@ import eu.cloudnetservice.ext.rest.api.tree.WildcardPathNode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.regex.PatternSyntaxException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -298,6 +299,54 @@ public final class HttpHandlerRegistryTest {
     var wildcardResult = this.registry.findHandler("api/test/static/more", this.httpContext);
     Assertions.assertNotNull(wildcardResult);
     Assertions.assertInstanceOf(WildcardPathNode.class, wildcardResult.pathNode());
+  }
+
+  @Test
+  void testDynamicNodeWithRegex() {
+    Map<String, String> pathParameters = new HashMap<>();
+    this.setupRequestMock(request -> Mockito.when(request.pathParameters()).thenReturn(pathParameters));
+
+    var config = HttpHandlerConfig.builder().httpMethod(HttpMethod.GET).build();
+
+    this.registry.registerHandler("/num/{number};\\d+", EMPTY_HTTP_HANDLER, config);
+    this.registry.registerHandler("/lower/{string};[a-z]+", EMPTY_HTTP_HANDLER, config);
+    this.registry.registerHandler("/insensitive/{string};[a-z]+;i", EMPTY_HTTP_HANDLER, config);
+    this.registry.registerHandler("/semicolon/{string};@[a-z;]+;g", EMPTY_HTTP_HANDLER, config);
+
+    Assertions.assertThrows(
+      PatternSyntaxException.class,
+      () -> this.registry.registerHandler("/invalid/{string};@[a-z+;g", EMPTY_HTTP_HANDLER, config));
+    Assertions.assertThrows(
+      IllegalArgumentException.class,
+      () -> DynamicHttpPathNode.parse("name", "[a-z]+", "z"));
+
+    var numberNode = this.registry.findHandler("/num/12345", this.httpContext);
+    Assertions.assertNotNull(numberNode);
+    Assertions.assertEquals("12345", pathParameters.get("number"));
+
+    var invalidNumberNode = this.registry.findHandler("/num/abc123", this.httpContext);
+    Assertions.assertNull(invalidNumberNode);
+
+    var lowerStringNode = this.registry.findHandler("/lower/abcde", this.httpContext);
+    Assertions.assertNotNull(lowerStringNode);
+    Assertions.assertEquals("abcde", pathParameters.get("string"));
+
+    var invalidLowerStringNode = this.registry.findHandler("/lower/Abcd", this.httpContext);
+    Assertions.assertNull(invalidLowerStringNode);
+
+    var insensitiveNode = this.registry.findHandler("/insensitive/ABcDEFgHi", this.httpContext);
+    Assertions.assertNotNull(insensitiveNode);
+    Assertions.assertEquals("ABcDEFgHi", pathParameters.get("string"));
+
+    var invalidInsensitiveNode = this.registry.findHandler("/insensitive/1AdbCDef", this.httpContext);
+    Assertions.assertNull(invalidInsensitiveNode);
+
+    var semicolonNode = this.registry.findHandler("/semicolon/@abc;ef@ef", this.httpContext);
+    Assertions.assertNotNull(semicolonNode);
+    Assertions.assertEquals("@abc;ef@ef", pathParameters.get("string"));
+
+    var invalidSemicolonNode = this.registry.findHandler("/semicolon/abc;Ef", this.httpContext);
+    Assertions.assertNull(invalidSemicolonNode);
   }
 
   @Test
