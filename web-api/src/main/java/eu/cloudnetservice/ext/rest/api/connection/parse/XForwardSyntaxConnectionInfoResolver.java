@@ -24,6 +24,15 @@ import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Extracts the connection information from the {@code X-FORWARDED} headers following these schemes:
+ * <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For">X-FORWARDED-FOR</a>,
+ * <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host">X-FORWARDED-HOST</a>,
+ * <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto">X-FORWARDED-PROTO</a>
+ *
+ * @see HttpConnectionInfoResolver
+ * @since 1.0
+ */
 public final class XForwardSyntaxConnectionInfoResolver implements HttpConnectionInfoResolver {
 
   private final String forwardedForHeaderName;
@@ -31,6 +40,16 @@ public final class XForwardSyntaxConnectionInfoResolver implements HttpConnectio
   private final String forwardedPortHeaderName;
   private final String forwardedProtoHeaderName;
 
+  /**
+   * Constructs a new connection info resolver. The constructor takes the header names inorder to support other naming
+   * strategies as there is no real standard.
+   *
+   * @param forwardedForHeaderName   the header name for the {@code X-FORWARDED-FOR} header.
+   * @param forwardedHostHeaderName  the header name for the {@code X-FORWARDED-HOST} header.
+   * @param forwardedPortHeaderName  the header name for the {@code X-FORWARDED-PORT} header.
+   * @param forwardedProtoHeaderName the header name for the {@code X-FORWARDED-PROTO} header.
+   * @throws NullPointerException if any of the given header names is null.
+   */
   public XForwardSyntaxConnectionInfoResolver(
     @Nullable String forwardedForHeaderName,
     @Nullable String forwardedHostHeaderName,
@@ -47,6 +66,9 @@ public final class XForwardSyntaxConnectionInfoResolver implements HttpConnectio
     return headerName == null ? null : request.headers().firstValue(headerName);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull BasicHttpConnectionInfo extractConnectionInfo(
     @NonNull HttpContext context,
