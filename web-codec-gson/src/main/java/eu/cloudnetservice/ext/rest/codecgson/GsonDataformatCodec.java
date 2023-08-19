@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.rest;
+package eu.cloudnetservice.ext.rest.codecgson;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

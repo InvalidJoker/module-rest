@@ -14,4 +14,4 @@
 # limitations under the License.
 #
 
-eu.cloudnetservice.ext.rest.GsonDataformatCodec
+eu.cloudnetservice.ext.rest.codecgson.GsonDataformatCodec
