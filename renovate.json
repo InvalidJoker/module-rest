@@ -22,6 +22,13 @@
         "gradle"
       ],
       "groupName": "all dependencies with patch changes"
+    },
+    {
+      "description": "Disabled until netty5 stable release",
+      "matchPackagePrefixes": [
+        "io.netty:"
+      ],
+      "enabled": false
     }
   ],
   "vulnerabilityAlerts": {
