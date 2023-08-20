@@ -17,6 +17,9 @@
 package eu.cloudnetservice.ext.rest.api.annotation.parser;
 
 import eu.cloudnetservice.ext.rest.api.annotation.RequestHandler;
+import eu.cloudnetservice.ext.rest.api.annotation.invoke.HttpHandlerMethodContext;
+import eu.cloudnetservice.ext.rest.api.annotation.invoke.HttpHandlerMethodContextDecorator;
+import eu.cloudnetservice.ext.rest.api.annotation.invoke.HttpHandlerMethodDescriptor;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.processor.ContentTypeProcessor;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.processor.CrossOriginProcessor;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.processor.FirstRequestQueryParamProcessor;
@@ -29,10 +32,11 @@ import eu.cloudnetservice.ext.rest.api.annotation.parser.processor.RequestTypedB
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.api.registry.HttpHandlerRegistry;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Deque;
-import java.util.LinkedList;
+import java.util.List;
+import java.util.function.Predicate;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnmodifiableView;
@@ -48,7 +52,9 @@ public final class DefaultHttpAnnotationParser implements HttpAnnotationParser {
   public static final String PARAM_INVOCATION_HINT_KEY = "__PARAM_INVOCATION_HINT__";
 
   private final HttpHandlerRegistry httpHandlerRegistry;
-  private final Deque<HttpAnnotationProcessor> processors = new LinkedList<>();
+
+  private final List<HttpAnnotationProcessor> processors = new ArrayList<>();
+  private final List<HttpHandlerMethodContextDecorator> contextDecorators = new ArrayList<>();
 
   public DefaultHttpAnnotationParser(@NonNull HttpHandlerRegistry httpHandlerRegistry) {
     this.httpHandlerRegistry = httpHandlerRegistry;
@@ -119,7 +125,7 @@ public final class DefaultHttpAnnotationParser implements HttpAnnotationParser {
    */
   @Override
   public @NonNull HttpAnnotationParser registerAnnotationProcessor(@NonNull HttpAnnotationProcessor processor) {
-    this.processors.addFirst(processor);
+    this.processors.add(processor);
     return this;
   }
 
@@ -136,8 +142,51 @@ public final class DefaultHttpAnnotationParser implements HttpAnnotationParser {
    * {@inheritDoc}
    */
   @Override
-  public @NonNull HttpAnnotationParser unregisterAnnotationProcessors(@NonNull ClassLoader classLoader) {
-    this.processors.removeIf(entry -> entry.getClass().getClassLoader() == classLoader);
+  public @NonNull HttpAnnotationParser unregisterMatchingAnnotationProcessor(
+    @NonNull Predicate<HttpAnnotationProcessor> filter
+  ) {
+    this.processors.removeIf(filter);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @UnmodifiableView @NonNull Collection<HttpHandlerMethodContextDecorator> handlerContextDecorators() {
+    return Collections.unmodifiableCollection(this.contextDecorators);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull HttpAnnotationParser registerHandlerContextDecorator(
+    @NonNull HttpHandlerMethodContextDecorator decorator
+  ) {
+    this.contextDecorators.add(decorator);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull HttpAnnotationParser unregisterHandlerContextDecorator(
+    @NonNull HttpHandlerMethodContextDecorator decorator
+  ) {
+    this.contextDecorators.remove(decorator);
+    return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull HttpAnnotationParser unregisterMatchingHandlerContextDecorator(
+    @NonNull Predicate<HttpHandlerMethodContextDecorator> filter
+  ) {
+    this.contextDecorators.removeIf(filter);
     return this;
   }
 
@@ -157,38 +206,59 @@ public final class DefaultHttpAnnotationParser implements HttpAnnotationParser {
    */
   @Override
   public @NonNull HttpAnnotationParser parseAndRegister(@NonNull Object handlerInstance) {
-    for (var method : handlerInstance.getClass().getDeclaredMethods()) {
-      // check if the handler is requested to be a request handler
-      var handlerAnnotation = method.getAnnotation(RequestHandler.class);
-      if (handlerAnnotation != null) {
-        // we don't support static methods
-        if (Modifier.isStatic(method.getModifiers())) {
-          throw new IllegalArgumentException(String.format(
-            "Http handler method (@HttpRequestHandler) %s in %s must not be static!",
-            method.getName(), method.getDeclaringClass().getName()));
-        }
+    var currentClass = handlerInstance.getClass();
+    do {
+      for (var method : currentClass.getDeclaredMethods()) {
+        // check if the handler is requested to be a request handler
+        var handlerAnnotation = method.getAnnotation(RequestHandler.class);
+        if (handlerAnnotation != null) {
+          var declaringClass = method.getDeclaringClass();
 
-        // fail-fast: try to make the method accessible if needed
-        if (!Modifier.isPublic(method.getModifiers())) {
-          method.setAccessible(true);
-        }
-
-        // set the supported request method of the handler
-        var configBuilder = HttpHandlerConfig.builder();
-        configBuilder.httpMethod(handlerAnnotation.method());
-
-        // add the processors to the corsConfig
-        for (var processor : this.processors) {
-          if (processor.shouldProcess(method, handlerInstance)) {
-            processor.buildPreprocessor(configBuilder, method, handlerInstance);
+          // ensure that no abstract method is annotated
+          if (Modifier.isAbstract(method.getModifiers())) {
+            throw new IllegalArgumentException(String.format(
+              "Http handler method %s in %s is abstract and should not be annotated with @RequestHandler",
+              method.getName(), declaringClass.getName()));
           }
-        }
 
-        // register the handler
-        var handler = new MethodHttpHandlerInvoker(handlerInstance, method);
-        this.httpHandlerRegistry.registerHandler(handlerAnnotation.path(), handler, configBuilder.build());
+          // disallow static methods completely
+          if (Modifier.isStatic(method.getModifiers())) {
+            throw new IllegalArgumentException(String.format(
+              "Http handler method (@HttpRequestHandler) %s in %s must not be static",
+              method.getName(), declaringClass.getName()));
+          }
+
+          // ensure that the handler method is accessible & public
+          if (!Modifier.isPublic(method.getModifiers()) || !Modifier.isPublic(declaringClass.getModifiers())) {
+            throw new IllegalArgumentException(String.format(
+              "Http handler method %s in %s is not exposed. Make sure that handler methods/classes are public",
+              method.getName(), declaringClass.getName()));
+          }
+
+          // set the supported request method of the handler
+          var configBuilder = HttpHandlerConfig.builder();
+          configBuilder.httpMethod(handlerAnnotation.method());
+
+          // add the processors to the corsConfig
+          for (var processor : this.processors) {
+            if (processor.shouldProcess(method, handlerInstance)) {
+              processor.buildPreprocessor(configBuilder, method, handlerInstance);
+            }
+          }
+
+          // build the final http handler and decorate the method handler
+          var methodDescriptor = new HttpHandlerMethodDescriptor(method, handlerInstance);
+          var contextBuilder = new HttpHandlerMethodContext.Builder(methodDescriptor);
+          for (var contextDecorator : this.contextDecorators) {
+            contextDecorator.decorateContext(methodDescriptor, contextBuilder);
+          }
+
+          // register the handler
+          var handler = contextBuilder.build();
+          this.httpHandlerRegistry.registerHandler(handlerAnnotation.path(), handler, configBuilder.build());
+        }
       }
-    }
+    } while ((currentClass = currentClass.getSuperclass()) != null);
 
     return this;
   }
