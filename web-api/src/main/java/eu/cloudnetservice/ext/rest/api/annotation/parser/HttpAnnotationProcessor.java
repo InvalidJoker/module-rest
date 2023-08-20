@@ -37,7 +37,7 @@ public interface HttpAnnotationProcessor {
    * <p>
    * If this processor returns null it indicates that it has no interest in adding a preprocessor.
    *
-   * @param config          //TODO
+   * @param config          the configuration for the handler that the preprocessor is processing.
    * @param method          the method which gets processed currently.
    * @param handlerInstance the instance of the handler class in which the method is located.
    * @throws NullPointerException if the given method or handler instance is null.
