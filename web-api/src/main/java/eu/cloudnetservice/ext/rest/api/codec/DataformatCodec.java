@@ -21,9 +21,34 @@ import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import lombok.NonNull;
 
+/**
+ * A dataformat codec that supports both serialization of a POJO to a string representation and back to a POJO. To
+ * obtain a codec implementation use {@link CodecProvider#resolveCodec(Class)} with the registered codec type.
+ *
+ * @see CodecProvider
+ * @see eu.cloudnetservice.ext.rest.api.codec.builtin.JsonCodec
+ * @since 1.0
+ */
 public interface DataformatCodec {
 
+  /**
+   * Serializes the given object from the given type into a string.
+   *
+   * @param type   the type of the object to serialize.
+   * @param object the object to serialize.
+   * @return the string representation of the given object.
+   * @throws NullPointerException if the given type or object is null.
+   */
   @NonNull String serialize(@NonNull Type type, @NonNull Object object);
 
+  /**
+   * Deserializes the given input stream to an object of the given type.
+   *
+   * @param charset    the charset to use when reading from the stream.
+   * @param objectType the type of the object to deserialize to.
+   * @param content    the content to deserialize into an object.
+   * @return the deserialized object.
+   * @throws NullPointerException if the given charset, type or content is null.
+   */
   @NonNull Object deserialize(@NonNull Charset charset, @NonNull Type objectType, @NonNull InputStream content);
 }

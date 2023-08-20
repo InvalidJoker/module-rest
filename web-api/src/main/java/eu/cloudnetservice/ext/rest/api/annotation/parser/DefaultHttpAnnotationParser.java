@@ -81,11 +81,11 @@ public final class DefaultHttpAnnotationParser implements HttpAnnotationParser {
 
   /**
    * Constructs a new DefaultHttpAnnotationParser instance and registers all processors for the default provided http
-   * handling annotations.
+   * handling annotations. The annotation based http handlers are registered to the given handler registry.
    *
-   * @param registry // TODO
+   * @param registry the registry the handlers are registered to.
    * @return the newly created HttpAnnotationParser instance.
-   * @throws NullPointerException if the given component is null.
+   * @throws NullPointerException if the given registry is null.
    */
   public static @NonNull HttpAnnotationParser withDefaultProcessors(
     @NonNull HttpHandlerRegistry registry

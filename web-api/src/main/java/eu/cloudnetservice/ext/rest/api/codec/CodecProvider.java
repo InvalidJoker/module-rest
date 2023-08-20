@@ -21,6 +21,14 @@ import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.NonNull;
 
+/**
+ * A codec provider that resolves {@link DataformatCodec} implementations using the {@link ServiceLoader} from Java
+ * SPI.
+ *
+ * @see DataformatCodec
+ * @see ServiceLoader
+ * @since 1.0
+ */
 public final class CodecProvider {
 
   private static final Map<Class<?>, Object> CODEC_RESOLVE_CACHE = new ConcurrentHashMap<>(16, 0.9f, 1);
@@ -29,6 +37,16 @@ public final class CodecProvider {
     throw new UnsupportedOperationException();
   }
 
+  /**
+   * Loads a codec using the given type from Java SPI. After a codec for the given type was found the value is cached
+   * and is used for any further calls for the same type.
+   *
+   * @param type the type of the codec.
+   * @param <T>  the generic type of the codec.
+   * @return the resolved codec for the given type.
+   * @throws NullPointerException     if the given type is null.
+   * @throws IllegalArgumentException if no codec for the given type was found.
+   */
   @SuppressWarnings("unchecked")
   public static @NonNull <T extends DataformatCodec> T resolveCodec(@NonNull Class<T> type) {
     return (T) CODEC_RESOLVE_CACHE.computeIfAbsent(

@@ -16,8 +16,19 @@
 
 package eu.cloudnetservice.ext.rest.api.codec.builtin;
 
+import eu.cloudnetservice.ext.rest.api.codec.CodecProvider;
 import eu.cloudnetservice.ext.rest.api.codec.DataformatCodec;
 
+/**
+ * A dataformat codec that supports both serialization of a POJO to a string representation and back to a POJO. This
+ * json codec specifies that every implementation serializes into json and deserializes from json.
+ * <p>
+ * To obtain a codec implementation use {@code CodecProvider.resolveCodec(JsonCodec.class)}
+ *
+ * @see CodecProvider
+ * @see DataformatCodec
+ * @since 1.0
+ */
 public interface JsonCodec extends DataformatCodec {
 
 }

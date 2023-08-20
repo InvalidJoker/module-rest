@@ -22,6 +22,13 @@ import eu.cloudnetservice.ext.rest.api.connection.HttpConnectionInfoResolver;
 import java.util.regex.Pattern;
 import lombok.NonNull;
 
+/**
+ * Extracts the connection information from the {@link com.google.common.net.HttpHeaders#FORWARDED} header following
+ * this scheme: <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded">FORWARDED</a>
+ *
+ * @see HttpConnectionInfoResolver
+ * @since 1.0
+ */
 public final class ForwardedSyntaxConnectionInfoResolver implements HttpConnectionInfoResolver {
 
   private static final Pattern FORWARDED_FOR_PATTERN = Pattern.compile("for=\"?([^;,\"]+)\"?");
@@ -30,10 +37,20 @@ public final class ForwardedSyntaxConnectionInfoResolver implements HttpConnecti
 
   private final String headerName;
 
+  /**
+   * Constructs a new connection info resolver. The constructor takes the header name as some application use a
+   * different header name but follow the same syntax as the {@code FORWARDED} header.
+   *
+   * @param headerName the header name used for the {@link com.google.common.net.HttpHeaders#FORWARDED} header.
+   * @throws NullPointerException if the given header name is null.
+   */
   public ForwardedSyntaxConnectionInfoResolver(@NonNull String headerName) {
     this.headerName = headerName;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull BasicHttpConnectionInfo extractConnectionInfo(
     @NonNull HttpContext context,

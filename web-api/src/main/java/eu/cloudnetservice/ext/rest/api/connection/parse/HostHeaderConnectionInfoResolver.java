@@ -22,6 +22,12 @@ import eu.cloudnetservice.ext.rest.api.connection.BasicHttpConnectionInfo;
 import eu.cloudnetservice.ext.rest.api.connection.HttpConnectionInfoResolver;
 import lombok.NonNull;
 
+/**
+ * Extracts the {@link HttpHeaders#HOST} header from a request.
+ *
+ * @see eu.cloudnetservice.ext.rest.api.connection.HttpConnectionInfoResolver
+ * @since 1.0
+ */
 public final class HostHeaderConnectionInfoResolver implements HttpConnectionInfoResolver {
 
   public static final HttpConnectionInfoResolver INSTANCE = new HostHeaderConnectionInfoResolver();
@@ -29,6 +35,9 @@ public final class HostHeaderConnectionInfoResolver implements HttpConnectionInf
   private HostHeaderConnectionInfoResolver() {
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public @NonNull BasicHttpConnectionInfo extractConnectionInfo(
     @NonNull HttpContext context,

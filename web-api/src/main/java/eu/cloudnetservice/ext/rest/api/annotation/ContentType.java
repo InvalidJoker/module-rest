@@ -23,11 +23,22 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import lombok.NonNull;
 
+/**
+ * This content type annotation specifies the content type the response body has. When applied the content type header
+ * is automatically set with the given value.
+ *
+ * @since 1.0
+ */
 @Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ContentType {
 
+  /**
+   * Gets the content type for the response body.
+   *
+   * @return the content type for the response body.
+   */
   @NonNull String value();
 
 }

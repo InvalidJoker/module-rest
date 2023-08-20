@@ -19,6 +19,11 @@ package eu.cloudnetservice.ext.rest.api.connection;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import lombok.NonNull;
 
+/**
+ * An empty connection info resolver that does no resolving.
+ *
+ * @since 1.0
+ */
 public final class EmptyConnectionInfoResolver implements HttpConnectionInfoResolver {
 
   public static final HttpConnectionInfoResolver INSTANCE = new EmptyConnectionInfoResolver();
@@ -26,6 +31,14 @@ public final class EmptyConnectionInfoResolver implements HttpConnectionInfoReso
   private EmptyConnectionInfoResolver() {
   }
 
+  /**
+   * An empty resolver just returning the given base info.
+   *
+   * @param context  the context of the request that is processed.
+   * @param baseInfo the base info resolved from the connection itself.
+   * @return the same base info as given.
+   * @throws NullPointerException if the given context or base info is null.
+   */
   @Override
   public @NonNull BasicHttpConnectionInfo extractConnectionInfo(
     @NonNull HttpContext context,
