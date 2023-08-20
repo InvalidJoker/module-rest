@@ -17,5 +17,4 @@
 dependencies {
   api(libs.guava)
   compileOnlyApi(libs.slf4j)
-  implementation(libs.reflexion)
 }

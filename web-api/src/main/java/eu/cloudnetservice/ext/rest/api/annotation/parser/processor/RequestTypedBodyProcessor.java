@@ -18,9 +18,6 @@ package eu.cloudnetservice.ext.rest.api.annotation.parser.processor;
 
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
-import dev.derklaro.reflexion.MethodAccessor;
-import dev.derklaro.reflexion.Reflexion;
-import dev.derklaro.reflexion.Result;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpHandler;
 import eu.cloudnetservice.ext.rest.api.HttpRequest;
@@ -32,6 +29,7 @@ import eu.cloudnetservice.ext.rest.api.codec.CodecProvider;
 import eu.cloudnetservice.ext.rest.api.codec.DataformatCodec;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerInterceptor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -93,11 +91,14 @@ public final class RequestTypedBodyProcessor implements HttpAnnotationProcessor 
     if (codecClass.isInterface()) {
       return CodecProvider.resolveCodec(codecClass);
     } else {
-      return Reflexion.on(codecClass).findConstructor()
-        .map(MethodAccessor::<DataformatCodec>invoke)
-        .map(Result::getOrThrow)
-        .orElseThrow(() -> new IllegalArgumentException(
-          "Missing no-args constructor in DataformatCodec class: " + codecClass));
+      try {
+        // use the public no-args constructor in the codec class
+        return codecClass.getConstructor().newInstance();
+      } catch (NoSuchMethodException | IllegalAccessException exception) {
+        throw new IllegalArgumentException("Codec class " + codecClass + " does not have a public no-args constructor");
+      } catch (InstantiationException | InvocationTargetException exception) {
+        throw new IllegalArgumentException("Class constructor of codec " + codecClass + " threw exception", exception);
+      }
     }
   }
 }

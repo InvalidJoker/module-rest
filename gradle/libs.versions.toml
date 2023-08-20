@@ -18,7 +18,6 @@ lombok = "1.18.28"
 gson = "2.10.1"
 jjwt = "0.11.5"
 slf4j = "2.0.7"
-reflexion = "1.8.0"
 guava = "32.1.2-jre"
 annotations = "24.0.1"
 
@@ -64,7 +63,6 @@ testContainersJunit = { group = "org.testcontainers", name = "junit-jupiter", ve
 # general
 slf4j = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
 annotations = { group = "org.jetbrains", name = "annotations", version.ref = "annotations" }
-reflexion = { group = "dev.derklaro.reflexion", name = "reflexion", version.ref = "reflexion" }
 
 # dummy versions, just here for renovate to detect that there is something to update
 checkstyleTools = { group = "com.puppycrawl.tools", name = "checkstyle", version.ref = "checkstyleTools" }
