@@ -16,8 +16,10 @@
 
 package eu.cloudnetservice.ext.rest.api.annotation.parser;
 
+import eu.cloudnetservice.ext.rest.api.annotation.invoke.HttpHandlerMethodContextDecorator;
 import java.lang.reflect.InaccessibleObjectException;
 import java.util.Collection;
+import java.util.function.Predicate;
 import lombok.NonNull;
 import org.jetbrains.annotations.UnmodifiableView;
 
@@ -54,14 +56,26 @@ public interface HttpAnnotationParser {
    */
   @NonNull HttpAnnotationParser unregisterAnnotationProcessor(@NonNull HttpAnnotationProcessor processor);
 
-  /**
+  // TODO(derklaro): fix this documentation
+  /*
    * Unregisters all annotation processors from this parser whose classes were loaded by the given class loader.
    *
-   * @param classLoader the loader of the processor classes to unregister.
+   * @param filter the loader of the processor classes to unregister.
    * @return the same instance as used to call the method, for chaining.
    * @throws NullPointerException if the given class loader is null.
    */
-  @NonNull HttpAnnotationParser unregisterAnnotationProcessors(@NonNull ClassLoader classLoader);
+  @NonNull HttpAnnotationParser unregisterMatchingAnnotationProcessor(
+    @NonNull Predicate<HttpAnnotationProcessor> filter);
+
+  @UnmodifiableView
+  @NonNull Collection<HttpHandlerMethodContextDecorator> handlerContextDecorators();
+
+  @NonNull HttpAnnotationParser registerHandlerContextDecorator(@NonNull HttpHandlerMethodContextDecorator decorator);
+
+  @NonNull HttpAnnotationParser unregisterHandlerContextDecorator(@NonNull HttpHandlerMethodContextDecorator decorator);
+
+  @NonNull HttpAnnotationParser unregisterMatchingHandlerContextDecorator(
+    @NonNull Predicate<HttpHandlerMethodContextDecorator> filter);
 
   /**
    * Parses all non-static http handlers methods annotated with {@code @HttpRequestHandler} in the given class instance.
