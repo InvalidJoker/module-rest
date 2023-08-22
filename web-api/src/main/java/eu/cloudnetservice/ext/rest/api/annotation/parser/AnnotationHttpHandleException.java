@@ -19,6 +19,7 @@ package eu.cloudnetservice.ext.rest.api.annotation.parser;
 import eu.cloudnetservice.ext.rest.api.HttpHandleException;
 import eu.cloudnetservice.ext.rest.api.HttpRequest;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
+import eu.cloudnetservice.ext.rest.api.response.type.PlainTextResponse;
 import lombok.NonNull;
 
 /**
@@ -54,9 +55,6 @@ public final class AnnotationHttpHandleException extends HttpHandleException {
     @NonNull HttpResponseCode responseCode,
     byte[] responseBody
   ) {
-    super(
-      responseCode,
-      responseBody,
-      String.format("Unable to handle http request on path \"%s\": %s", request.path(), reason));
+    super(PlainTextResponse.builder());
   }
 }

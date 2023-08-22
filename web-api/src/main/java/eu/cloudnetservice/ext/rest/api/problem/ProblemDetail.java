@@ -270,7 +270,7 @@ public final class ProblemDetail implements IntoResponse<Map<String, Object>> {
      * @return the same instance as used to call the method, for chaining.
      * @throws NullPointerException if the given key or value is null.
      */
-    public @NonNull Builder addAdditionalFields(@NonNull String key, @NonNull Object value) {
+    public @NonNull Builder addAdditionalField(@NonNull String key, @NonNull Object value) {
       this.additionalFields.put(key, value);
       return this;
     }

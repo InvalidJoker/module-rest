@@ -16,57 +16,72 @@
 
 package eu.cloudnetservice.ext.rest.api;
 
+import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
+import eu.cloudnetservice.ext.rest.api.response.Response;
+import java.io.Serial;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * An exception which can be thrown by a handler to set the status and body of the response for the current http
- * request. Throwing this exception will not prevent other handlers from processing the request as well.
+ * This exception type allows to be thrown in case of any handling exception, that should properly be propagated to the
+ * client with a response. Other exceptions (exceptions that are not extending this type and are not implementing
+ * {@link IntoResponse}) are left to be processed by a
+ * {@link eu.cloudnetservice.ext.rest.api.config.HttpHandlerInterceptor}.
+ * <p>
+ * Http handle exceptions are always stackless and the cause of them cannot be changed after constructing an instance of
+ * them. Passed information (such as the detail message or stack trace) are not exposed to client and should be used for
+ * server-side debugging of issues only.
  *
  * @since 1.0
  */
-public class HttpHandleException extends RuntimeException {
+public class HttpHandleException extends RuntimeException implements IntoResponse<Object> {
 
-  private final byte[] responseBody;
-  private final HttpResponseCode responseCode;
+  @Serial
+  private static final long serialVersionUID = 2647591868821053340L;
+
+  protected final IntoResponse<?> response;
 
   /**
-   * Constructs a new HttpHandleException instance.
+   * Constructs a new http handle exception. This exception type allows to be thrown in case of any handling exception,
+   * that should properly be propagated to the client with a response. Other exceptions (exceptions that are not
+   * extending this type and are not implementing {@link IntoResponse}) are left to be processed by a
+   * {@link eu.cloudnetservice.ext.rest.api.config.HttpHandlerInterceptor}.
    *
-   * @param responseCode the http status code to set in the response.
-   * @param responseBody the response body to set, null to reset the body.
-   * @param message      the detail message why the exception occurred, for debugging only.
-   * @throws NullPointerException if the given response code or message is null.
+   * @param response the response to send to the client.
+   * @throws NullPointerException if the given response is null.
    */
-  public HttpHandleException(@NonNull HttpResponseCode responseCode, byte[] responseBody, @NonNull String message) {
-    super(message);
-    this.responseBody = responseBody;
-    this.responseCode = responseCode;
+  public HttpHandleException(@NonNull IntoResponse<?> response) {
+    this(response, null, null);
   }
 
   /**
-   * Gets the body to set in the response, null to reset the body.
+   * Constructs a new http handle exception. This exception type allows to be thrown in case of any handling exception,
+   * that should properly be propagated to the client with a response. Other exceptions (exceptions that are not
+   * extending this type and are not implementing {@link IntoResponse}) are left to be processed by a
+   * {@link eu.cloudnetservice.ext.rest.api.config.HttpHandlerInterceptor}.
+   * <p>
+   * The message and cause parameters can optionally be specified for debug reasons. They are not exposed to the
+   * client.
    *
-   * @return the body to set in the response to the current processing request.
+   * @param response the response to send to the client.
+   * @param message  an optional detail message of the error cause (for service side debugging only).
+   * @param cause    an optional cause why the error occurred (for service side debugging only).
+   * @throws NullPointerException if the given response is null.
    */
-  public byte[] responseBody() {
-    return this.responseBody;
-  }
-
-  /**
-   * Gets the status code to set in the response to the current processing request.
-   *
-   * @return the status code to set in the response.
-   */
-  public @NonNull HttpResponseCode responseCode() {
-    return this.responseCode;
+  public HttpHandleException(
+    @NonNull IntoResponse<?> response,
+    @Nullable String message,
+    @Nullable Exception cause
+  ) {
+    super(message, cause);
+    this.response = response;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public @NonNull Throwable fillInStackTrace() {
+  public final @NonNull Throwable fillInStackTrace() {
     return this;
   }
 
@@ -74,7 +89,32 @@ public class HttpHandleException extends RuntimeException {
    * {@inheritDoc}
    */
   @Override
-  public @NonNull Throwable initCause(@Nullable Throwable cause) {
+  public final @NonNull Throwable initCause(@Nullable Throwable cause) {
     return this;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public final void setStackTrace(@NonNull StackTraceElement[] stackTrace) {
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @SuppressWarnings("unchecked")
+  public final @NonNull Response<Object> intoResponse() {
+    return (Response<Object>) this.response.intoResponse();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @SuppressWarnings("unchecked")
+  public final @NonNull Response.Builder<Object, ?> intoResponseBuilder() {
+    return (Response.Builder<Object, ?>) this.response.intoResponseBuilder();
   }
 }

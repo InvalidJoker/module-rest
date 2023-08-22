@@ -21,6 +21,7 @@ import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.cors.CorsRequestProcessor;
 import eu.cloudnetservice.ext.rest.api.cors.DefaultCorsRequestProcessor;
+import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import eu.cloudnetservice.ext.rest.api.response.Response;
 import eu.cloudnetservice.ext.rest.api.tree.HttpHandlerConfigPair;
 import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
@@ -259,6 +260,11 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
       var returnAllowed = config.invokePostProcessors(context, httpHandler, config, response);
       return returnAllowed ? response : null;
     } catch (Throwable throwable) {
+      // if the thrown throwable implements IntoResponse we can just return that response
+      if (throwable instanceof IntoResponse<?> ir) {
+        return ir.intoResponse();
+      }
+
       // post the exception to the handlers
       try {
         config.invokeExceptionallyPostProcessors(context, httpHandler, config, throwable);

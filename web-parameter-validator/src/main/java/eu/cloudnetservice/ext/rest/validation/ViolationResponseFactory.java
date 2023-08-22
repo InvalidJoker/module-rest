@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+package eu.cloudnetservice.ext.rest.validation;
 
-rootProject.name = "modules-rest"
+import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
+import jakarta.validation.ConstraintViolation;
+import java.util.Set;
+import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
 
-include("web-api")
-include("web-impl-netty")
-include("web-codec-gson")
-include("web-parameter-validator")
-include("cloudnet-rest-module")
+@FunctionalInterface
+public interface ViolationResponseFactory {
+
+  /* returns null to indicate that no response should be sent (ignore violations) */
+  @Nullable IntoResponse<?> convertConstraintViolations(@NonNull Set<ConstraintViolation<Object>> violations);
+}

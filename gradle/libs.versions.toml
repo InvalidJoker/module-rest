@@ -21,6 +21,11 @@ slf4j = "2.0.7"
 guava = "32.1.2-jre"
 annotations = "24.0.1"
 
+# validation
+expressly = "5.0.0"
+jakartaValidationApi = "3.0.2"
+hibernateValidator = "8.0.1.Final"
+
 # netty stuff
 netty = "5.0.0.Alpha6-SNAPSHOT"
 nettyContribHaProxy = "5.0.0.Alpha2"
@@ -59,6 +64,11 @@ mockito = { group = "org.mockito", name = "mockito-junit-jupiter", version.ref =
 # testcontainers
 testContainers = { group = "org.testcontainers", name = "testcontainers", version.ref = "testcontainers" }
 testContainersJunit = { group = "org.testcontainers", name = "junit-jupiter", version.ref = "testcontainers" }
+
+# validation
+expressly = { group = "org.glassfish.expressly", name = "expressly", version.ref = "expressly" }
+hibernateValidator = { group = "org.hibernate.validator", name = "hibernate-validator", version.ref = "hibernateValidator" }
+jakartaValidationApi = { group = "jakarta.validation", name = "jakarta.validation-api", version.ref = "jakartaValidationApi" }
 
 # general
 slf4j = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }

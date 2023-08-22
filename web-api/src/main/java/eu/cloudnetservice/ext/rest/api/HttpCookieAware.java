@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 public interface HttpCookieAware<T> {
 
   /**
-   * Getss a cookie by its name from the current context. Cookies are decoded and encoded in a relaxed (lax) format, this
+   * Gets a cookie by its name from the current context. Cookies are decoded and encoded in a relaxed (lax) format, this
    * means that duplicate cookies are allowed. If there are multiple cookies with the same name, the first one is
    * returned by this method. If no cookie with the given name is present, this method returns null.
    *
