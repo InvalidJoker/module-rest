@@ -22,18 +22,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.NonNull;
 
 /**
- * A codec provider that resolves {@link DataformatCodec} implementations using the {@link ServiceLoader} from Java
+ * A codec loader that resolves {@link DataformatCodec} implementations using the {@link ServiceLoader} from Java
  * SPI.
  *
  * @see DataformatCodec
  * @see ServiceLoader
  * @since 1.0
  */
-public final class CodecProvider {
+public final class CodecLoader {
 
   private static final Map<Class<?>, Object> CODEC_RESOLVE_CACHE = new ConcurrentHashMap<>(16, 0.9f, 1);
 
-  private CodecProvider() {
+  private CodecLoader() {
     throw new UnsupportedOperationException();
   }
 

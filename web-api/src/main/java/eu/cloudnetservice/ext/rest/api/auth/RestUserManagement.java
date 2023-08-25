@@ -21,22 +21,6 @@ import lombok.NonNull;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * The rest user management is responsible for the database management of the rest users. By default, an implementation
- * by provided by the cloudnet rest module, but the rest user system can also be replaced by own implementations.
- * <p>
- * The rest user management can be accessed using {@code ServiceRegistry.first(RestUserManagement.class)} or by
- * injecting it directly in combination with the {@link eu.cloudnetservice.driver.registry.injection.Service}
- * annotation.
- * <p>
- * In order to replace the rest user management use
- * {@link eu.cloudnetservice.driver.registry.ServiceRegistry#registerProvider(Class, String, Object)}
- *
- * @see RestUser
- * @see eu.cloudnetservice.driver.registry.injection.Service
- * @see eu.cloudnetservice.driver.registry.ServiceRegistry
- * @since 1.0
- */
 @ApiStatus.Experimental
 public interface RestUserManagement {
 
@@ -46,7 +30,7 @@ public interface RestUserManagement {
   Pattern SCOPE_NAMING_PATTERN = Pattern.compile(SCOPE_NAMING_REGEX);
 
   /**
-   * Getss the rest user associated with the given id. The rest user must have been created previously using
+   * Gets the rest user associated with the given id. The rest user must have been created previously using
    * {@link #saveRestUser(RestUser)}.
    * <p>
    * The rest user is always retrieved from the database, there is no caching.

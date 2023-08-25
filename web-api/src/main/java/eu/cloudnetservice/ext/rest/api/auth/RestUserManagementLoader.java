@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.rest.api.codec.builtin;
+package eu.cloudnetservice.ext.rest.api.auth;
 
-import eu.cloudnetservice.ext.rest.api.codec.CodecLoader;
-import eu.cloudnetservice.ext.rest.api.codec.DataformatCodec;
+import java.util.ServiceLoader;
+import lombok.NonNull;
 
-/**
- * A dataformat codec that supports both serialization of a POJO to a string representation and back to a POJO. This
- * json codec specifies that every implementation serializes into json and deserializes from json.
- * <p>
- * To obtain a codec implementation use {@code CodecProvider.resolveCodec(JsonCodec.class)}
- *
- * @see CodecLoader
- * @see DataformatCodec
- * @since 1.0
- */
-public interface JsonCodec extends DataformatCodec {
+public final class RestUserManagementLoader {
 
+  private static RestUserManagement USER_MANAGEMENT;
+
+  public static @NonNull RestUserManagement load() {
+    if (USER_MANAGEMENT != null) {
+      return USER_MANAGEMENT;
+    }
+
+    return USER_MANAGEMENT = ServiceLoader.load(RestUserManagement.class, RestUserManagement.class.getClassLoader())
+      .findFirst()
+      .orElseThrow(() -> new IllegalArgumentException("Missing implementation for rest-user management."));
+  }
 }

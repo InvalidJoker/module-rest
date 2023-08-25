@@ -20,7 +20,7 @@ import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
 import eu.cloudnetservice.ext.rest.api.HttpResponse;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
-import eu.cloudnetservice.ext.rest.api.codec.CodecProvider;
+import eu.cloudnetservice.ext.rest.api.codec.CodecLoader;
 import eu.cloudnetservice.ext.rest.api.codec.builtin.JsonCodec;
 import eu.cloudnetservice.ext.rest.api.header.HttpHeaderMap;
 import eu.cloudnetservice.ext.rest.api.response.DefaultResponse;
@@ -79,7 +79,7 @@ public final class JsonResponse<T> extends DefaultResponse<T> {
    */
   @Override
   protected void serializeBody(@NonNull HttpResponse response, @NonNull T body) {
-    var codec = CodecProvider.resolveCodec(JsonCodec.class);
+    var codec = CodecLoader.resolveCodec(JsonCodec.class);
     response.body(codec.serialize(body.getClass(), body));
   }
 
