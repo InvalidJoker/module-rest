@@ -71,7 +71,7 @@ public class HttpHandleException extends RuntimeException implements IntoRespons
   public HttpHandleException(
     @NonNull IntoResponse<?> response,
     @Nullable String message,
-    @Nullable Exception cause
+    @Nullable Throwable cause
   ) {
     super(message, cause);
     this.response = response;

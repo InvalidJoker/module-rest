@@ -216,23 +216,29 @@ public final class DefaultHttpAnnotationParser implements HttpAnnotationParser {
 
           // ensure that no abstract method is annotated
           if (Modifier.isAbstract(method.getModifiers())) {
-            throw new IllegalArgumentException(String.format(
-              "Http handler method %s in %s is abstract and should not be annotated with @RequestHandler",
-              method.getName(), declaringClass.getName()));
+            throw AnnotationHandleExceptionBuilder.forIssueDuringRegistration()
+              .handlerMethod(method)
+              .annotationType(RequestHandler.class)
+              .debugDescription("Http handler method is abstract and shouldn't be annotated")
+              .build();
           }
 
           // disallow static methods completely
           if (Modifier.isStatic(method.getModifiers())) {
-            throw new IllegalArgumentException(String.format(
-              "Http handler method (@HttpRequestHandler) %s in %s must not be static",
-              method.getName(), declaringClass.getName()));
+            throw AnnotationHandleExceptionBuilder.forIssueDuringRegistration()
+              .handlerMethod(method)
+              .annotationType(RequestHandler.class)
+              .debugDescription("Http handler method is static and shouldn't be annotated")
+              .build();
           }
 
           // ensure that the handler method is accessible & public
           if (!Modifier.isPublic(method.getModifiers()) || !Modifier.isPublic(declaringClass.getModifiers())) {
-            throw new IllegalArgumentException(String.format(
-              "Http handler method %s in %s is not exposed. Make sure that handler methods/classes are public",
-              method.getName(), declaringClass.getName()));
+            throw AnnotationHandleExceptionBuilder.forIssueDuringRegistration()
+              .handlerMethod(method)
+              .annotationType(RequestHandler.class)
+              .debugDescription("Http handler method is exposed (method/class is not public)")
+              .build();
           }
 
           // set the supported request method of the handler

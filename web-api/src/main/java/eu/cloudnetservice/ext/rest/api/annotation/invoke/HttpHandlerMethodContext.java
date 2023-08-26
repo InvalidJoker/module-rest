@@ -16,13 +16,13 @@
 
 package eu.cloudnetservice.ext.rest.api.annotation.invoke;
 
-import com.google.common.base.Preconditions;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpHandleException;
 import eu.cloudnetservice.ext.rest.api.HttpHandler;
+import eu.cloudnetservice.ext.rest.api.annotation.parser.AnnotationHandleExceptionBuilder;
+import eu.cloudnetservice.ext.rest.api.problem.StandardProblemDetail;
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import java.lang.invoke.WrongMethodTypeException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,17 +63,22 @@ public final class HttpHandlerMethodContext implements HttpHandler {
     var methodCallResult = this.callHandlerMethod(methodParameters);
 
     // method is not allowed to return null
-    Objects.requireNonNull(
-      methodCallResult,
-      () -> String.format(
-        "http handler method %s returned 'null' as its result, should be a subtype of IntoResponse",
-        this.methodDebugRepresentation));
+    if (methodCallResult == null) {
+      throw AnnotationHandleExceptionBuilder.forIssueDuringRequest(StandardProblemDetail.INTERNAL_SERVER_ERROR)
+        .handlerMethod(this.targetMethod.wrappedMethod())
+        .debugDescription("Http handler method returned 'null' which is not allowed")
+        .build();
+    }
 
-    // method must return a subtype of IntoResponse
-    Preconditions.checkArgument(
-      methodCallResult instanceof IntoResponse,
-      "http handler method %s returned '%s' as its result, should be a subtype of IntoResponse",
-      this.methodDebugRepresentation, methodCallResult.getClass().getSimpleName());
+    // check if the response type is the one we're expecting
+    if (!(methodCallResult instanceof IntoResponse<?>)) {
+      throw AnnotationHandleExceptionBuilder.forIssueDuringRequest(StandardProblemDetail.INTERNAL_SERVER_ERROR)
+        .handlerMethod(this.targetMethod.wrappedMethod())
+        .debugDescription("Http handler method returned '"
+          + methodCallResult.getClass().getSimpleName()
+          + "', should be a subtype of IntoResponse")
+        .build();
+    }
 
     // cast and return the method call result
     return (IntoResponse<?>) methodCallResult;
@@ -87,15 +92,22 @@ public final class HttpHandlerMethodContext implements HttpHandler {
       // actual method that was called (e.g. the method did a wrong cast). There might be some sneaky way to actually
       // filter out if an invalid argument type was passed, but for now we just assume it and move on
       // TODO(derklaro): maybe find a way to filter out actual illegal parameters
-      throw new IllegalArgumentException("possible argument type mismatch from handler param resolvers", exception);
+      throw AnnotationHandleExceptionBuilder.forIssueDuringRequest(StandardProblemDetail.INTERNAL_SERVER_ERROR)
+        .handlerMethod(this.targetMethod.wrappedMethod())
+        .debugIssueCause(exception)
+        .debugDescription("Possible argument type mismatch from handler param resolvers")
+        .build();
     } catch (HttpHandleException exception) {
       // special case: we want to propagate this exception type unchanged to allow handlers to react to the information
       // that is wrapped in the exception (f. ex. a response status code or body)
       throw exception;
     } catch (Throwable throwable) {
-      // something went wrong while invoking the method - convert this throwable to a checked exception instead
-      // this is the same behaviour as the java runtime would do when using Method.invoke
-      throw new InvocationTargetException(throwable);
+      // something went wrong while invoking the method
+      throw AnnotationHandleExceptionBuilder.forIssueDuringRequest(StandardProblemDetail.INTERNAL_SERVER_ERROR)
+        .handlerMethod(this.targetMethod.wrappedMethod())
+        .debugIssueCause(throwable)
+        .debugDescription("Caught exception while invoking http handler method")
+        .build();
     }
   }
 

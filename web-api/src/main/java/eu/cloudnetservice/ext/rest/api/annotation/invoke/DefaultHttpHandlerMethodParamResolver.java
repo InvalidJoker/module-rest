@@ -20,9 +20,10 @@ import com.google.common.base.Preconditions;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpRequest;
 import eu.cloudnetservice.ext.rest.api.HttpResponse;
-import eu.cloudnetservice.ext.rest.api.annotation.parser.AnnotationHttpHandleException;
+import eu.cloudnetservice.ext.rest.api.annotation.parser.AnnotationHandleExceptionBuilder;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.DefaultHttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.ParameterInvocationHint;
+import eu.cloudnetservice.ext.rest.api.problem.StandardProblemDetail;
 import java.lang.reflect.Method;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,6 +32,7 @@ record DefaultHttpHandlerMethodParamResolver(
   @Nullable Integer contextArgPos,
   @Nullable Integer requestArgPos,
   @Nullable Integer responseArgPos,
+  @NonNull Method handlerMethod,
   @NonNull Class<?>[] handlerParameterTypes
 ) implements HttpHandlerMethodParamResolver {
 
@@ -59,7 +61,12 @@ record DefaultHttpHandlerMethodParamResolver(
       }
     }
 
-    return new DefaultHttpHandlerMethodParamResolver(contextArgPos, requestArgPos, responseArgPos, methodParamTypes);
+    return new DefaultHttpHandlerMethodParamResolver(
+      contextArgPos,
+      requestArgPos,
+      responseArgPos,
+      method,
+      methodParamTypes);
   }
 
   @Override
@@ -77,26 +84,31 @@ record DefaultHttpHandlerMethodParamResolver(
         var value = hint.resolveValue(context);
         var expectedType = this.handlerParameterTypes[hint.index()];
         if (value != null && !expectedType.isAssignableFrom(value.getClass())) {
-          throw new AnnotationHttpHandleException(context.request(), String.format(
-            "Parameter at index %d is of type %s; expected type %s",
-            hint.index(),
-            value.getClass().getName(),
-            expectedType.getName()));
+          throw AnnotationHandleExceptionBuilder.forIssueDuringRequest(StandardProblemDetail.INTERNAL_SERVER_ERROR)
+            .handlerMethod(this.handlerMethod)
+            .debugDescription(String.format(
+              "Expected value of type %s; got %s for param at index %d",
+              expectedType.getSimpleName(), value.getClass().getSimpleName(), hint.index()))
+            .build();
         }
 
         // don't accidentally try to inject null into a primitive type
         if (value == null && expectedType.isPrimitive()) {
-          throw new AnnotationHttpHandleException(context.request(), String.format(
-            "Parameter at index %d is primitive but null was resolved as the parameter value",
-            hint.index()));
+          throw AnnotationHandleExceptionBuilder.forIssueDuringRequest(StandardProblemDetail.INTERNAL_SERVER_ERROR)
+            .handlerMethod(this.handlerMethod)
+            .debugDescription(String.format(
+              "Parameter at index %d is primitive (%s) but null was resolved as the parameter value",
+              hint.index(), expectedType.getSimpleName()))
+            .build();
         }
 
         // all fine, store the argument
         params[hint.index()] = value;
       } else {
-        throw new AnnotationHttpHandleException(
-          context.request(),
-          "Hint " + invocationHint + " is not a ParameterInvocationHint");
+        throw AnnotationHandleExceptionBuilder.forIssueDuringRequest(StandardProblemDetail.INTERNAL_SERVER_ERROR)
+          .handlerMethod(this.handlerMethod)
+          .debugDescription(String.format("Hint %s is not a ParameterInvocationHint", invocationHint.getClass()))
+          .build();
       }
     }
 

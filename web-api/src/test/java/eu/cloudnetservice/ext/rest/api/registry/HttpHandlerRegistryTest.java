@@ -106,7 +106,7 @@ public final class HttpHandlerRegistryTest {
       HttpHandlerRegisterException.class,
       () -> this.registry.registerHandler("api/test/{other}", EMPTY_HTTP_HANDLER, config));
     Assertions.assertThrows(
-      IllegalArgumentException.class,
+      HttpHandlerRegisterException.class,
       () -> this.registry.registerHandler("api/test/{}", EMPTY_HTTP_HANDLER, config));
 
     Assertions.assertEquals(3, this.registry.registeredHandlers().size());

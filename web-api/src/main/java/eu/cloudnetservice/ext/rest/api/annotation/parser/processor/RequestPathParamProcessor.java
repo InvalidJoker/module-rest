@@ -18,14 +18,14 @@ package eu.cloudnetservice.ext.rest.api.annotation.parser.processor;
 
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpHandler;
-import eu.cloudnetservice.ext.rest.api.annotation.Optional;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestPathParam;
-import eu.cloudnetservice.ext.rest.api.annotation.parser.AnnotationHttpHandleException;
+import eu.cloudnetservice.ext.rest.api.annotation.parser.AnnotationHandleExceptionBuilder;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.DefaultHttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.HttpAnnotationProcessor;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.HttpAnnotationProcessorUtil;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerInterceptor;
+import eu.cloudnetservice.ext.rest.api.problem.StandardProblemDetail;
 import java.lang.reflect.Method;
 import lombok.NonNull;
 
@@ -51,10 +51,13 @@ public final class RequestPathParamProcessor implements HttpAnnotationProcessor 
       (param, annotation) -> (context) -> {
         // get the path parameter and error out if no value is present but the parameter is required
         var pathParam = context.request().pathParameters().get(annotation.value());
-        if (!param.isAnnotationPresent(Optional.class) && pathParam == null) {
-          throw new AnnotationHttpHandleException(
-            context.request(),
-            "Missing required path parameter: " + annotation.value());
+        if (pathParam == null) {
+          throw AnnotationHandleExceptionBuilder.forIssueDuringRequest(StandardProblemDetail.INTERNAL_SERVER_ERROR)
+            .parameter(param)
+            .handlerMethod(method)
+            .annotationType(RequestPathParam.class)
+            .debugDescription("Required path parameter " + annotation.value() + " is not registered. This is an error!")
+            .build();
         }
 
         // set the path parameter in the context

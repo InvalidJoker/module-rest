@@ -18,15 +18,19 @@ package eu.cloudnetservice.ext.rest.api.annotation.parser.processor;
 
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpHandler;
+import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
+import eu.cloudnetservice.ext.rest.api.annotation.FirstRequestQueryParam;
 import eu.cloudnetservice.ext.rest.api.annotation.Optional;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestQueryParam;
-import eu.cloudnetservice.ext.rest.api.annotation.parser.AnnotationHttpHandleException;
+import eu.cloudnetservice.ext.rest.api.annotation.parser.AnnotationHandleExceptionBuilder;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.DefaultHttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.HttpAnnotationProcessor;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.HttpAnnotationProcessorUtil;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerInterceptor;
+import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 import lombok.NonNull;
@@ -37,6 +41,12 @@ import lombok.NonNull;
  * @since 1.0
  */
 public final class RequestQueryParamProcessor implements HttpAnnotationProcessor {
+
+  private static final ProblemDetail MISSING_QUERY_PARAM_BASE_PROBLEM = ProblemDetail.builder()
+    .status(HttpResponseCode.BAD_REQUEST)
+    .type(URI.create("missing-query-param"))
+    .title("Required Query Parameter Is Missing")
+    .build();
 
   /**
    * {@inheritDoc}
@@ -54,9 +64,15 @@ public final class RequestQueryParamProcessor implements HttpAnnotationProcessor
         // get the parameters and error out if no values are present but the parameter is required
         var queryParameters = context.request().queryParameters().get(annotation.value());
         if (!param.isAnnotationPresent(Optional.class) && (queryParameters == null || queryParameters.isEmpty())) {
-          throw new AnnotationHttpHandleException(
-            context.request(),
-            "Missing required query param: " + annotation.value());
+          var problem = ProblemDetail.builder(MISSING_QUERY_PARAM_BASE_PROBLEM)
+            .detail("Required query parameter " + annotation.value() + " is missing")
+            .build();
+          throw AnnotationHandleExceptionBuilder.forIssueDuringRequest(problem)
+            .parameter(param)
+            .handlerMethod(method)
+            .annotationType(FirstRequestQueryParam.class)
+            .debugDescription("Missing required query parameter(s) are missing: " + annotation.value())
+            .build();
         }
 
         // set the parameters in the context

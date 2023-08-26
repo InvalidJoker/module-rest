@@ -16,6 +16,7 @@
 
 package eu.cloudnetservice.ext.rest.api.annotation.invoke;
 
+import eu.cloudnetservice.ext.rest.api.annotation.parser.AnnotationHandleExceptionBuilder;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -60,12 +61,18 @@ record DefaultHttpHandlerMethodInvoker(@NonNull MethodHandle targetMethodHandle)
       var genericMethodType = MethodType.genericMethodType(staticMethod ? 1 : 0, true);
       targetMethodHandle = targetMethodHandle.asType(genericMethodType);
       return new DefaultHttpHandlerMethodInvoker(targetMethodHandle);
-    } catch (IllegalAccessException ex) {
-      var prettyMethod = prettyPrintMethod(method);
-      throw new IllegalArgumentException("Http handler method " + prettyMethod + " must be publicly visible", ex);
-    } catch (NoSuchMethodException ex) {
-      var prettyMethod = prettyPrintMethod(method);
-      throw new IllegalArgumentException("Passed handler method " + prettyMethod + " is somehow invisible", ex);
+    } catch (IllegalAccessException exception) {
+      throw AnnotationHandleExceptionBuilder.forIssueDuringRegistration()
+        .handlerMethod(method)
+        .debugIssueCause(exception)
+        .debugDescription("Handler method is not exported publicly")
+        .build();
+    } catch (NoSuchMethodException exception) {
+      throw AnnotationHandleExceptionBuilder.forIssueDuringRegistration()
+        .handlerMethod(method)
+        .debugIssueCause(exception)
+        .debugDescription("Invalid method given (method somehow does not exist)")
+        .build();
     }
   }
 

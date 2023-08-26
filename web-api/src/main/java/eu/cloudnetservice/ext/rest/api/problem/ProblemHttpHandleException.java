@@ -53,7 +53,7 @@ public class ProblemHttpHandleException extends HttpHandleException {
   public ProblemHttpHandleException(
     @NonNull ProblemDetail response,
     @Nullable String message,
-    @Nullable Exception cause
+    @Nullable Throwable cause
   ) {
     super(response, message, cause);
   }

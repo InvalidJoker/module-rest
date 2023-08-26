@@ -182,8 +182,14 @@ final class DefaultHttpHandlerRegistry implements HttpHandlerRegistry {
         var pathPart = pathParts.get(partIndex);
 
         // check if the node is a dynamic node
-        var dynamicNodeMatcher = DYNAMIC_NODE_PATTERN.matcher(pathPart);
-        if (dynamicNodeMatcher.matches()) {
+        if (pathPart.startsWith("{")) {
+          var dynamicNodeMatcher = DYNAMIC_NODE_PATTERN.matcher(pathPart);
+          if (!dynamicNodeMatcher.matches()) {
+            throw new HttpHandlerRegisterException(
+              "Tried to register dynamic node with invalid declaration: %s -> [%s]",
+              targetTreeNode.treePath(), pathPart);
+          }
+
           var pathId = dynamicNodeMatcher.group(1);
           HttpPathNode.validatePathId(pathId);
 

@@ -19,7 +19,7 @@ package eu.cloudnetservice.ext.rest.api.annotation.parser.processor;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpHandler;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestBody;
-import eu.cloudnetservice.ext.rest.api.annotation.parser.AnnotationHttpHandleException;
+import eu.cloudnetservice.ext.rest.api.annotation.parser.AnnotationHandleExceptionBuilder;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.DefaultHttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.HttpAnnotationProcessor;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.HttpAnnotationProcessorUtil;
@@ -40,6 +40,31 @@ import lombok.NonNull;
  */
 public final class RequestBodyProcessor implements HttpAnnotationProcessor {
 
+  private static final Class<?>[] ALLOWED_BODY_TYPES = new Class[]{
+    byte[].class,
+    String.class,
+    Reader.class,
+    ByteBuffer.class,
+    InputStream.class,
+  };
+
+  /**
+   * Checks if the given parameter type is one of the supported parameter types for the request body.
+   *
+   * @param type the type of the parameter.
+   * @return true if the parameter type is supported, false otherwise.
+   * @throws NullPointerException if the given type is null.
+   */
+  private static boolean usesSupportedParamType(@NonNull Class<?> type) {
+    for (var allowedBodyType : ALLOWED_BODY_TYPES) {
+      if (allowedBodyType.isAssignableFrom(type)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -52,22 +77,34 @@ public final class RequestBodyProcessor implements HttpAnnotationProcessor {
     var hints = HttpAnnotationProcessorUtil.mapParameters(
       method,
       RequestBody.class,
-      (param, annotation) -> (context) -> {
-        if (String.class.isAssignableFrom(param.getType())) {
-          return context.request().bodyAsString();
-        } else if (byte[].class.isAssignableFrom(param.getType())) {
-          return context.request().body();
-        } else if (ByteBuffer.class.isAssignableFrom(param.getType())) {
-          return ByteBuffer.wrap(context.request().body());
-        } else if (InputStream.class.isAssignableFrom(param.getType())) {
-          return context.request().bodyStream();
-        } else if (Reader.class.isAssignableFrom(param.getType())) {
-          return new InputStreamReader(context.request().bodyStream(), StandardCharsets.UTF_8);
-        } else {
-          throw new AnnotationHttpHandleException(
-            context.request(),
-            "Unable to inject body of type " + param.getType().getName());
+      (param, annotation) -> {
+        // check if any supported param type is used
+        var paramType = param.getType();
+        if (!usesSupportedParamType(paramType)) {
+          throw AnnotationHandleExceptionBuilder.forIssueDuringRegistration()
+            .parameter(param)
+            .handlerMethod(method)
+            .annotationType(RequestBody.class)
+            .debugDescription("Body type " + paramType.getSimpleName() + " is not supported")
+            .build();
         }
+
+        return (context) -> {
+          if (String.class.isAssignableFrom(param.getType())) {
+            return context.request().bodyAsString();
+          } else if (byte[].class.isAssignableFrom(param.getType())) {
+            return context.request().body();
+          } else if (ByteBuffer.class.isAssignableFrom(param.getType())) {
+            return ByteBuffer.wrap(context.request().body());
+          } else if (InputStream.class.isAssignableFrom(param.getType())) {
+            return context.request().bodyStream();
+          } else if (Reader.class.isAssignableFrom(param.getType())) {
+            return new InputStreamReader(context.request().bodyStream(), StandardCharsets.UTF_8);
+          } else {
+            // reachability fence: should not happen
+            throw new IllegalStateException("Invalid body type that wasn't caught before: " + paramType);
+          }
+        };
       });
     config.addHandlerInterceptor(new HttpHandlerInterceptor() {
       @Override

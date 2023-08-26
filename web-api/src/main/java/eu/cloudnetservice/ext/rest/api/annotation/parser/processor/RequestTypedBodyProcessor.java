@@ -22,6 +22,7 @@ import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpHandler;
 import eu.cloudnetservice.ext.rest.api.HttpRequest;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestTypedBody;
+import eu.cloudnetservice.ext.rest.api.annotation.parser.AnnotationHandleExceptionBuilder;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.DefaultHttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.HttpAnnotationProcessor;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.HttpAnnotationProcessorUtil;
@@ -31,6 +32,7 @@ import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerInterceptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import lombok.NonNull;
@@ -63,7 +65,7 @@ public final class RequestTypedBodyProcessor implements HttpAnnotationProcessor 
       RequestTypedBody.class,
       (param, annotation) -> {
         var type = param.getParameterizedType();
-        var deserializer = this.constructDeserializer(annotation.deserializationCodec());
+        var deserializer = this.constructDeserializer(annotation.deserializationCodec(), method, param);
 
         return context -> {
           var request = context.request();
@@ -86,7 +88,9 @@ public final class RequestTypedBodyProcessor implements HttpAnnotationProcessor 
   }
 
   private @NonNull DataformatCodec constructDeserializer(
-    @NonNull Class<? extends DataformatCodec> codecClass
+    @NonNull Class<? extends DataformatCodec> codecClass,
+    @NonNull Method debugDeclaringMethod,
+    @NonNull Parameter debugParameter
   ) {
     if (codecClass.isInterface()) {
       return CodecProvider.resolveCodec(codecClass);
@@ -95,9 +99,20 @@ public final class RequestTypedBodyProcessor implements HttpAnnotationProcessor 
         // use the public no-args constructor in the codec class
         return codecClass.getConstructor().newInstance();
       } catch (NoSuchMethodException | IllegalAccessException exception) {
-        throw new IllegalArgumentException("Codec class " + codecClass + " does not have a public no-args constructor");
+        throw AnnotationHandleExceptionBuilder.forIssueDuringRegistration()
+          .parameter(debugParameter)
+          .handlerMethod(debugDeclaringMethod)
+          .annotationType(RequestTypedBody.class)
+          .debugDescription("Codec class " + codecClass + " does not define a public no-args constructor")
+          .build();
       } catch (InstantiationException | InvocationTargetException exception) {
-        throw new IllegalArgumentException("Class constructor of codec " + codecClass + " threw exception", exception);
+        throw AnnotationHandleExceptionBuilder.forIssueDuringRegistration()
+          .parameter(debugParameter)
+          .handlerMethod(debugDeclaringMethod)
+          .annotationType(RequestTypedBody.class)
+          .debugIssueCause(exception)
+          .debugDescription("Codec class " + codecClass + " threw exception during instantiation")
+          .build();
       }
     }
   }

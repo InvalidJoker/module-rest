@@ -18,15 +18,18 @@ package eu.cloudnetservice.ext.rest.api.annotation.parser.processor;
 
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpHandler;
+import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Optional;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestHeader;
-import eu.cloudnetservice.ext.rest.api.annotation.parser.AnnotationHttpHandleException;
+import eu.cloudnetservice.ext.rest.api.annotation.parser.AnnotationHandleExceptionBuilder;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.DefaultHttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.HttpAnnotationProcessor;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.HttpAnnotationProcessorUtil;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerInterceptor;
+import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import java.lang.reflect.Method;
+import java.net.URI;
 import lombok.NonNull;
 
 /**
@@ -35,6 +38,12 @@ import lombok.NonNull;
  * @since 1.0
  */
 public final class RequestHeaderProcessor implements HttpAnnotationProcessor {
+
+  private static final ProblemDetail MISSING_HEADER_BASE_PROBLEM = ProblemDetail.builder()
+    .status(HttpResponseCode.BAD_REQUEST)
+    .type(URI.create("missing-header"))
+    .title("Required Header Value Is Missing")
+    .build();
 
   /**
    * {@inheritDoc}
@@ -49,7 +58,7 @@ public final class RequestHeaderProcessor implements HttpAnnotationProcessor {
       method,
       RequestHeader.class,
       (param, annotation) -> {
-        var isOptionalAnnotation = param.isAnnotationPresent(Optional.class);
+        var isOptionalAnnotationPresent = param.isAnnotationPresent(Optional.class);
         return (context) -> {
           // check if all headers were requested
           if (Iterable.class.isAssignableFrom(param.getType())) {
@@ -66,10 +75,16 @@ public final class RequestHeaderProcessor implements HttpAnnotationProcessor {
           }
 
           // ensure that the value for the header is present in case it wasn't defined otherwise
-          if (!isOptionalAnnotation && parameterValue == null) {
-            throw new AnnotationHttpHandleException(
-              context.request(),
-              "Missing required header: " + annotation.value());
+          if (!isOptionalAnnotationPresent && parameterValue == null) {
+            var problem = ProblemDetail.builder(MISSING_HEADER_BASE_PROBLEM)
+              .detail("The required request header " + annotation.value() + " is missing")
+              .build();
+            throw AnnotationHandleExceptionBuilder.forIssueDuringRequest(problem)
+              .parameter(param)
+              .handlerMethod(method)
+              .annotationType(RequestHeader.class)
+              .debugDescription("The required request header " + annotation.value() + " was not supplied")
+              .build();
           }
 
           return parameterValue;
