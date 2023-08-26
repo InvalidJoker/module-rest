@@ -197,17 +197,6 @@ public final class DefaultHttpAnnotationParser implements HttpAnnotationParser {
    * {@inheritDoc}
    */
   @Override
-  public @NonNull HttpAnnotationParser parseAndRegister(@NonNull Class<?> handlerClass) {
-    //var injectionLayer = InjectionLayer.findLayerOf(handlerClass);
-    //return this.parseAndRegister(injectionLayer.instance(handlerClass));
-    // TODO: can/should we support this here?
-    return null;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public @NonNull HttpAnnotationParser parseAndRegister(@NonNull Object handlerInstance) {
     var currentClass = handlerInstance.getClass();
     do {

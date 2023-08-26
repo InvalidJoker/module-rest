@@ -31,6 +31,7 @@ import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerInterceptor;
 import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
+import eu.cloudnetservice.ext.rest.api.problem.ProblemHttpHandleException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Arrays;
@@ -68,6 +69,28 @@ public class AuthenticationProcessor implements HttpAnnotationProcessor {
     this.management = management;
   }
 
+  private static @Nullable Authentication extractAnnotation(@NonNull Method method) {
+    if (method.isAnnotationPresent(Authentication.class)) {
+      return method.getAnnotation(Authentication.class);
+    }
+
+    var declaringClass = method.getDeclaringClass();
+    if (declaringClass.isAnnotationPresent(Authentication.class)) {
+      return declaringClass.getAnnotation(Authentication.class);
+    }
+
+    return null;
+  }
+
+  private static @NonNull List<AuthProvider> resolveProvider(@NonNull Authentication authentication) {
+    var providers = Arrays.stream(authentication.providers()).map(AuthProviderLoader::resolveAuthProvider).toList();
+    if (providers.isEmpty()) {
+      throw new IllegalArgumentException("No auth providers given in @Authentication");
+    }
+
+    return providers;
+  }
+
   @Override
   public void buildPreprocessor(
     @NonNull HttpHandlerConfig.Builder config,
@@ -103,28 +126,6 @@ public class AuthenticationProcessor implements HttpAnnotationProcessor {
     });
   }
 
-  private static @Nullable Authentication extractAnnotation(@NonNull Method method) {
-    if (method.isAnnotationPresent(Authentication.class)) {
-      return method.getAnnotation(Authentication.class);
-    }
-
-    var declaringClass = method.getDeclaringClass();
-    if (declaringClass.isAnnotationPresent(Authentication.class)) {
-      return declaringClass.getAnnotation(Authentication.class);
-    }
-
-    return null;
-  }
-
-  private static @NonNull List<AuthProvider> resolveProvider(@NonNull Authentication authentication) {
-    var providers = Arrays.stream(authentication.providers()).map(AuthProviderLoader::resolveAuthProvider).toList();
-    if (providers.isEmpty()) {
-      throw new IllegalArgumentException("No auth providers given in @Authentication");
-    }
-
-    return providers;
-  }
-
   private @NonNull RestUser handleAuth(
     @NonNull HttpContext context,
     @NonNull List<AuthProvider> provider,
@@ -147,8 +148,7 @@ public class AuthenticationProcessor implements HttpAnnotationProcessor {
     if (authenticationResult.ok()) {
       var user = authenticationResult.user();
       if (scopes.length != 0 && !user.hasOneScopeOf(scopes)) {
-        // TODO throw exception with AUTH_REQUIRED_SCOPE_MISSING problem detail
-        throw new IllegalArgumentException();
+        throw new ProblemHttpHandleException(AUTH_REQUIRED_SCOPE_MISSING);
       }
 
       return user;
@@ -156,13 +156,10 @@ public class AuthenticationProcessor implements HttpAnnotationProcessor {
 
     // no auth provider handled the auth attempt
     if (authenticationResult.empty()) {
-      // TODO throw exception with AUTH_METHOD_UNKNOWN problem detail
-      throw new IllegalArgumentException();
+      throw new ProblemHttpHandleException(AUTH_METHOD_UNKNOWN);
     }
 
     // either the user does not exist or the credentials are invalid
-
-    // todo throw exception with AUTH_INVALID problem detail
-    throw new IllegalArgumentException();
+    throw new ProblemHttpHandleException(AUTH_INVALID);
   }
 }
