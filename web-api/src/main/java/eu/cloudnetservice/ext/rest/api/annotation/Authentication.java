@@ -14,29 +14,21 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.rest.api.auth;
+package eu.cloudnetservice.ext.rest.api.annotation;
 
+import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import lombok.NonNull;
-import org.jetbrains.annotations.ApiStatus;
 
-/**
- * Enforces a scope for the annotated http handler. If this annotation is present on class and method level, then the
- * annotation on method level is used.
- * <p>
- * This annotation must be used in combination with {@code @BasicAuth} or {@code @BearerAuth} to have any effect.
- *
- * @since 1.0
- */
 @Documented
-@ApiStatus.Experimental
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD})
-public @interface HandlerScope {
+@Target({ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER})
+public @interface Authentication {
+
+  String[] providers();
 
   /**
    * The scopes that are enforced on the http handler annotated with this annotation. The caller of this handler must
@@ -47,5 +39,5 @@ public @interface HandlerScope {
    *
    * @return the scopes that are enforced on the http handler annotated with this annotation.
    */
-  @NonNull String[] value();
+  String[] scopes() default {};
 }

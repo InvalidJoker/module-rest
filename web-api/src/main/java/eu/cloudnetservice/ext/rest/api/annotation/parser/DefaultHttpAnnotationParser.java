@@ -20,6 +20,7 @@ import eu.cloudnetservice.ext.rest.api.annotation.RequestHandler;
 import eu.cloudnetservice.ext.rest.api.annotation.invoke.HttpHandlerMethodContext;
 import eu.cloudnetservice.ext.rest.api.annotation.invoke.HttpHandlerMethodContextDecorator;
 import eu.cloudnetservice.ext.rest.api.annotation.invoke.HttpHandlerMethodDescriptor;
+import eu.cloudnetservice.ext.rest.api.annotation.parser.processor.AuthenticationProcessor;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.processor.ContentTypeProcessor;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.processor.CrossOriginProcessor;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.processor.FirstRequestQueryParamProcessor;
@@ -29,6 +30,7 @@ import eu.cloudnetservice.ext.rest.api.annotation.parser.processor.RequestPathPa
 import eu.cloudnetservice.ext.rest.api.annotation.parser.processor.RequestPathProcessor;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.processor.RequestQueryParamProcessor;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.processor.RequestTypedBodyProcessor;
+import eu.cloudnetservice.ext.rest.api.auth.RestUserManagementLoader;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.api.registry.HttpHandlerRegistry;
 import java.lang.reflect.Modifier;
@@ -100,15 +102,16 @@ public final class DefaultHttpAnnotationParser implements HttpAnnotationParser {
    */
   public @NonNull HttpAnnotationParser registerDefaultProcessors() {
     return this
-      .registerAnnotationProcessor(new FirstRequestQueryParamProcessor())
       .registerAnnotationProcessor(new RequestBodyProcessor())
-      .registerAnnotationProcessor(new RequestHeaderProcessor())
       .registerAnnotationProcessor(new RequestPathProcessor())
+      .registerAnnotationProcessor(new ContentTypeProcessor())
+      .registerAnnotationProcessor(new CrossOriginProcessor())
+      .registerAnnotationProcessor(new RequestHeaderProcessor())
+      .registerAnnotationProcessor(new RequestTypedBodyProcessor())
       .registerAnnotationProcessor(new RequestPathParamProcessor())
       .registerAnnotationProcessor(new RequestQueryParamProcessor())
-      .registerAnnotationProcessor(new ContentTypeProcessor())
-      .registerAnnotationProcessor(new RequestTypedBodyProcessor())
-      .registerAnnotationProcessor(new CrossOriginProcessor());
+      .registerAnnotationProcessor(new FirstRequestQueryParamProcessor())
+      .registerAnnotationProcessor(new AuthenticationProcessor(RestUserManagementLoader::load));
   }
 
   /**

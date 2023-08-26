@@ -26,7 +26,7 @@ import eu.cloudnetservice.ext.rest.api.annotation.parser.AnnotationHandleExcepti
 import eu.cloudnetservice.ext.rest.api.annotation.parser.DefaultHttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.HttpAnnotationProcessor;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.HttpAnnotationProcessorUtil;
-import eu.cloudnetservice.ext.rest.api.codec.CodecProvider;
+import eu.cloudnetservice.ext.rest.api.codec.CodecLoader;
 import eu.cloudnetservice.ext.rest.api.codec.DataformatCodec;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpHandlerInterceptor;
@@ -93,7 +93,7 @@ public final class RequestTypedBodyProcessor implements HttpAnnotationProcessor 
     @NonNull Parameter debugParameter
   ) {
     if (codecClass.isInterface()) {
-      return CodecProvider.resolveCodec(codecClass);
+      return CodecLoader.resolveCodec(codecClass);
     } else {
       try {
         // use the public no-args constructor in the codec class

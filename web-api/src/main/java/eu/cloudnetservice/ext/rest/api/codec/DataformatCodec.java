@@ -23,9 +23,9 @@ import lombok.NonNull;
 
 /**
  * A dataformat codec that supports both serialization of a POJO to a string representation and back to a POJO. To
- * obtain a codec implementation use {@link CodecProvider#resolveCodec(Class)} with the registered codec type.
+ * obtain a codec implementation use {@link CodecLoader#resolveCodec(Class)} with the registered codec type.
  *
- * @see CodecProvider
+ * @see CodecLoader
  * @see eu.cloudnetservice.ext.rest.api.codec.builtin.JsonCodec
  * @since 1.0
  */

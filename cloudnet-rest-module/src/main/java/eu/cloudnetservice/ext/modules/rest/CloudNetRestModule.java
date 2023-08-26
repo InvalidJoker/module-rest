@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.rest.api.codec.builtin;
+package eu.cloudnetservice.ext.modules.rest;
 
-import eu.cloudnetservice.ext.rest.api.codec.CodecLoader;
-import eu.cloudnetservice.ext.rest.api.codec.DataformatCodec;
+import eu.cloudnetservice.driver.module.driver.DriverModule;
+import jakarta.inject.Singleton;
 
-/**
- * A dataformat codec that supports both serialization of a POJO to a string representation and back to a POJO. This
- * json codec specifies that every implementation serializes into json and deserializes from json.
- * <p>
- * To obtain a codec implementation use {@code CodecProvider.resolveCodec(JsonCodec.class)}
- *
- * @see CodecLoader
- * @see DataformatCodec
- * @since 1.0
- */
-public interface JsonCodec extends DataformatCodec {
+@Singleton
+public class CloudNetRestModule extends DriverModule {
+
+
 
 }
