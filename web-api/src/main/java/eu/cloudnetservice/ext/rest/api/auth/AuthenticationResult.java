@@ -36,6 +36,10 @@ public final class AuthenticationResult {
     this.user = user;
   }
 
+  public static @NonNull AuthenticationResult ok(@NonNull RestUser user) {
+    return new AuthenticationResult(State.OK, user);
+  }
+
   public static @NonNull AuthenticationResult proceed() {
     return EMPTY;
   }

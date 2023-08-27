@@ -58,4 +58,20 @@ public interface RestUserManagement {
    * @throws NullPointerException if the given user is null.
    */
   boolean deleteRestUser(@NonNull RestUser user);
+
+  /**
+   * Gets a new rest user builder.
+   *
+   * @return a new rest user builder.
+   */
+  @NonNull RestUser.Builder builder();
+
+  /**
+   * Gets a new rest user builder copying all properties from the given rest user into the new builder.
+   *
+   * @param restUser the user to copy all properties from.
+   * @return a new rest user builder copying everything from the given user.
+   * @throws NullPointerException if the given rest user is null.
+   */
+  @NonNull RestUser.Builder builder(@NonNull RestUser restUser);
 }

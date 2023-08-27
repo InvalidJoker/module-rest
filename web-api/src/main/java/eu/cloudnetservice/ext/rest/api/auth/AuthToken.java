@@ -16,18 +16,8 @@
 
 package eu.cloudnetservice.ext.rest.api.auth;
 
-import eu.cloudnetservice.ext.rest.api.HttpContext;
-import lombok.NonNull;
+import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 
-public interface AuthProvider<T> {
+public interface AuthToken<T> extends IntoResponse<T> {
 
-  int priority();
-
-  boolean supportsTokenGeneration();
-
-  @NonNull String name();
-
-  @NonNull AuthToken<T> generateAuthToken(@NonNull RestUser user);
-
-  @NonNull AuthenticationResult tryAuthenticate(@NonNull HttpContext context, @NonNull RestUserManagement management);
 }

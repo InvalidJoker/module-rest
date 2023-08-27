@@ -18,6 +18,7 @@ package eu.cloudnetservice.ext.rest.api.auth;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import lombok.NonNull;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Unmodifiable;
@@ -67,4 +68,74 @@ public interface RestUser {
    */
   @Unmodifiable
   @NonNull Set<String> scopes();
+
+  /**
+   * The rest user builder used to create and modify rest users to ensure immutability of the rest user itself.
+   * <p>
+   * Obtain a fresh builder instance using {@link RestUserManagement#builder()} or
+   * {@link RestUserManagement#builder(RestUser)} if you want to copy existing properties.
+   *
+   * @see RestUser
+   * @see RestUserManagement
+   * @since 4.0
+   */
+  @ApiStatus.Experimental
+  interface Builder {
+
+    /**
+     * Sets the id of the rest user.
+     *
+     * @param id the id to set.
+     * @return the same instance as used to call the method, for chaining.
+     * @throws NullPointerException if the given id is null.
+     */
+    @NonNull Builder id(@NonNull String id);
+
+    @NonNull Builder addProperty(@NonNull String property, @NonNull String value);
+
+    @NonNull Builder properties(@NonNull Map<String, String> properties);
+
+    @NonNull Builder modifyProperties(@NonNull Consumer<Map<String, String>> modifier);
+
+    /**
+     * Adds the given scope to the rest users scopes. The scope has to follow the
+     * {@link RestUserManagement#SCOPE_NAMING_REGEX} regex pattern. The only exception to that is the {@code admin}
+     * scope that grants access to everything.
+     *
+     * @param scope the scope to add to the rest users scope.
+     * @return the same instance as used to call the method, for chaining.
+     * @throws NullPointerException     if the given scope is null.
+     * @throws IllegalArgumentException if the scope does not follow the mentioned regex pattern.
+     */
+    @NonNull Builder addScope(@NonNull String scope);
+
+    /**
+     * Removes the given scope from the rest users scopes.
+     *
+     * @param scope the scope to remove from the rest users scopes.
+     * @return the same instance as used to call the method, for chaining.
+     * @throws NullPointerException if the given scope is null.
+     */
+    @NonNull Builder removeScope(@NonNull String scope);
+
+    /**
+     * Sets all scopes of the rest user, overwriting already set scopes. The scopes have to follow the
+     * {@link RestUserManagement#SCOPE_NAMING_REGEX} regex pattern. The only exception to that is the {@code admin}
+     * scope that grants access to everything.
+     *
+     * @param scopes the scopes to set.
+     * @return the same instance as used to call the method, for chaining.
+     * @throws NullPointerException     if the given scope set is null.
+     * @throws IllegalArgumentException if the scopes do not follow the mentioned regex pattern.
+     */
+    @NonNull Builder scopes(@NonNull Set<String> scopes);
+
+    /**
+     * Creates the rest user from this builder.
+     *
+     * @return the newly built rest user from this builder.
+     * @throws NullPointerException if no id was set.
+     */
+    @NonNull RestUser build();
+  }
 }

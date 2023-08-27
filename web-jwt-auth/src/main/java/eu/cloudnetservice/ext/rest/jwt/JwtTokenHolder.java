@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.rest.api.auth;
+package eu.cloudnetservice.ext.rest.jwt;
 
-import eu.cloudnetservice.ext.rest.api.HttpContext;
 import lombok.NonNull;
 
-public interface AuthProvider<T> {
+public record JwtTokenHolder(@NonNull String token, long expiresIn, @NonNull String type) {
 
-  int priority();
+  public static final String ACCESS_TOKEN_TYPE = "access";
+  public static final String REFRESH_TOKEN_TYPE = "refresh";
 
-  boolean supportsTokenGeneration();
-
-  @NonNull String name();
-
-  @NonNull AuthToken<T> generateAuthToken(@NonNull RestUser user);
-
-  @NonNull AuthenticationResult tryAuthenticate(@NonNull HttpContext context, @NonNull RestUserManagement management);
 }
