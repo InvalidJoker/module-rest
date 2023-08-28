@@ -40,7 +40,7 @@ public interface HttpMessage<T extends HttpMessage<T>> extends HttpCookieAware<T
   @NonNull HttpContext context();
 
   /**
-   * Getss the http header map containing all set headers for this http message.
+   * Gets the http header map containing all set headers for this http message.
    *
    * @return the http header map for this http message.
    */
@@ -93,6 +93,7 @@ public interface HttpMessage<T extends HttpMessage<T>> extends HttpCookieAware<T
    * @param text the body as a string.
    * @return the same message as used to call the method, for chaining.
    * @throws UnsupportedOperationException if setting the body is not supported for the http message.
+   * @throws NullPointerException          if the given text is null.
    */
   @NonNull T body(@NonNull String text);
 

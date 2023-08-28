@@ -24,10 +24,11 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * The context of a http request. Each request will pass this context to all handlers of it, allowing them the maximum
- * control about the request flow.
+ * The http context for requests and responses that are handled by this system. This context provides information needed
+ * for the handling and processing of both requests and responses.
+ * <p>
+ * The context is unique for each incoming request and outgoing response.
  *
- * @see HttpHandler
  * @since 1.0
  */
 public interface HttpContext {
@@ -105,7 +106,7 @@ public interface HttpContext {
   @NonNull BasicHttpConnectionInfo connectionInfo();
 
   /**
-   * Sets whether the connection to client should be closed after the last handler in the chain. This defaults to true.
+   * Sets whether the connection to client should be closed after the last handler in the chain. This defaults to false.
    * If set to false, the connection will not be closed and the {@code connection} header will automatically be set to
    * {@code keep-alive}. <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Keep-Alive">Mdn docs</a> are
    * providing a more in-depth walk through which other components may be set by a developer to customize the keep alive
@@ -117,9 +118,9 @@ public interface HttpContext {
   @NonNull HttpContext closeAfter(boolean value);
 
   /**
-   * Sets that the connection to the client should be terminated after the last handler in the chain.
+   * Gets whether the connection to the client should be terminated after the last handler in the chain.
    *
-   * @return true if the closing state was updated, false otherwise.
+   * @return true if the connection should be terminated, false otherwise.
    */
   boolean closeAfter();
 

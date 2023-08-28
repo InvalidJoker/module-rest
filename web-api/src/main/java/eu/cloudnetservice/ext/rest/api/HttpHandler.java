@@ -20,9 +20,8 @@ import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import lombok.NonNull;
 
 /**
- * A handler for a http request. Each request, matching the given attributes supplied when registering, will be called
- * directly into this handler. A request is only processed by one handler at a time. Handlers with a high priority will
- * Gets called before handlers with a low priority.
+ * The http handler class is designed to handle incoming http requests and create the corresponding responses to the
+ * requests. Each handler is responsible for the previously registered path and http request method.
  *
  * @since 1.0
  */
@@ -31,8 +30,7 @@ public interface HttpHandler {
 
   /**
    * Handles a http request whose path (and other supplied attributes) while registering is matching the requested path
-   * of the client. A request is only processed by one handler at a time, giving the handler full control about changing
-   * the context. Changes to the context will be reflected into other handlers and vise-versa.
+   * of the client. The request is only posted to the one handler that matches the requested path.
    *
    * @param context the current context of the request.
    * @throws Exception            if any exception occurs during the request handling.

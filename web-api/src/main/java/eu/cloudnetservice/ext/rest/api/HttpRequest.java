@@ -28,11 +28,8 @@ import lombok.NonNull;
 public interface HttpRequest extends HttpMessage<HttpRequest> {
 
   /**
-   * The path parameters of the request, parsed before processing the next handler in the chain. A handler can provide a
-   * path parameter by wrapping its name into {name} would result as a key in this map at the given path index. For
-   * example the path {@code /docs/{topic}/index/{page}} would contain the path parameters topic and page, parsed from
-   * the request uri before calling the request handler. Each handler can access the path parameters of handlers
-   * beforehand, however duplicate path parameter names will override each other.
+   * The path parameters parsed from the request. For example the path {@code /docs/{topic}/index/{page}} would contain
+   * the path parameters topic and page, parsed from the request uri before calling the request handler.
    *
    * @return all parsed path parameters for the current request.
    */
