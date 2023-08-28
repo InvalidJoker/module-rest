@@ -194,7 +194,7 @@ public final class ProblemDetail implements IntoResponse<Map<String, Object>> {
    *
    * @since 1.0
    */
-  public static final class Builder {
+  public static final class Builder implements IntoResponse<Map<String, Object>> {
 
     private Map<String, Object> additionalFields = new HashMap<>();
     private HttpResponseCode status = HttpResponseCode.INTERNAL_SERVER_ERROR;
@@ -225,6 +225,19 @@ public final class ProblemDetail implements IntoResponse<Map<String, Object>> {
     public @NonNull Builder type(@Nullable URI type) {
       this.type = type;
       return this;
+    }
+
+    /**
+     * Sets the optional type of the problem detail. While this method takes a string, it is converted to an uri that is
+     * used to identify the problem type.
+     *
+     * @param type the optional type of the problem detail.
+     * @return the same instance as used to call the method, for chaining.
+     * @throws NullPointerException     if the given type is null.
+     * @throws IllegalArgumentException if the given type is not a valid uri.
+     */
+    public @NonNull Builder type(@NonNull String type) {
+      return this.type(URI.create(type));
     }
 
     /**
@@ -265,7 +278,7 @@ public final class ProblemDetail implements IntoResponse<Map<String, Object>> {
     /**
      * Adds an additional field to the problem detail.
      *
-     * @param key the key of the additional field.
+     * @param key   the key of the additional field.
      * @param value the value of the additional field.
      * @return the same instance as used to call the method, for chaining.
      * @throws NullPointerException if the given key or value is null.
@@ -312,6 +325,11 @@ public final class ProblemDetail implements IntoResponse<Map<String, Object>> {
         this.instance,
         this.status,
         Map.copyOf(this.additionalFields));
+    }
+
+    @Override
+    public @NonNull Response.Builder<Map<String, Object>, ?> intoResponseBuilder() {
+      return this.build().intoResponseBuilder();
     }
   }
 }
