@@ -18,4 +18,6 @@ dependencies {
   compileOnlyApi(projects.webApi)
 
   implementation(libs.jjwtApi)
+  implementation(libs.jjwtImpl)
+  implementation(libs.jjwtGson)
 }

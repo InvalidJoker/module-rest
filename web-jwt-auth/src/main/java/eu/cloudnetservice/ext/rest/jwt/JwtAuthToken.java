@@ -33,8 +33,8 @@ public record JwtAuthToken(
   public @NonNull Response.Builder<Map<String, Object>, ?> intoResponseBuilder() {
     return JsonResponse.<Map<String, Object>>builder()
       .body(Map.of(
-        "accessToken", this.accessToken,
-        "refreshToken", this.refreshToken,
+        "accessToken", this.accessToken.serialize(),
+        "refreshToken", this.refreshToken.serialize(),
         "creationTime", this.creationTime.toEpochMilli()));
   }
 }

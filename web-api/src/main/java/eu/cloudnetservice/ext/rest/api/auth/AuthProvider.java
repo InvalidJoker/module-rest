@@ -27,7 +27,7 @@ public interface AuthProvider<T> {
 
   @NonNull String name();
 
-  @NonNull AuthToken<T> generateAuthToken(@NonNull RestUser user);
+  @NonNull AuthToken<T> generateAuthToken(@NonNull RestUser restUser);
 
   @NonNull AuthenticationResult tryAuthenticate(@NonNull HttpContext context, @NonNull RestUserManagement management);
 }

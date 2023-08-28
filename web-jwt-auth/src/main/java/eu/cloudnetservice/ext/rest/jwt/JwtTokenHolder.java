@@ -16,11 +16,28 @@
 
 package eu.cloudnetservice.ext.rest.jwt;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
 import lombok.NonNull;
+import org.jetbrains.annotations.Unmodifiable;
 
-public record JwtTokenHolder(@NonNull String token, long expiresIn, @NonNull String type) {
+public record JwtTokenHolder(
+  @NonNull String token,
+  @NonNull String tokenId,
+  @NonNull Instant expiresAt,
+  @NonNull String tokenType
+) {
 
   public static final String ACCESS_TOKEN_TYPE = "access";
   public static final String REFRESH_TOKEN_TYPE = "refresh";
 
+  @Unmodifiable
+  public @NonNull Map<String, Object> serialize() {
+    var expiresIn = Duration.between(Instant.now(), this.expiresAt).toMillis();
+    return Map.of(
+      "token", this.token,
+      "tokenType", this.tokenType,
+      "expiresIn", expiresIn);
+  }
 }

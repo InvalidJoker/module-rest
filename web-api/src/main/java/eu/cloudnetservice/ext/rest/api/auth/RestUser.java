@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import lombok.NonNull;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 @ApiStatus.Experimental
@@ -90,6 +91,8 @@ public interface RestUser {
      * @throws NullPointerException if the given id is null.
      */
     @NonNull Builder id(@NonNull String id);
+
+    @NonNull Builder property(@NonNull String key, @Nullable String value);
 
     @NonNull Builder properties(@NonNull Map<String, String> properties);
 

@@ -82,7 +82,7 @@ public class AuthenticationProcessor implements HttpAnnotationProcessor {
     return null;
   }
 
-  private static @NonNull List<AuthProvider> resolveProvider(@NonNull Authentication authentication) {
+  private static @NonNull List<? extends AuthProvider<?>> resolveProvider(@NonNull Authentication authentication) {
     var providers = Arrays.stream(authentication.providers()).map(AuthProviderLoader::resolveAuthProvider).toList();
     if (providers.isEmpty()) {
       throw new IllegalArgumentException("No auth providers given in @Authentication");
@@ -128,7 +128,7 @@ public class AuthenticationProcessor implements HttpAnnotationProcessor {
 
   private @NonNull RestUser handleAuth(
     @NonNull HttpContext context,
-    @NonNull List<AuthProvider> provider,
+    @NonNull List<? extends AuthProvider<?>> provider,
     @NonNull String[] scopes
   ) {
     if (provider.isEmpty()) {
