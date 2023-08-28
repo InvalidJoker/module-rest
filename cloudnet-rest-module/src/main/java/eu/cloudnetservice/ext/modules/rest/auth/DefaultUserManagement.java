@@ -67,4 +67,17 @@ public final class DefaultUserManagement implements RestUserManagement {
   public boolean deleteRestUser(@NonNull RestUser user) {
     return this.localDatabase.delete(user.id());
   }
+
+  @Override
+  public @NonNull RestUser.Builder builder() {
+    return new DefaultRestUser.Builder();
+  }
+
+  @Override
+  public @NonNull RestUser.Builder builder(@NonNull RestUser restUser) {
+    return this.builder()
+      .id(restUser.id())
+      .scopes(restUser.scopes())
+      .properties(restUser.properties());
+  }
 }

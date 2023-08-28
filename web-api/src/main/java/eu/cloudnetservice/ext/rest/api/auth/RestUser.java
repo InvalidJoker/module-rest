@@ -91,8 +91,6 @@ public interface RestUser {
      */
     @NonNull Builder id(@NonNull String id);
 
-    @NonNull Builder addProperty(@NonNull String property, @NonNull String value);
-
     @NonNull Builder properties(@NonNull Map<String, String> properties);
 
     @NonNull Builder modifyProperties(@NonNull Consumer<Map<String, String>> modifier);

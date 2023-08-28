@@ -67,7 +67,7 @@ public record DefaultRestUser(
   /**
    * {@inheritDoc}
    */
-  public static final class Builder {
+  public static final class Builder implements RestUser.Builder {
 
     private String id;
     private Map<String, String> properties;
@@ -90,8 +90,8 @@ public record DefaultRestUser(
       return this;
     }
 
-    public @NonNull Builder modifyProperties(@NonNull Consumer<Map<String, String>> propertiesConsumer) {
-      propertiesConsumer.accept(this.properties);
+    public @NonNull Builder modifyProperties(@NonNull Consumer<Map<String, String>> modifier) {
+      modifier.accept(this.properties);
       return this;
     }
 
