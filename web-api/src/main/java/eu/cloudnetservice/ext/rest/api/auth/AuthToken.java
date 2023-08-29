@@ -17,7 +17,10 @@
 package eu.cloudnetservice.ext.rest.api.auth;
 
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
+import java.time.Instant;
+import lombok.NonNull;
 
 public interface AuthToken<T> extends IntoResponse<T> {
 
+  @NonNull Instant creationTime();
 }
