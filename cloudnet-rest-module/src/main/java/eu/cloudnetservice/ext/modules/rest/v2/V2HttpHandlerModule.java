@@ -152,7 +152,7 @@ public final class V2HttpHandlerModule {
           .type("module-uninstall-failed")
           .title("Module Uninstall Failed")
           .status(HttpResponseCode.INTERNAL_SERVER_ERROR)
-          .detail(String.format("Uninstalling module %s failed due to internal I/O error.", name));
+          .detail(String.format("Uninstalling module %s failed due to an internal I/O error.", name));
       }
 
       return JsonResponse.builder().noContent();
