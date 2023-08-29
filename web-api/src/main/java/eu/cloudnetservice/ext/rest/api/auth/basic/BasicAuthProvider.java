@@ -87,10 +87,10 @@ public class BasicAuthProvider implements AuthProvider<Void> {
         return AuthenticationResult.userNotFound();
       }
 
-      // get the password, validate it and erase the info
+      // get the password, validate it and erase the password from the memory
       var passwordBytes = Arrays.copyOfRange(decodedBasicValue, basicAuthDelimiterIdx + 1, decodedBasicValue.length);
       var suppliedValidPassword = this.validatePassword(extractedUser, passwordBytes);
-      this.erasePasswordBytes(passwordBytes);
+      Arrays.fill(passwordBytes, (byte) 0);
       if (suppliedValidPassword) {
         // valid user and password
         return AuthenticationResult.ok(extractedUser);
@@ -115,9 +115,5 @@ public class BasicAuthProvider implements AuthProvider<Void> {
 
   protected boolean validatePassword(@NonNull RestUser user, byte[] passwordBytes) {
     return true;
-  }
-
-  protected void erasePasswordBytes(byte[] passwordBytes) {
-    Arrays.fill(passwordBytes, (byte) 0);
   }
 }
