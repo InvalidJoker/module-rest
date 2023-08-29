@@ -36,7 +36,9 @@ public final class JwtTokenPropertyParser {
   public static @NonNull Collection<JwtTokenHolder> parseTokens(@Nullable String propertyValue) {
     if (propertyValue == null || propertyValue.isBlank()) {
       // property is not present, we can just return an empty list as there are no tokens
-      return new ArrayList<>(1);
+      // initial capacity is two here: it might be that someone wants to register a new key pair after parsing
+      // and this only required a list with an initial size of 3 (to prevent a resize), not 10
+      return new ArrayList<>(3);
     }
 
     // this uses a CSV format for storing the entries but for newlines we don't use \n and a semicolon instead

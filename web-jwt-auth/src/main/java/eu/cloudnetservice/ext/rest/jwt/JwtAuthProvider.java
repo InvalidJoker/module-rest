@@ -95,7 +95,7 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
     this.restUserManagement = restUserManagement;
 
     // symmetric keys only use one key for signing and validating
-    // asymmetric keys need a separate keys to sign and validate
+    // asymmetric keys need a separate keys: one to sign and one to validate
     var validationKey = Objects.requireNonNullElse(jwtValidationKey, jwtSigningKey);
     this.jwtParser = Jwts.parserBuilder().requireIssuer(issuer).setSigningKey(validationKey).build();
   }
@@ -178,7 +178,7 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
     // remove the outdated tokens and register the new ones
     var currentTime = Instant.now();
     var tokens = parsedStoredTokens.stream()
-      .filter(holder -> currentTime.isAfter(holder.expiresAt()))
+      .filter(holder -> currentTime.isBefore(holder.expiresAt()))
       .collect(Collectors.collectingAndThen(Collectors.toCollection(ArrayList::new), list -> {
         list.add(accessToken);
         list.add(refreshToken);
@@ -220,7 +220,7 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
   protected boolean checkTokenValidity(@NonNull Collection<JwtTokenHolder> tokens, @NonNull String tokenId) {
     var currentTime = Instant.now();
     return tokens.stream()
-      .filter(holder -> currentTime.isAfter(holder.expiresAt()))
+      .filter(holder -> currentTime.isBefore(holder.expiresAt()))
       .filter(holder -> holder.tokenId().equals(tokenId))
       .anyMatch(holder -> holder.tokenType().equals(JwtTokenHolder.ACCESS_TOKEN_TYPE));
   }
