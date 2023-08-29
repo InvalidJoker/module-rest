@@ -22,7 +22,6 @@ import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
 import eu.cloudnetservice.ext.rest.api.auth.AuthenticationResult;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
-import eu.cloudnetservice.ext.rest.api.auth.RestUserManagementLoader;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
@@ -59,7 +58,6 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
   private final Duration refreshDuration;
 
   private final JwtParser jwtParser;
-  private final RestUserManagement restUserManagement;
 
   public JwtAuthProvider() {
     this(
@@ -77,22 +75,10 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
     @NonNull Duration accessDuration,
     @NonNull Duration refreshDuration
   ) {
-    this(issuer, jwtSigningKey, jwtValidationKey, accessDuration, refreshDuration, RestUserManagementLoader.load());
-  }
-
-  public JwtAuthProvider(
-    @NonNull String issuer,
-    @NonNull Key jwtSigningKey,
-    @Nullable Key jwtValidationKey,
-    @NonNull Duration accessDuration,
-    @NonNull Duration refreshDuration,
-    @NonNull RestUserManagement restUserManagement
-  ) {
     this.issuer = issuer;
     this.jwtSigningKey = jwtSigningKey;
     this.accessDuration = accessDuration;
     this.refreshDuration = refreshDuration;
-    this.restUserManagement = restUserManagement;
 
     // symmetric keys only use one key for signing and validating
     // asymmetric keys need a separate keys: one to sign and one to validate
@@ -138,7 +124,7 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
 
       // validate the token subject
       var subject = token.getBody().getSubject();
-      var user = this.restUserManagement.restUser(subject);
+      var user = management.restUser(subject);
       if (user == null) {
         return AuthenticationResult.userNotFound();
       }
@@ -157,7 +143,7 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
   }
 
   @Override
-  public @NonNull JwtAuthToken generateAuthToken(@NonNull RestUser restUser) {
+  public @NonNull JwtAuthToken generateAuthToken(@NonNull RestUserManagement management, @NonNull RestUser restUser) {
     // generate a new access and refresh token for the user
     var tokenPairId = this.newRandomTokenId();
     var accessToken = this.generateNewJwtToken(
@@ -187,8 +173,8 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
 
     // update the token list
     var compactedTokens = JwtTokenPropertyParser.compactTokens(tokens);
-    var updatedUser = this.restUserManagement.builder(restUser).property(JWT_TOKEN_PAIR_KEY, compactedTokens).build();
-    this.restUserManagement.saveRestUser(updatedUser);
+    var updatedUser = management.builder(restUser).property(JWT_TOKEN_PAIR_KEY, compactedTokens).build();
+    management.saveRestUser(updatedUser);
 
     // return the generated token pair
     return new JwtAuthToken(currentTime, accessToken, refreshToken);
