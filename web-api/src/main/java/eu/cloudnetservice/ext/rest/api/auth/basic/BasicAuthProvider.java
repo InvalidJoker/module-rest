@@ -89,13 +89,13 @@ public class BasicAuthProvider implements AuthProvider<Void> {
 
       // get the password and validate it
       var passwordBytes = Arrays.copyOfRange(decodedBasicValue, basicAuthDelimiterIdx + 1, decodedBasicValue.length);
-      if (this.validatePassword(extractedUser, passwordBytes)) {
+      var suppliedValidPassword = this.validatePassword(extractedUser, passwordBytes);
+      this.erasePasswordBytes(passwordBytes);
+      if (suppliedValidPassword) {
         // erase the password info return a success
-        this.erasePasswordBytes(passwordBytes);
         return AuthenticationResult.ok(extractedUser);
       } else {
         // invalid password
-        this.erasePasswordBytes(passwordBytes);
         return AuthenticationResult.invalidCredentials();
       }
     } catch (IllegalArgumentException exception) {
