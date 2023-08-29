@@ -48,6 +48,7 @@ public final class V2HttpHandlerModule {
     this.moduleProvider = moduleProvider;
   }
 
+  // TODO docs: request method changed
   @RequestHandler(path = "/api/v2/module/reload", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_write", "cloudnet_rest:module_reload_all"})
   public @NonNull IntoResponse<?> handleModuleReloadRequest() {
@@ -70,6 +71,7 @@ public final class V2HttpHandlerModule {
       module -> JsonResponse.builder().body(this.constructModuleInformation(module)));
   }
 
+  // TODO docs: request method changed
   @RequestHandler(path = "/api/v2/module/{module}/reload", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_write", "cloudnet_rest:module_reload"})
   public @NonNull IntoResponse<?> handleModuleReloadRequest(@NonNull @RequestPathParam("module") String name) {
@@ -79,6 +81,7 @@ public final class V2HttpHandlerModule {
     });
   }
 
+  // TODO docs: request method changed
   @RequestHandler(path = "/api/v2/module/{module}/unload", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_write", "cloudnet_rest:module_unload"})
   public @NonNull IntoResponse<?> handleModuleUnloadRequest(@NonNull @RequestPathParam("module") String name) {

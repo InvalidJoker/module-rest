@@ -85,7 +85,7 @@ public final class V2HttpHandlerGroup {
     return JsonResponse.builder().responseCode(HttpResponseCode.CREATED);
   }
 
-  @RequestHandler(path = "", method = HttpMethod.DELETE)
+  @RequestHandler(path = "/api/v2/group/{name}", method = HttpMethod.DELETE)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:group_write", "cloudnet_rest:group_delete"})
   public @NonNull IntoResponse<?> handleGroupDeleteRequest(@NonNull @RequestPathParam("name") String name) {
     var group = this.groupProvider.groupConfiguration(name);
