@@ -93,7 +93,7 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
 
   @Override
   public int priority() {
-    return 10;
+    return AuthProvider.DEFAULT_PRIORITY;
   }
 
   @Override

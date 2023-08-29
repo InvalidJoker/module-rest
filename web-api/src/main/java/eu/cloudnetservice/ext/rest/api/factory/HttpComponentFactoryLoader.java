@@ -40,7 +40,7 @@ public final class HttpComponentFactoryLoader {
    * @return all component factories that are present in the runtime.
    */
   public static @NonNull Collection<? extends HttpComponentFactory<?>> loadComponentFactories() {
-    var serviceLoader = ServiceLoader.load(HttpComponentFactory.class);
+    var serviceLoader = ServiceLoader.load(HttpComponentFactory.class, HttpComponentFactory.class.getClassLoader());
     return serviceLoader.stream()
       .map(ServiceLoader.Provider::get)
       .map(factory -> (HttpComponentFactory<?>) factory)
@@ -59,7 +59,7 @@ public final class HttpComponentFactoryLoader {
   public static @NonNull <T extends HttpComponent<T>> Collection<HttpComponentFactory<T>> loadComponentFactories(
     @NonNull Class<T> componentType
   ) {
-    var serviceLoader = ServiceLoader.load(HttpComponentFactory.class);
+    var serviceLoader = ServiceLoader.load(HttpComponentFactory.class, HttpComponentFactory.class.getClassLoader());
     return serviceLoader.stream()
       .map(ServiceLoader.Provider::get)
       .filter(factory -> factory.supportedComponentType() == componentType)

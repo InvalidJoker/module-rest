@@ -36,7 +36,7 @@ public class BasicAuthProvider implements AuthProvider<Void> {
 
   @Override
   public int priority() {
-    return 10;
+    return AuthProvider.DEFAULT_PRIORITY;
   }
 
   @Override

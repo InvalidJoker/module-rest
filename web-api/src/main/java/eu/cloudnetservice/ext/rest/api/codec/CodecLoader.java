@@ -51,7 +51,7 @@ public final class CodecLoader {
   public static @NonNull <T extends DataformatCodec> T resolveCodec(@NonNull Class<T> type) {
     return (T) CODEC_RESOLVE_CACHE.computeIfAbsent(
       type,
-      $ -> ServiceLoader.load(type)
+      __ -> ServiceLoader.load(type, type.getClassLoader())
         .findFirst()
         .orElseThrow(() -> new IllegalArgumentException("Missing codec implementation for: " + type.getSimpleName())));
   }
