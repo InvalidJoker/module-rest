@@ -71,6 +71,8 @@ public final class V2HttpHandlerModule {
       module -> JsonResponse.builder().body(this.constructModuleInformation(module)));
   }
 
+  // TODO: reconsider if we should merge this into one route like service has
+
   // TODO docs: request method changed
   @RequestHandler(path = "/api/v2/module/{module}/reload", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_write", "cloudnet_rest:module_reload"})
@@ -208,7 +210,7 @@ public final class V2HttpHandlerModule {
 
   private @NonNull IntoResponse<?> handleModuleContext(
     @NonNull String name,
-    @NonNull Function<ModuleWrapper, IntoResponse<?>> presentHandler
+    @NonNull Function<ModuleWrapper, IntoResponse<?>> mapper
   ) {
     var module = this.moduleProvider.module(name);
     if (module == null) {
@@ -219,6 +221,6 @@ public final class V2HttpHandlerModule {
         .detail(String.format("The requested module %s was not found.", name));
     }
 
-    return presentHandler.apply(module);
+    return mapper.apply(module);
   }
 }
