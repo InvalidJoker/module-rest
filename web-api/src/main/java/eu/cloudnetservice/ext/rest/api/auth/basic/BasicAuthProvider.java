@@ -87,12 +87,12 @@ public class BasicAuthProvider implements AuthProvider<Void> {
         return AuthenticationResult.userNotFound();
       }
 
-      // get the password and validate it
+      // get the password, validate it and erase the info
       var passwordBytes = Arrays.copyOfRange(decodedBasicValue, basicAuthDelimiterIdx + 1, decodedBasicValue.length);
       var suppliedValidPassword = this.validatePassword(extractedUser, passwordBytes);
       this.erasePasswordBytes(passwordBytes);
       if (suppliedValidPassword) {
-        // erase the password info return a success
+        // valid user and password
         return AuthenticationResult.ok(extractedUser);
       } else {
         // invalid password
