@@ -17,36 +17,60 @@
 package eu.cloudnetservice.ext.modules.rest.auth;
 
 import eu.cloudnetservice.common.tuple.Tuple2;
-import eu.cloudnetservice.common.util.StringUtil;
-import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
+import java.util.HexFormat;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import lombok.NonNull;
 
-final class EncryptionUtil {
+final class PasswordEncryptionUtil {
 
   private static final int KEY_LENGTH = 512;
   private static final int ITERATION_COUNT = 1_000_000;
 
-  public static @NonNull Tuple2<String, String> encrypt(@NonNull String password) {
-    var salt = StringUtil.generateRandomString(16);
-    var keySpec = new PBEKeySpec(
-      password.toCharArray(),
-      salt.getBytes(StandardCharsets.UTF_8),
-      ITERATION_COUNT,
-      KEY_LENGTH);
+  private static final SecureRandom SALT_GENERATION_RANDOM = new SecureRandom();
 
+  private PasswordEncryptionUtil() {
+    throw new UnsupportedOperationException();
+  }
+
+  public static @NonNull Tuple2<String, String> encrypt(@NonNull String password) {
+    // generate a new salt and encrypt the password with it
+    var salt = newRandomSalt();
+    var passwordHex = encrypt(salt, password);
+
+    // convert the generated salt to hex and return the salt and password info
+    var saltHex = HexFormat.of().formatHex(salt);
+    return new Tuple2<>(saltHex, passwordHex);
+  }
+
+  public static @NonNull String encrypt(@NonNull String saltHex, @NonNull String password) {
+    // encrypt the given password as hex using the salt decoded from the given salt hex
+    var salt = HexFormat.of().parseHex(saltHex);
+    return encrypt(salt, password);
+  }
+
+  private static @NonNull String encrypt(byte[] salt, @NonNull String password) {
     try {
+      // hashes the password using the PBKDF2 with SHA256 as PRF
+      var keySpec = new PBEKeySpec(password.toCharArray(), salt, ITERATION_COUNT, KEY_LENGTH);
       var factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
       var hash = factory.generateSecret(keySpec).getEncoded();
 
-      return new Tuple2<>(salt, new String(hash, StandardCharsets.UTF_8));
+      // return the generated password as hex
+      return HexFormat.of().formatHex(hash);
     } catch (InvalidKeySpecException e) {
       throw new IllegalStateException("Unable to generate secret from key spec");
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException("Unable to retrieve PBKDF2WithHmacSHA256 key factory");
     }
+  }
+
+  private static byte[] newRandomSalt() {
+    var bytes = new byte[16];
+    SALT_GENERATION_RANDOM.nextBytes(bytes);
+    return bytes;
   }
 }

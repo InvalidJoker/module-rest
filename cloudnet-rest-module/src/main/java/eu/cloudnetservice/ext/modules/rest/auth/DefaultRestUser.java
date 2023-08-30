@@ -81,7 +81,7 @@ public record DefaultRestUser(
     }
 
     public @NonNull Builder password(@NonNull String password) {
-      var hashedPasswordInfo = EncryptionUtil.encrypt(password);
+      var hashedPasswordInfo = PasswordEncryptionUtil.encrypt(password);
       this.properties.put(PASSWORD_KEY, hashedPasswordInfo.second());
       this.properties.put(PASSWORD_SALT_KEY, hashedPasswordInfo.first());
       return this;
