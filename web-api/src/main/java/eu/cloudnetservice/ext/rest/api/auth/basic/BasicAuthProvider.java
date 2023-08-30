@@ -31,7 +31,7 @@ import lombok.NonNull;
 
 public class BasicAuthProvider implements AuthProvider<Void> {
 
-  private static final byte BASIC_AUTH_DELIM_CHAR = 0xFF & ':';
+  private static final byte BASIC_AUTH_DELIM_CHAR = ':' & 0xFF;
   private static final Pattern BASIC_LOGIN_PATTERN = Pattern.compile("Basic ([a-zA-Z0-9-_=]+)$");
 
   @Override
