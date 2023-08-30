@@ -138,7 +138,7 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
         if (tokenType != null && tokenType.equals(JwtTokenHolder.ACCESS_TOKEN_TYPE)) {
           return new AuthenticationResult.Success(user);
         } else {
-          return new AuthenticationResult.InvalidTokenType(tokenType);
+          return new AuthenticationResult.InvalidTokenType(user, tokenType);
         }
       } else {
         return AuthenticationResult.Constant.INVALID_CREDENTIALS;

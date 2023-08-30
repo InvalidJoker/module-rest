@@ -68,10 +68,11 @@ public sealed interface AuthenticationResult permits
    * be valid in some other context. This can for example happen when a valid JWT refresh token is used to try and
    * authenticate a user to use an endpoint.
    *
+   * @param restUser  the user that was determined from the given token (that has the invalid type).
    * @param tokenType the type of token that was incorrectly supplied, null if the token type is unknown.
    * @since 1.0
    */
-  record InvalidTokenType(@Nullable String tokenType) implements AuthenticationResult {
+  record InvalidTokenType(@NonNull RestUser restUser, @Nullable String tokenType) implements AuthenticationResult {
 
   }
 }
