@@ -62,13 +62,13 @@ public class BasicAuthProvider implements AuthProvider<Void> {
     // check if the authorization header is present
     var authHeader = context.request().headers().firstValue(HttpHeaders.AUTHORIZATION);
     if (authHeader == null) {
-      return AuthenticationResult.proceed();
+      return AuthenticationResult.Constant.PROCEED;
     }
 
     // check if the authorization header is a basic auth value
     var basicAuthMatcher = BASIC_LOGIN_PATTERN.matcher(authHeader);
     if (!basicAuthMatcher.matches()) {
-      return AuthenticationResult.proceed();
+      return AuthenticationResult.Constant.PROCEED;
     }
 
     try {
@@ -76,7 +76,7 @@ public class BasicAuthProvider implements AuthProvider<Void> {
       var decodedBasicValue = Base64.getUrlDecoder().decode(basicAuthMatcher.group(1));
       var basicAuthDelimiterIdx = this.findBasicDelimiter(decodedBasicValue);
       if (basicAuthDelimiterIdx == -1) {
-        return AuthenticationResult.invalidCredentials();
+        return AuthenticationResult.Constant.INVALID_CREDENTIALS;
       }
 
       // extract the username
@@ -84,7 +84,7 @@ public class BasicAuthProvider implements AuthProvider<Void> {
       var username = new String(usernameBytes, StandardCharsets.UTF_8);
       var extractedUser = management.restUser(username);
       if (extractedUser == null) {
-        return AuthenticationResult.userNotFound();
+        return AuthenticationResult.Constant.USER_NOT_FOUND;
       }
 
       // get the password, validate it and erase the password from the memory
@@ -93,14 +93,14 @@ public class BasicAuthProvider implements AuthProvider<Void> {
       Arrays.fill(passwordBytes, (byte) 0);
       if (suppliedValidPassword) {
         // valid user and password
-        return AuthenticationResult.ok(extractedUser);
+        return new AuthenticationResult.Success(extractedUser);
       } else {
         // invalid password
-        return AuthenticationResult.invalidCredentials();
+        return AuthenticationResult.Constant.INVALID_CREDENTIALS;
       }
     } catch (IllegalArgumentException exception) {
       // invalid base64
-      return AuthenticationResult.invalidCredentials();
+      return AuthenticationResult.Constant.INVALID_CREDENTIALS;
     }
   }
 
