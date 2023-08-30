@@ -63,6 +63,6 @@ public final class V2HttpHandlerTemplateStorage {
         .detail(String.format("The requested template storage %s was not found.", storage));
     }
 
-    return JsonResponse.builder().body(Map.of("tempaltes", templateStorage.templates()));
+    return JsonResponse.builder().body(Map.of("templates", templateStorage.templates()));
   }
 }
