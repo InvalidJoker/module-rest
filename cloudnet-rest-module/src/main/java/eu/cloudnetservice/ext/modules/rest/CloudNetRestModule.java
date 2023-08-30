@@ -16,12 +16,71 @@
 
 package eu.cloudnetservice.ext.modules.rest;
 
+import eu.cloudnetservice.driver.inject.InjectionLayer;
+import eu.cloudnetservice.driver.module.ModuleLifeCycle;
+import eu.cloudnetservice.driver.module.ModuleTask;
 import eu.cloudnetservice.driver.module.driver.DriverModule;
+import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerAuthorization;
+import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerCluster;
+import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerDatabase;
+import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerDocumentation;
+import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerGroup;
+import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerModule;
+import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerNode;
+import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerService;
+import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerServiceVersion;
+import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerTask;
+import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerTemplate;
+import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerTemplateStorage;
+import eu.cloudnetservice.ext.rest.api.HttpServer;
+import eu.cloudnetservice.ext.rest.api.config.ComponentConfig;
+import eu.cloudnetservice.ext.rest.api.config.CorsConfig;
+import eu.cloudnetservice.ext.rest.api.config.HttpProxyMode;
+import eu.cloudnetservice.ext.rest.api.factory.HttpComponentFactoryLoader;
 import jakarta.inject.Singleton;
+import lombok.NonNull;
 
 @Singleton
 public class CloudNetRestModule extends DriverModule {
 
+  @ModuleTask(lifecycle = ModuleLifeCycle.STARTED)
+  public void init(@NonNull InjectionLayer<?> layer) {
+    var config = ComponentConfig.builder()
+      .haProxyMode(HttpProxyMode.AUTO_DETECT)
+      .corsConfig(CorsConfig.builder()
+        .addAllowedOrigin("*")
+        .addAllowedHeader("*")
+        .build()).build();
 
+    var componentFactory = HttpComponentFactoryLoader.getFirstComponentFactory(HttpServer.class);
+    var server = componentFactory.construct(config);
 
+    server.addListener(1870);
+
+    this.parseAndRegister(
+      layer,
+      server,
+      V2HttpHandlerAuthorization.class,
+      V2HttpHandlerCluster.class,
+      V2HttpHandlerDatabase.class,
+      V2HttpHandlerDocumentation.class,
+      V2HttpHandlerGroup.class,
+      V2HttpHandlerModule.class,
+      V2HttpHandlerNode.class,
+      V2HttpHandlerService.class,
+      V2HttpHandlerServiceVersion.class,
+      V2HttpHandlerTask.class,
+      V2HttpHandlerTemplate.class,
+      V2HttpHandlerTemplateStorage.class);
+  }
+
+  private void parseAndRegister(
+    @NonNull InjectionLayer<?> layer,
+    @NonNull HttpServer server,
+    @NonNull Class<?>... handlers
+  ) {
+    for (var handlerType : handlers) {
+      server.annotationParser().parseAndRegister(layer.instance(handlerType));
+    }
+  }
 }

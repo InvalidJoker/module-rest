@@ -17,6 +17,7 @@
 package eu.cloudnetservice.ext.modules.rest.auth;
 
 import eu.cloudnetservice.driver.document.Document;
+import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.node.database.LocalDatabase;
@@ -24,18 +25,22 @@ import eu.cloudnetservice.node.database.NodeDatabaseProvider;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class DefaultUserManagement implements RestUserManagement {
+public final class DefaultRestUserManagement implements RestUserManagement {
 
   private static final String REST_USER_DB_NAME = "cloudnet_rest_users";
 
   private final LocalDatabase localDatabase;
+
+  public DefaultRestUserManagement() {
+    this(InjectionLayer.ext().instance(NodeDatabaseProvider.class));
+  }
 
   /**
    * Creates the default user management and initializes the used database.
    *
    * @param databaseProvider the node database provider to use to create the user database.
    */
-  public DefaultUserManagement(@NonNull NodeDatabaseProvider databaseProvider) {
+  public DefaultRestUserManagement(@NonNull NodeDatabaseProvider databaseProvider) {
     this.localDatabase = databaseProvider.database(REST_USER_DB_NAME);
   }
 

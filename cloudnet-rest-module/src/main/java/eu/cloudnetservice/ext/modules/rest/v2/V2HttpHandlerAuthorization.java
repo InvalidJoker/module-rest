@@ -16,13 +16,12 @@
 
 package eu.cloudnetservice.ext.modules.rest.v2;
 
-import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestHandler;
-import eu.cloudnetservice.ext.rest.api.annotation.RequestTypedBody;
+import eu.cloudnetservice.ext.rest.api.auth.AuthenticationResult;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagementLoader;
@@ -31,11 +30,12 @@ import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
 import eu.cloudnetservice.ext.rest.jwt.JwtAuthProvider;
 import eu.cloudnetservice.ext.rest.jwt.JwtAuthToken;
+import eu.cloudnetservice.ext.rest.jwt.JwtTokenPropertyParser;
 import jakarta.inject.Singleton;
+import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
-import java.util.Map;
 import lombok.NonNull;
 
 @Singleton
@@ -44,9 +44,14 @@ public final class V2HttpHandlerAuthorization {
   private final JwtAuthProvider authProvider;
   private final RestUserManagement management;
 
-  public V2HttpHandlerAuthorization() throws NoSuchAlgorithmException {
+  public V2HttpHandlerAuthorization() {
     // TODO from file
-    var keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+    KeyPair keyPair;
+    try {
+      keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    }
     this.authProvider = new JwtAuthProvider(
       "CloudNet Rest",
       keyPair.getPrivate(),
@@ -57,26 +62,52 @@ public final class V2HttpHandlerAuthorization {
   }
 
   @RequestHandler(path = "/api/v2/auth")
-  @Authentication(providers = "basic")
-  public @NonNull IntoResponse<?> handleBasicAuthLoginRequest(@NonNull RestUser user) {
+  public @NonNull IntoResponse<?> handleBasicAuthLoginRequest(
+    @Authentication(providers = "basic") @NonNull RestUser user
+  ) {
     var token = (JwtAuthToken) this.authProvider.generateAuthToken(this.management, user);
-    return JsonResponse.builder().body(Document.newJsonDocument().appendTree(token).append("userId", user));
+    return token.intoResponseBuilder();
   }
 
   @RequestHandler(path = "/api/v2/auth/refresh", method = HttpMethod.POST)
-  public @NonNull IntoResponse<?> handleRefreshRequest(
-    @NonNull HttpContext context,
-    @NonNull @RequestTypedBody Map<String, String> body
-  ) {
-    var token = body.get("token");
-    if (token == null) {
+  public @NonNull IntoResponse<?> handleRefreshRequest(@NonNull HttpContext context) {
+    var authenticationResult = this.authProvider.tryAuthenticate(context, this.management);
+    if (authenticationResult instanceof AuthenticationResult.Success) {
       return ProblemDetail.builder()
-        .type("refresh-token-missing")
-        .title("Refresh Token Missing")
+        .type("refresh-access-token-used")
+        .title("Refresh Access Token Used")
         .status(HttpResponseCode.BAD_REQUEST)
-        .detail("The request body does not contain a 'token' field with the refresh token.");
+        .detail("The refresh request requires a refresh token instead of an access token.");
     }
 
-    var user = this.authProvider.tryAuthenticate(context, this.management);
+    if (authenticationResult instanceof AuthenticationResult.InvalidTokenType refreshResult) {
+      var user = refreshResult.restUser();
+      // we want to remove the token that was passed in the request as a refresh is requested
+      var parsedTokens = JwtTokenPropertyParser.parseTokens(user.properties().get(JwtAuthProvider.JWT_TOKEN_PAIR_KEY))
+        .stream()
+        .filter(holder -> !holder.tokenId().equals(refreshResult.tokenId()))
+        .toList();
+
+      // convert the tokens back to
+      var compactTokens = JwtTokenPropertyParser.compactTokens(parsedTokens);
+      user = this.management.builder(user).modifyProperties(properties -> {
+        if (compactTokens == null) {
+          // no tokens left, just remove the property
+          properties.remove(JwtAuthProvider.JWT_TOKEN_PAIR_KEY);
+        } else {
+          // update the property
+          properties.put(JwtAuthProvider.JWT_TOKEN_PAIR_KEY, compactTokens);
+        }
+      }).build();
+
+      var token = this.authProvider.generateAuthToken(this.management, user);
+      return JsonResponse.builder().body(token);
+    } else {
+      return ProblemDetail.builder()
+        .type("refresh-invalid-token")
+        .title("Refresh Invalid Token")
+        .status(HttpResponseCode.BAD_REQUEST)
+        .detail("The provided refresh token is invalid.");
+    }
   }
 }

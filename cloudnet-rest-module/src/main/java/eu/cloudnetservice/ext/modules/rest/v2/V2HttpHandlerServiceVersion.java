@@ -19,7 +19,6 @@ package eu.cloudnetservice.ext.modules.rest.v2;
 import eu.cloudnetservice.common.io.FileUtil;
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.driver.service.ServiceTemplate;
-import eu.cloudnetservice.driver.template.TemplateStorageProvider;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
 import eu.cloudnetservice.ext.rest.api.annotation.FirstRequestQueryParam;
@@ -48,17 +47,14 @@ public final class V2HttpHandlerServiceVersion {
 
   private final CloudServiceManager serviceManager;
   private final ServiceVersionProvider versionProvider;
-  private final TemplateStorageProvider templateStorageProvider;
 
   @Inject
   public V2HttpHandlerServiceVersion(
     @NonNull CloudServiceManager serviceManager,
-    @NonNull ServiceVersionProvider versionProvider,
-    @NonNull TemplateStorageProvider templateStorageProvider
+    @NonNull ServiceVersionProvider versionProvider
   ) {
     this.serviceManager = serviceManager;
     this.versionProvider = versionProvider;
-    this.templateStorageProvider = templateStorageProvider;
   }
 
   @RequestHandler(path = "/api/v2/serviceversion")
@@ -151,8 +147,8 @@ public final class V2HttpHandlerServiceVersion {
         .status(HttpResponseCode.BAD_REQUEST)
         .type("service-version-install-missing-target")
         .title("Service Version Install Missing Target")
-        .detail(
-          "The request body has no target. Either set a template in the 'template' field or a static service in the 'staticService' field.");
+        .detail("The request body has no target."
+          + " Either set a template in the 'template' field or a static service in the 'staticService' field.");
     }
 
     var enableCaches = Boolean.parseBoolean(cache);

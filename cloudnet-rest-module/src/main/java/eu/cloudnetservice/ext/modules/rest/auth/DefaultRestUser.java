@@ -72,7 +72,7 @@ public record DefaultRestUser(
 
     private final Set<String> scopes = new HashSet<>();
     private String id;
-    private Map<String, String> properties;
+    private Map<String, String> properties = new HashMap<>();
 
     @Override
     public @NonNull Builder id(@NonNull String id) {

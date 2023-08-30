@@ -117,7 +117,6 @@ public final class V2HttpHandlerModule {
   public @NonNull IntoResponse<?> handleModuleLifecycleRequest(
     @NonNull @RequestPathParam("module") String name,
     @NonNull @FirstRequestQueryParam("target") String lifecycle
-    // reload, unload, start, stop
   ) {
     return this.handleModuleContext(name, module -> {
       switch (StringUtil.toLower(lifecycle)) {
@@ -250,7 +249,8 @@ public final class V2HttpHandlerModule {
           .type("module-install-checksum-failed")
           .title("Module Install Checksum Failed")
           .detail(String.format(
-            "The checksum validation for the requested module %s failed. If the module is official you can skip using the checksumValidation query parameter.",
+            "The checksum validation for the requested module %s failed."
+              + " If the module is official you can skip using the checksumValidation query parameter.",
             name
           ));
       }

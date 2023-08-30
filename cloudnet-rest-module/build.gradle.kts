@@ -16,6 +16,7 @@
 
 plugins {
   id("eu.cloudnetservice.juppiter") version "0.2.0"
+  id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 dependencies {
@@ -27,7 +28,7 @@ dependencies {
 }
 
 moduleJson {
-  main = "eu.cloudnetservice.ext.rest.CloudNetRestModule"
+  main = "eu.cloudnetservice.ext.modules.rest.CloudNetRestModule"
   name = "CloudNet-Rest2"
   version = "1.0"
   author = "CloudNetService"
