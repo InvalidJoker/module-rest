@@ -21,13 +21,13 @@ import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestHandler;
+import eu.cloudnetservice.ext.rest.api.auth.AuthProviderLoader;
 import eu.cloudnetservice.ext.rest.api.auth.AuthenticationResult;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagementLoader;
 import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
-import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
 import eu.cloudnetservice.ext.rest.jwt.JwtAuthProvider;
 import eu.cloudnetservice.ext.rest.jwt.JwtAuthToken;
 import eu.cloudnetservice.ext.rest.jwt.JwtTokenPropertyParser;
@@ -58,6 +58,8 @@ public final class V2HttpHandlerAuthorization {
       keyPair.getPublic(),
       Duration.ofHours(12),
       Duration.ofDays(3));
+    AuthProviderLoader.installAuthProvider(this.authProvider);
+
     this.management = RestUserManagementLoader.load();
   }
 
@@ -101,7 +103,7 @@ public final class V2HttpHandlerAuthorization {
       }).build();
 
       var token = this.authProvider.generateAuthToken(this.management, user);
-      return JsonResponse.builder().body(token);
+      return token.intoResponseBuilder();
     } else {
       return ProblemDetail.builder()
         .type("refresh-invalid-token")

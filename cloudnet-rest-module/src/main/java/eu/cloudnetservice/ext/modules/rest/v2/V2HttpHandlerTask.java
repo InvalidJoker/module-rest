@@ -27,6 +27,7 @@ import eu.cloudnetservice.ext.rest.api.annotation.RequestTypedBody;
 import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.Map;
 import lombok.NonNull;
@@ -37,6 +38,7 @@ public final class V2HttpHandlerTask {
 
   private final ServiceTaskProvider taskProvider;
 
+  @Inject
   public V2HttpHandlerTask(@NonNull ServiceTaskProvider taskProvider) {
     this.taskProvider = taskProvider;
   }

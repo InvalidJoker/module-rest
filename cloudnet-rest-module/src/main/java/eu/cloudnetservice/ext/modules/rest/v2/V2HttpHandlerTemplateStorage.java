@@ -24,6 +24,7 @@ import eu.cloudnetservice.ext.rest.api.annotation.RequestPathParam;
 import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.Map;
 import lombok.NonNull;
@@ -33,6 +34,7 @@ public final class V2HttpHandlerTemplateStorage {
 
   private final TemplateStorageProvider storageProvider;
 
+  @Inject
   public V2HttpHandlerTemplateStorage(@NonNull TemplateStorageProvider storageProvider) {
     this.storageProvider = storageProvider;
   }

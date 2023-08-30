@@ -45,7 +45,7 @@ public final class AuthProviderLoader {
       })
       .filter(Objects::nonNull)
       .sorted(Comparator.comparingInt(AuthProvider::priority))
-      .collect(Collectors.toUnmodifiableMap(
+      .collect(Collectors.toMap(
         authProvider -> authProvider.name().toLowerCase(Locale.ROOT),
         value -> (AuthProvider<?>) value,
         (left, __) -> left));
@@ -53,6 +53,10 @@ public final class AuthProviderLoader {
 
   private AuthProviderLoader() {
     throw new UnsupportedOperationException();
+  }
+
+  public static void installAuthProvider(@NonNull AuthProvider<?> provider) {
+    AUTH_PROVIDERS.put(provider.name().toLowerCase(Locale.ROOT), provider);
   }
 
   public static @NonNull AuthProvider<?> resolveAuthProvider(@NonNull String name) {

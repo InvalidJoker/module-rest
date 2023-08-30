@@ -39,6 +39,7 @@ import eu.cloudnetservice.ext.updater.util.ChecksumUtil;
 import eu.cloudnetservice.node.Node;
 import eu.cloudnetservice.node.module.ModuleEntry;
 import eu.cloudnetservice.node.module.ModulesHolder;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,6 +61,7 @@ public final class V2HttpHandlerModule {
   private final ModulesHolder modulesHolder;
   private final ModuleProvider moduleProvider;
 
+  @Inject
   public V2HttpHandlerModule(@NonNull ModulesHolder modulesHolder, @NonNull ModuleProvider moduleProvider) {
     this.modulesHolder = modulesHolder;
     this.moduleProvider = moduleProvider;

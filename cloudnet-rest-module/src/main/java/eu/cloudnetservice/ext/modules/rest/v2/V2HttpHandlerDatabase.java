@@ -23,7 +23,6 @@ import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
 import eu.cloudnetservice.ext.rest.api.annotation.FirstRequestQueryParam;
-import eu.cloudnetservice.ext.rest.api.annotation.RequestBody;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestHandler;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestPathParam;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestTypedBody;
@@ -86,7 +85,7 @@ public final class V2HttpHandlerDatabase {
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_write", "cloudnet_rest:database_insert"})
   public @NonNull IntoResponse<?> handleInsert(
     @NonNull @RequestPathParam("name") String name,
-    @NonNull @RequestBody Document document
+    @NonNull @RequestTypedBody Document document
   ) {
     var database = this.databaseProvider.database(name);
     var key = document.getString("key");
@@ -148,7 +147,4 @@ public final class V2HttpHandlerDatabase {
       .title("Database Delete Failed")
       .detail("The database had nothing to delete. The key was not associated with any data.");
   }
-
-
-
 }
