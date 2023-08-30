@@ -109,13 +109,13 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
     // check if the authorization header is present
     var authHeader = context.request().headers().firstValue(HttpHeaders.AUTHORIZATION);
     if (authHeader == null) {
-      return AuthenticationResult.proceed();
+      return AuthenticationResult.Constant.PROCEED;
     }
 
     // check if the authorization header is a bearer token
     var tokenMatcher = BEARER_LOGIN_PATTERN.matcher(authHeader);
     if (!tokenMatcher.matches()) {
-      return AuthenticationResult.proceed();
+      return AuthenticationResult.Constant.PROCEED;
     }
 
     try {
@@ -126,19 +126,25 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
       var subject = token.getBody().getSubject();
       var user = management.restUser(subject);
       if (user == null) {
-        return AuthenticationResult.userNotFound();
+        return AuthenticationResult.Constant.USER_NOT_FOUND;
       }
 
       // validate that the id of the token still has access granted
       var tokenPairs = user.properties().get(JWT_TOKEN_PAIR_KEY);
       var parsedTokens = JwtTokenPropertyParser.parseTokens(tokenPairs);
-      if (this.checkTokenValidity(parsedTokens, token.getBody().getId())) {
-        return AuthenticationResult.ok(user);
+      if (this.checkValidTokenId(parsedTokens, token.getBody().getId())) {
+        // the token id is registered for the user - last check we need to do is the token type checking
+        var tokenType = token.getBody().get("type", String.class);
+        if (tokenType != null && tokenType.equals(JwtTokenHolder.ACCESS_TOKEN_TYPE)) {
+          return new AuthenticationResult.Success(user);
+        } else {
+          return new AuthenticationResult.InvalidTokenType(tokenType);
+        }
       } else {
-        return AuthenticationResult.invalidCredentials();
+        return AuthenticationResult.Constant.INVALID_CREDENTIALS;
       }
     } catch (JwtException exception) {
-      return AuthenticationResult.invalidCredentials();
+      return AuthenticationResult.Constant.INVALID_CREDENTIALS;
     }
   }
 
@@ -203,11 +209,10 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
     return new JwtTokenHolder(jwtToken, tokenId, expiration, tokenType);
   }
 
-  protected boolean checkTokenValidity(@NonNull Collection<JwtTokenHolder> tokens, @NonNull String tokenId) {
+  protected boolean checkValidTokenId(@NonNull Collection<JwtTokenHolder> tokens, @NonNull String tokenId) {
     var currentTime = Instant.now();
     return tokens.stream()
       .filter(holder -> currentTime.isBefore(holder.expiresAt()))
-      .filter(holder -> holder.tokenId().equals(tokenId))
-      .anyMatch(holder -> holder.tokenType().equals(JwtTokenHolder.ACCESS_TOKEN_TYPE));
+      .anyMatch(holder -> holder.tokenId().equals(tokenId));
   }
 }

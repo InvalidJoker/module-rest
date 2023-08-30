@@ -20,6 +20,7 @@ import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpHandler;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
+import eu.cloudnetservice.ext.rest.api.annotation.parser.AnnotationHandleExceptionBuilder;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.DefaultHttpAnnotationParser;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.HttpAnnotationProcessor;
 import eu.cloudnetservice.ext.rest.api.annotation.parser.HttpAnnotationProcessorUtil;
@@ -40,27 +41,27 @@ import java.util.function.Supplier;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AuthenticationProcessor implements HttpAnnotationProcessor {
+public final class AuthenticationProcessor implements HttpAnnotationProcessor {
 
   private static final ProblemDetail AUTH_METHOD_UNKNOWN = ProblemDetail.builder()
     .title("Auth Method Unknown")
     .status(HttpResponseCode.BAD_REQUEST)
     .type(URI.create("auth-method-unknown"))
-    .detail("Requested authentication method is unavailable.")
+    .detail("Requested authentication method is unavailable")
     .build();
 
   private static final ProblemDetail AUTH_INVALID = ProblemDetail.builder()
     .title("Auth Invalid")
     .type(URI.create("auth-invalid"))
     .status(HttpResponseCode.UNAUTHORIZED)
-    .detail("The provided auth information is invalid.")
+    .detail("The provided auth information is invalid")
     .build();
 
   private static final ProblemDetail AUTH_REQUIRED_SCOPE_MISSING = ProblemDetail.builder()
     .title("Auth Required Scope Missing")
     .type(URI.create("auth-required-scope-missing"))
     .status(HttpResponseCode.FORBIDDEN)
-    .detail("The authenticated user misses a required scope to access the resource.")
+    .detail("The authenticated user misses a required scope to access the resource")
     .build();
 
   private final Supplier<RestUserManagement> management;
@@ -69,7 +70,7 @@ public class AuthenticationProcessor implements HttpAnnotationProcessor {
     this.management = management;
   }
 
-  private static @Nullable Authentication extractAnnotation(@NonNull Method method) {
+  private static @Nullable Authentication extractAuthAnnotation(@NonNull Method method) {
     if (method.isAnnotationPresent(Authentication.class)) {
       return method.getAnnotation(Authentication.class);
     }
@@ -82,10 +83,10 @@ public class AuthenticationProcessor implements HttpAnnotationProcessor {
     return null;
   }
 
-  private static @NonNull List<? extends AuthProvider<?>> resolveProvider(@NonNull Authentication authentication) {
+  private static @NonNull List<? extends AuthProvider<?>> resolveProviders(@NonNull Authentication authentication) {
     var providers = Arrays.stream(authentication.providers()).map(AuthProviderLoader::resolveAuthProvider).toList();
     if (providers.isEmpty()) {
-      throw new IllegalArgumentException("No auth providers given in @Authentication");
+      throw new IllegalArgumentException("No auth providers given in @Authentication annotation");
     }
 
     return providers;
@@ -101,65 +102,85 @@ public class AuthenticationProcessor implements HttpAnnotationProcessor {
       method,
       Authentication.class,
       (param, annotation) -> {
-        var provider = resolveProvider(annotation);
-        return context -> this.handleAuth(context, provider, annotation.scopes());
+        var provider = resolveProviders(annotation);
+        return context -> this.tryAuthenticateRequest(context, provider, annotation.scopes());
       });
 
-    var authentication = extractAnnotation(method);
-    var provider = authentication != null ? resolveProvider(authentication) : null;
+    // the auth annotation should only be at one parameter, there is no point in supplying it multiple times
+    if (hints.size() > 1) {
+      throw AnnotationHandleExceptionBuilder.forIssueDuringRegistration()
+        .handlerMethod(method)
+        .annotationType(Authentication.class)
+        .debugDescription("The auth annotation should not be present on more than one parameter")
+        .build();
+    }
 
-    config.addHandlerInterceptor(new HttpHandlerInterceptor() {
-      @Override
-      public boolean preProcess(
-        @NonNull HttpContext context,
-        @NonNull HttpHandler handler,
-        @NonNull HttpHandlerConfig config
-      ) {
-        if (!hints.isEmpty()) {
-          context.addInvocationHints(DefaultHttpAnnotationParser.PARAM_INVOCATION_HINT_KEY, hints);
-        } else if (provider != null) {
-          AuthenticationProcessor.this.handleAuth(context, provider, authentication.scopes());
-        }
-
-        return true;
+    // only check for the annotation on the class level in case the annotation is not present on a parameter
+    if (hints.isEmpty()) {
+      var authentication = extractAuthAnnotation(method);
+      var provider = authentication != null ? resolveProviders(authentication) : null;
+      if (provider != null) {
+        // there were declared auth providers, register a pre-processor to handle authentication
+        config.addHandlerInterceptor(new HttpHandlerInterceptor() {
+          @Override
+          public boolean preProcess(
+            @NonNull HttpContext context,
+            @NonNull HttpHandler handler,
+            @NonNull HttpHandlerConfig config
+          ) {
+            AuthenticationProcessor.this.tryAuthenticateRequest(context, provider, authentication.scopes());
+            return true;
+          }
+        });
       }
-    });
+    } else {
+      // there might be an authentication annotation present on one parameter, register our hints
+      config.addHandlerInterceptor(new HttpHandlerInterceptor() {
+        @Override
+        public boolean preProcess(
+          @NonNull HttpContext context,
+          @NonNull HttpHandler handler,
+          @NonNull HttpHandlerConfig config
+        ) {
+          context.addInvocationHints(DefaultHttpAnnotationParser.PARAM_INVOCATION_HINT_KEY, hints);
+          return true;
+        }
+      });
+    }
   }
 
-  private @NonNull RestUser handleAuth(
+  private @NonNull RestUser tryAuthenticateRequest(
     @NonNull HttpContext context,
     @NonNull List<? extends AuthProvider<?>> provider,
     @NonNull String[] scopes
   ) {
-    if (provider.isEmpty()) {
-      throw new IllegalArgumentException("No auth providers given in @Authentication");
-    }
-
-    // try all requested auth providers, break after the user was handled at least once
-    AuthenticationResult authenticationResult = null;
+    // try all requested auth providers until we find one that can handle the authentication process
+    AuthenticationResult authenticationResult = AuthenticationResult.Constant.PROCEED;
     for (var authProvider : provider) {
       authenticationResult = authProvider.tryAuthenticate(context, this.management.get());
-      if (!authenticationResult.empty()) {
+      if (authenticationResult != AuthenticationResult.Constant.PROCEED) {
         break;
       }
     }
 
-    // ok, we have a user
-    if (authenticationResult.ok()) {
-      var user = authenticationResult.user();
+    // one handler was able to process the request, check if that was successful
+    if (authenticationResult instanceof AuthenticationResult.Success successfulResult) {
+      var user = successfulResult.restUser();
       if (scopes.length != 0 && !user.hasOneScopeOf(scopes)) {
+        // unable to authenticate the user due to a scope restriction
         throw new ProblemHttpHandleException(AUTH_REQUIRED_SCOPE_MISSING);
       }
 
       return user;
     }
 
-    // no auth provider handled the auth attempt
-    if (authenticationResult.empty()) {
+    if (authenticationResult == AuthenticationResult.Constant.PROCEED) {
+      // no auth provider was able to handle the auth - in this case the auth information
+      // that were supplied from the client might just not be supported (or there were no auth information)
       throw new ProblemHttpHandleException(AUTH_METHOD_UNKNOWN);
+    } else {
+      // either the user does not exist or the credentials are invalid
+      throw new ProblemHttpHandleException(AUTH_INVALID);
     }
-
-    // either the user does not exist or the credentials are invalid
-    throw new ProblemHttpHandleException(AUTH_INVALID);
   }
 }
