@@ -69,10 +69,15 @@ public sealed interface AuthenticationResult permits
    * authenticate a user to use an endpoint.
    *
    * @param restUser  the user that was determined from the given token (that has the invalid type).
+   * @param tokenId   the id of the token that was invalid, null in case the tokens have no id.
    * @param tokenType the type of token that was incorrectly supplied, null if the token type is unknown.
    * @since 1.0
    */
-  record InvalidTokenType(@NonNull RestUser restUser, @Nullable String tokenType) implements AuthenticationResult {
+  record InvalidTokenType(
+    @NonNull RestUser restUser,
+    @Nullable String tokenId,
+    @Nullable String tokenType
+  ) implements AuthenticationResult {
 
   }
 }
