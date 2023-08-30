@@ -22,14 +22,24 @@ import lombok.NonNull;
 public final class RestUserManagementLoader {
 
   private static RestUserManagement USER_MANAGEMENT;
+  private static volatile boolean MANAGEMENT_LOADED = false;
+
+  private RestUserManagementLoader() {
+    throw new UnsupportedOperationException();
+  }
 
   public static @NonNull RestUserManagement load() {
-    if (USER_MANAGEMENT != null) {
-      return USER_MANAGEMENT;
+    // A 2-field variant of Double Checked Locking
+    if (!MANAGEMENT_LOADED) {
+      synchronized (RestUserManagementLoader.class) {
+        if (!MANAGEMENT_LOADED) {
+          USER_MANAGEMENT = ServiceLoader.load(RestUserManagement.class, RestUserManagement.class.getClassLoader())
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Missing implementation for rest-user management"));
+          MANAGEMENT_LOADED = true;
+        }
+      }
     }
-
-    return USER_MANAGEMENT = ServiceLoader.load(RestUserManagement.class, RestUserManagement.class.getClassLoader())
-      .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException("Missing implementation for rest-user management."));
+    return USER_MANAGEMENT;
   }
 }

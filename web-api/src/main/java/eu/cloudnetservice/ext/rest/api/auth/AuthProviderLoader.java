@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.ServiceConfigurationError;
 import java.util.ServiceLoader;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import org.slf4j.Logger;
@@ -31,12 +30,11 @@ import org.slf4j.LoggerFactory;
 public final class AuthProviderLoader {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AuthProviderLoader.class);
-  private static final Comparator<AuthProvider> PRIORITY_COMPARATOR = Comparator.comparingInt(AuthProvider::priority);
 
-  private static final Map<String, AuthProvider> AUTH_PROVIDER_CACHE;
+  private static final Map<String, AuthProvider<?>> AUTH_PROVIDERS;
 
   static {
-    AUTH_PROVIDER_CACHE = ServiceLoader.load(AuthProvider.class, AuthProvider.class.getClassLoader()).stream()
+    AUTH_PROVIDERS = ServiceLoader.load(AuthProvider.class, AuthProvider.class.getClassLoader()).stream()
       .map(provider -> {
         try {
           return provider.get();
@@ -46,10 +44,10 @@ public final class AuthProviderLoader {
         }
       })
       .filter(Objects::nonNull)
-      .sorted(PRIORITY_COMPARATOR)
+      .sorted(Comparator.comparingInt(AuthProvider::priority))
       .collect(Collectors.toUnmodifiableMap(
         authProvider -> authProvider.name().toLowerCase(Locale.ROOT),
-        Function.identity(),
+        value -> (AuthProvider<?>) value,
         (left, __) -> left));
   }
 
@@ -57,8 +55,8 @@ public final class AuthProviderLoader {
     throw new UnsupportedOperationException();
   }
 
-  public static @NonNull AuthProvider resolveAuthProvider(@NonNull String name) {
-    var authProvider = AUTH_PROVIDER_CACHE.get(name.toLowerCase(Locale.ROOT));
+  public static @NonNull AuthProvider<?> resolveAuthProvider(@NonNull String name) {
+    var authProvider = AUTH_PROVIDERS.get(name.toLowerCase(Locale.ROOT));
     if (authProvider == null) {
       throw new IllegalArgumentException("No auth provider registered with name: " + name);
     }

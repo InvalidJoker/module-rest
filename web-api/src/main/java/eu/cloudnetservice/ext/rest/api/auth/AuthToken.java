@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+package eu.cloudnetservice.ext.rest.api.auth;
 
-rootProject.name = "modules-rest"
+import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
+import java.time.Instant;
+import lombok.NonNull;
 
-include("web-api")
-include("web-jwt-auth")
-include("web-impl-netty")
-include("web-codec-gson")
-include("web-parameter-validator")
-include("cloudnet-rest-module")
+public interface AuthToken<T> extends IntoResponse<T> {
+
+  @NonNull Instant creationTime();
+}
