@@ -31,7 +31,9 @@ import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
 import eu.cloudnetservice.node.service.CloudServiceManager;
+import eu.cloudnetservice.node.version.ServiceVersion;
 import eu.cloudnetservice.node.version.ServiceVersionProvider;
+import eu.cloudnetservice.node.version.ServiceVersionType;
 import eu.cloudnetservice.node.version.information.FileSystemVersionInstaller;
 import eu.cloudnetservice.node.version.information.TemplateVersionInstaller;
 import jakarta.inject.Inject;
@@ -115,34 +117,31 @@ public final class V2HttpHandlerServiceVersion {
   }
 
   // TODO docs: new route
-  @RequestHandler(path = "/api/v2/serviceversion/{version}/install/{name}")
+  @RequestHandler(path = "/api/v2/serviceversion/install")
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:service_version_write", "cloudnet_rest:service_version_install"})
   public @NonNull IntoResponse<?> handleServiceVersionInstallRequest(
-    @NonNull @RequestPathParam("version") String version,
-    @NonNull @RequestPathParam("name") String name,
+    @NonNull @RequestTypedBody Document body,
     @NonNull @Optional @FirstRequestQueryParam(value = "cache", def = "true") String cache,
-    @NonNull @Optional @FirstRequestQueryParam(value = "force", def = "false") String force,
-    @NonNull @Optional @FirstRequestQueryParam(value = "templateStorage", def = ServiceTemplate.LOCAL_STORAGE) String templateStorageName,
-    @NonNull @RequestTypedBody Document body
+    @NonNull @Optional @FirstRequestQueryParam(value = "force", def = "false") String force
   ) {
-    var versionType = this.versionProvider.getServiceVersionType(version);
+    var versionType = this.extractServiceVersionType(body);
     if (versionType == null) {
       return ProblemDetail.builder()
         .type("service-version-not-found")
         .title("Service Version Not Found")
         .status(HttpResponseCode.NOT_FOUND)
-        .detail(String.format("The requested service version %s was not found.", version));
+        .detail("The requested service version was not found.");
     }
 
-    var exactVersion = versionType.version(name);
+    var exactVersion = this.extractServiceVersion(versionType, body);
     if (exactVersion == null) {
       return ProblemDetail.builder()
         .type("service-version-not-found")
         .title("Service Version Not Found")
         .status(HttpResponseCode.NOT_FOUND)
-        .detail(String.format("The service version %s has no sub version %s", version, name));
+        .detail(String.format("The requested sub-version of version type %s was not found.", versionType.name()));
     }
 
     var template = body.readObject("template", ServiceTemplate.class);
@@ -160,19 +159,18 @@ public final class V2HttpHandlerServiceVersion {
     var forceInstall = Boolean.parseBoolean(force);
     // proceed as template installer
     if (template != null) {
-      var templateStorage = this.templateStorageProvider.templateStorage(templateStorageName);
+      var templateStorage = template.findStorage();
       if (templateStorage == null) {
         return ProblemDetail.builder()
           .status(HttpResponseCode.NOT_FOUND)
           .type("service-version-install-template-storage-not-found")
           .title("Service Version Install Template Storage Not Found")
-          .detail(String.format("The requested template storage %s was not found.", templateStorageName));
+          .detail(String.format("The requested template storage %s was not found.", template.storageName()));
 
       }
 
       var templateInstaller = TemplateVersionInstaller.builder()
         .toTemplate(template)
-        .storage(templateStorage)
         .cacheFiles(enableCaches)
         .serviceVersion(exactVersion)
         .serviceVersionType(versionType)
@@ -193,5 +191,24 @@ public final class V2HttpHandlerServiceVersion {
     }
 
     return JsonResponse.builder().noContent();
+  }
+
+  private @Nullable ServiceVersionType extractServiceVersionType(@NonNull Document body) {
+    var versionName = body.getString("serviceVersionType");
+    if (versionName != null) {
+      return this.versionProvider.getServiceVersionType(versionName);
+    }
+
+    // try to read the object from the body
+    return body.readObject("serviceVersionType", ServiceVersionType.class);
+  }
+
+  private @Nullable ServiceVersion extractServiceVersion(@NonNull ServiceVersionType type, @NonNull Document body) {
+    var versionName = body.getString("serviceVersion");
+    if (versionName != null) {
+      return type.version(versionName);
+    }
+
+    return body.readObject("serviceVersion", ServiceVersion.class);
   }
 }

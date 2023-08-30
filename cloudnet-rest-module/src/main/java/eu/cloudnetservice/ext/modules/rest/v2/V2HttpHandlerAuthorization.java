@@ -16,9 +16,27 @@
 
 package eu.cloudnetservice.ext.modules.rest.v2;
 
+import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
+import eu.cloudnetservice.ext.rest.api.annotation.RequestHandler;
+import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
+import eu.cloudnetservice.ext.rest.api.auth.AuthProviderLoader;
+import eu.cloudnetservice.ext.rest.api.auth.RestUser;
+import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import jakarta.inject.Singleton;
+import lombok.NonNull;
 
 @Singleton
 public final class V2HttpHandlerAuthorization {
 
+  private final AuthProvider authProvider;
+
+  public V2HttpHandlerAuthorization() {
+    this.authProvider = AuthProviderLoader.resolveAuthProvider("jwt");
+  }
+
+  @RequestHandler(path = "/api/v2/auth")
+  @Authentication(providers = "basic")
+  public @NonNull IntoResponse<?> handleBasicAuthLogin(@NonNull RestUser user) {
+    var token = this.authProvider.generateAuthToken(user);
+  }
 }

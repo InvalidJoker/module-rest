@@ -17,6 +17,8 @@
 package eu.cloudnetservice.ext.modules.rest.v2;
 
 import eu.cloudnetservice.common.io.FileUtil;
+import eu.cloudnetservice.common.log.LogManager;
+import eu.cloudnetservice.common.log.Logger;
 import eu.cloudnetservice.common.util.StringUtil;
 import eu.cloudnetservice.driver.document.DocumentFactory;
 import eu.cloudnetservice.driver.module.ModuleProvider;
@@ -52,6 +54,8 @@ import lombok.NonNull;
 
 @Singleton
 public final class V2HttpHandlerModule {
+
+  private static final Logger LOGGER = LogManager.logger(V2HttpHandlerModule.class);
 
   private final ModulesHolder modulesHolder;
   private final ModuleProvider moduleProvider;
@@ -182,6 +186,7 @@ public final class V2HttpHandlerModule {
         }
       }
     } catch (IOException exception) {
+      LOGGER.fine("Exception handling module load request", exception);
       FileUtil.delete(moduleTarget);
       return ProblemDetail.builder()
         .type("module-load-failed-io")
