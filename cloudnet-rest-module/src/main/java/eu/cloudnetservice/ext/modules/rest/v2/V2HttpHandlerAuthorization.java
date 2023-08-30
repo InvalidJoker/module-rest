@@ -16,27 +16,67 @@
 
 package eu.cloudnetservice.ext.modules.rest.v2;
 
+import eu.cloudnetservice.driver.document.Document;
+import eu.cloudnetservice.ext.rest.api.HttpContext;
+import eu.cloudnetservice.ext.rest.api.HttpMethod;
+import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestHandler;
-import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
-import eu.cloudnetservice.ext.rest.api.auth.AuthProviderLoader;
+import eu.cloudnetservice.ext.rest.api.annotation.RequestTypedBody;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
+import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
+import eu.cloudnetservice.ext.rest.api.auth.RestUserManagementLoader;
+import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
+import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
+import eu.cloudnetservice.ext.rest.jwt.JwtAuthProvider;
+import eu.cloudnetservice.ext.rest.jwt.JwtAuthToken;
 import jakarta.inject.Singleton;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
+import java.util.Map;
 import lombok.NonNull;
 
 @Singleton
 public final class V2HttpHandlerAuthorization {
 
-  private final AuthProvider authProvider;
+  private final JwtAuthProvider authProvider;
+  private final RestUserManagement management;
 
-  public V2HttpHandlerAuthorization() {
-    this.authProvider = AuthProviderLoader.resolveAuthProvider("jwt");
+  public V2HttpHandlerAuthorization() throws NoSuchAlgorithmException {
+    // TODO from file
+    var keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+    this.authProvider = new JwtAuthProvider(
+      "CloudNet Rest",
+      keyPair.getPrivate(),
+      keyPair.getPublic(),
+      Duration.ofHours(12),
+      Duration.ofDays(3));
+    this.management = RestUserManagementLoader.load();
   }
 
   @RequestHandler(path = "/api/v2/auth")
   @Authentication(providers = "basic")
-  public @NonNull IntoResponse<?> handleBasicAuthLogin(@NonNull RestUser user) {
-    var token = this.authProvider.generateAuthToken(user);
+  public @NonNull IntoResponse<?> handleBasicAuthLoginRequest(@NonNull RestUser user) {
+    var token = (JwtAuthToken) this.authProvider.generateAuthToken(this.management, user);
+    return JsonResponse.builder().body(Document.newJsonDocument().appendTree(token).append("userId", user));
+  }
+
+  @RequestHandler(path = "/api/v2/auth/refresh", method = HttpMethod.POST)
+  public @NonNull IntoResponse<?> handleRefreshRequest(
+    @NonNull HttpContext context,
+    @NonNull @RequestTypedBody Map<String, String> body
+  ) {
+    var token = body.get("token");
+    if (token == null) {
+      return ProblemDetail.builder()
+        .type("refresh-token-missing")
+        .title("Refresh Token Missing")
+        .status(HttpResponseCode.BAD_REQUEST)
+        .detail("The request body does not contain a 'token' field with the refresh token.");
+    }
+
+    var user = this.authProvider.tryAuthenticate(context, this.management);
   }
 }

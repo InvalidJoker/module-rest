@@ -20,6 +20,7 @@ plugins {
 
 dependencies {
   api(projects.webApi)
+  implementation(projects.webJwtAuth)
   implementation(projects.webImplNetty)
   implementation(projects.webCodecGson)
   compileOnlyApi("eu.cloudnetservice.cloudnet:node:4.0.0-RC9")
