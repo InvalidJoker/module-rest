@@ -16,64 +16,68 @@
 
 package eu.cloudnetservice.ext.rest.api.auth;
 
-import com.google.common.base.Preconditions;
 import lombok.NonNull;
-import org.jetbrains.annotations.UnknownNullability;
+import org.jetbrains.annotations.Nullable;
 
-public final class AuthenticationResult {
+/**
+ * The result of an authentication process returned by an authentication provider.
+ *
+ * @since 1.0
+ */
+public sealed interface AuthenticationResult permits
+  AuthenticationResult.Success,
+  AuthenticationResult.Constant,
+  AuthenticationResult.InvalidTokenType {
 
-  private static final AuthenticationResult EMPTY = new AuthenticationResult(null, null);
-  private static final AuthenticationResult USER_NOT_FOUND = new AuthenticationResult(State.USER_NOT_FOUND, null);
-  private static final AuthenticationResult INVALID_CREDENTIALS = new AuthenticationResult(
-    State.INVALID_CREDENTIALS,
-    null);
+  /**
+   * Collection of jvm-static authentication results that do not provide any details why the authentication failed,
+   * other than the name of the constant.
+   *
+   * @since 1.0
+   */
+  enum Constant implements AuthenticationResult {
 
-  private final State state;
-  private final RestUser user;
-
-  private AuthenticationResult(@UnknownNullability State state, @UnknownNullability RestUser user) {
-    this.state = state;
-    this.user = user;
-  }
-
-  public static @NonNull AuthenticationResult proceed() {
-    return EMPTY;
-  }
-
-  public static @NonNull AuthenticationResult userNotFound() {
-    return USER_NOT_FOUND;
-  }
-
-  public static @NonNull AuthenticationResult invalidCredentials() {
-    return INVALID_CREDENTIALS;
-  }
-
-  public boolean empty() {
-    return this == EMPTY;
-  }
-
-  public boolean ok() {
-    return this != EMPTY && this.state == State.OK;
-  }
-
-  public @NonNull State state() {
-    Preconditions.checkArgument(this != EMPTY, "State is only present for non-empty results.");
-
-    return this.state;
-  }
-
-  public @NonNull RestUser user() {
-    Preconditions.checkArgument(this.state == State.OK, "User is only present on OK state.");
-
-    return this.user;
-  }
-
-
-  public enum State {
-
-    OK,
+    /**
+     * The current called handler couldn't find the required information to try the authentication process and the next
+     * available handler should be used instead.
+     */
+    PROCEED,
+    /**
+     * The requested user was not found.
+     */
     USER_NOT_FOUND,
-    INVALID_CREDENTIALS
+    /**
+     * The credentials that were provided to the auth provider where invalid and therefore the authentication process
+     * couldn't be completed.
+     */
+    INVALID_CREDENTIALS,
+  }
+
+  /**
+   * A successful authentication result containing the authenticated subject.
+   *
+   * @param restUser the rest user that was successfully authenticated, not null.
+   * @since 1.0
+   */
+  record Success(@NonNull RestUser restUser) implements AuthenticationResult {
+
+  }
+
+  /**
+   * Indicates that the type of token that was supplied to the auth provider is invalid for the desired use, but would
+   * be valid in some other context. This can for example happen when a valid JWT refresh token is used to try and
+   * authenticate a user to use an endpoint.
+   *
+   * @param restUser  the user that was determined from the given token (that has the invalid type).
+   * @param tokenId   the id of the token that was invalid, null in case the tokens have no id.
+   * @param tokenType the type of token that was incorrectly supplied, null if the token type is unknown.
+   * @since 1.0
+   */
+  record InvalidTokenType(
+    @NonNull RestUser restUser,
+    @Nullable String tokenId,
+    @Nullable String tokenType
+  ) implements AuthenticationResult {
 
   }
 }

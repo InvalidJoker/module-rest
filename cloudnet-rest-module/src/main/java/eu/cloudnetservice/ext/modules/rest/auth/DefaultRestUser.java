@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
 
 public record DefaultRestUser(
   @NonNull String id,
@@ -67,34 +68,46 @@ public record DefaultRestUser(
   /**
    * {@inheritDoc}
    */
-  public static final class Builder {
+  public static final class Builder implements RestUser.Builder {
 
+    private final Set<String> scopes = new HashSet<>();
     private String id;
     private Map<String, String> properties;
-    private final Set<String> scopes = new HashSet<>();
 
+    @Override
     public @NonNull Builder id(@NonNull String id) {
       this.id = id;
       return this;
     }
 
     public @NonNull Builder password(@NonNull String password) {
-      var hashedPasswordInfo = EncryptionUtil.encrypt(password);
+      var hashedPasswordInfo = PasswordEncryptionUtil.encrypt(password);
       this.properties.put(PASSWORD_KEY, hashedPasswordInfo.second());
       this.properties.put(PASSWORD_SALT_KEY, hashedPasswordInfo.first());
       return this;
     }
 
+    @Override
+    public @NonNull Builder property(@NonNull String key, @Nullable String value) {
+      if (value != null) {
+        this.properties.put(key, value);
+      }
+      return this;
+    }
+
+    @Override
     public @NonNull Builder properties(@NonNull Map<String, String> properties) {
       this.properties = new HashMap<>(properties);
       return this;
     }
 
-    public @NonNull Builder modifyProperties(@NonNull Consumer<Map<String, String>> propertiesConsumer) {
-      propertiesConsumer.accept(this.properties);
+    @Override
+    public @NonNull Builder modifyProperties(@NonNull Consumer<Map<String, String>> modifier) {
+      modifier.accept(this.properties);
       return this;
     }
 
+    @Override
     public @NonNull Builder addScope(@NonNull String scope) {
       var matcher = RestUserManagement.SCOPE_NAMING_PATTERN.matcher(scope);
       if (scope.equals("admin") || matcher.matches()) {
@@ -109,11 +122,13 @@ public record DefaultRestUser(
       return this;
     }
 
+    @Override
     public @NonNull Builder removeScope(@NonNull String scope) {
       this.scopes.remove(StringUtil.toLower(scope));
       return this;
     }
 
+    @Override
     public @NonNull Builder scopes(@NonNull Set<String> scopes) {
       this.scopes.clear();
       for (var scope : scopes) {
@@ -123,6 +138,7 @@ public record DefaultRestUser(
       return this;
     }
 
+    @Override
     public @NonNull RestUser build() {
       Preconditions.checkNotNull(this.id, "Missing rest user id");
       Preconditions.checkArgument(this.properties.containsKey(PASSWORD_KEY), "Missing rest user password");
