@@ -37,7 +37,7 @@ public record ComponentConfig(
   private static final HttpHandler DEFAULT_FALLBACK_HANDLER = new HttpHandler() {
     @Override
     public @NonNull IntoResponse<?> handle(@NonNull HttpContext context) {
-      return PlainTextResponse.builder().body("Resource not found.").notFound();
+      return PlainTextResponse.builder().notFound();
     }
   };
 
