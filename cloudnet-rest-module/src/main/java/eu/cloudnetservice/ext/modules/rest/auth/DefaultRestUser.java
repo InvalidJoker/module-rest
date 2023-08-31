@@ -35,8 +35,8 @@ public record DefaultRestUser(
   @NonNull Map<String, String> properties
 ) implements RestUser {
 
-  private static final String PASSWORD_KEY = "password";
-  private static final String PASSWORD_SALT_KEY = "salt";
+  public static final String PASSWORD_KEY = "password";
+  public static final String PASSWORD_SALT_KEY = "salt";
 
   public static @NonNull Builder builder() {
     return new Builder();

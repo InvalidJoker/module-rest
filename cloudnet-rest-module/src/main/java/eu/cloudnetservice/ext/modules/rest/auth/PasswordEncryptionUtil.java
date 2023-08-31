@@ -25,7 +25,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import lombok.NonNull;
 
-final class PasswordEncryptionUtil {
+public final class PasswordEncryptionUtil {
 
   private static final int KEY_LENGTH = 512;
   private static final int ITERATION_COUNT = 1_000_000;
