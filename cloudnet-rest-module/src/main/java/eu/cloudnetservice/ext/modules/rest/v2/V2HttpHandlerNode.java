@@ -42,6 +42,7 @@ import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
 import eu.cloudnetservice.ext.rest.api.websocket.WebSocketChannel;
 import eu.cloudnetservice.ext.rest.api.websocket.WebSocketFrameType;
 import eu.cloudnetservice.ext.rest.api.websocket.WebSocketListener;
+import eu.cloudnetservice.ext.rest.validation.EnableValidation;
 import eu.cloudnetservice.node.cluster.NodeServerProvider;
 import eu.cloudnetservice.node.command.CommandProvider;
 import eu.cloudnetservice.node.command.source.DriverCommandSource;
@@ -50,6 +51,7 @@ import eu.cloudnetservice.node.config.JsonConfiguration;
 import eu.cloudnetservice.node.service.CloudServiceManager;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import jakarta.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -121,10 +123,11 @@ public final class V2HttpHandlerNode {
     return JsonResponse.builder().body(Map.of("config", this.configuration));
   }
 
+  @EnableValidation
   @RequestHandler(path = "/api/v2/node/config", method = HttpMethod.PUT)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:node_write", "cloudnet_rest:node_config_update"})
   public @NonNull IntoResponse<?> handleNodeConfigRequest(
-    @Nullable @RequestTypedBody JsonConfigurationDto configurationDto
+    @Nullable @RequestTypedBody @Valid JsonConfigurationDto configurationDto
   ) {
     if (configurationDto == null) {
       return ProblemDetail.builder()

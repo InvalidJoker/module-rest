@@ -17,17 +17,17 @@
 package eu.cloudnetservice.ext.modules.rest.v2;
 
 import eu.cloudnetservice.common.util.StringUtil;
-import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.driver.provider.CloudServiceFactory;
 import eu.cloudnetservice.driver.provider.ServiceTaskProvider;
 import eu.cloudnetservice.driver.provider.SpecificCloudServiceProvider;
 import eu.cloudnetservice.driver.service.ServiceConfiguration;
 import eu.cloudnetservice.driver.service.ServiceCreateResult;
-import eu.cloudnetservice.driver.service.ServiceDeployment;
 import eu.cloudnetservice.driver.service.ServiceInfoSnapshot;
-import eu.cloudnetservice.driver.service.ServiceRemoteInclusion;
-import eu.cloudnetservice.driver.service.ServiceTask;
-import eu.cloudnetservice.driver.service.ServiceTemplate;
+import eu.cloudnetservice.ext.modules.rest.dto.service.ServiceConfigurationDto;
+import eu.cloudnetservice.ext.modules.rest.dto.service.ServiceDeploymentDto;
+import eu.cloudnetservice.ext.modules.rest.dto.service.ServiceRemoteInclusionDto;
+import eu.cloudnetservice.ext.modules.rest.dto.service.ServiceTaskDto;
+import eu.cloudnetservice.ext.modules.rest.dto.service.ServiceTemplateDto;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
@@ -44,12 +44,14 @@ import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
 import eu.cloudnetservice.ext.rest.api.websocket.WebSocketChannel;
 import eu.cloudnetservice.ext.rest.api.websocket.WebSocketFrameType;
 import eu.cloudnetservice.ext.rest.api.websocket.WebSocketListener;
+import eu.cloudnetservice.ext.rest.validation.EnableValidation;
 import eu.cloudnetservice.node.service.CloudService;
 import eu.cloudnetservice.node.service.CloudServiceManager;
 import eu.cloudnetservice.node.service.ServiceConsoleLineHandler;
 import eu.cloudnetservice.node.service.ServiceConsoleLogCache;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import jakarta.validation.Valid;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.UUID;
@@ -58,6 +60,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
 
 @Singleton
 public final class V2HttpHandlerService {
@@ -232,122 +235,170 @@ public final class V2HttpHandlerService {
     });
   }
 
-  @RequestHandler(path = "/api/v2/service/create", method = HttpMethod.POST)
-  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_create"})
-  public @NonNull IntoResponse<?> handleServiceCreateRequest(@NonNull @RequestTypedBody Document body) {
-    // check for a provided service configuration
-    var configuration = body.readObject("serviceConfiguration", ServiceConfiguration.class);
+  // TODO docs: split
+  @EnableValidation
+  @RequestHandler(path = "/api/v2/service/create/serviceConfig", method = HttpMethod.POST)
+  @Authentication(
+    providers = "jwt",
+    scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_create_service_config"})
+  public @NonNull IntoResponse<?> handleServiceCreateRequest(
+    @Optional @FirstRequestQueryParam(value = "start", def = "false") String start,
+    @Nullable @Valid @RequestTypedBody ServiceConfigurationDto configuration
+  ) {
     if (configuration == null) {
-      // check for a provided service task
-      var serviceTask = body.readObject("task", ServiceTask.class);
-      if (serviceTask != null) {
-        configuration = ServiceConfiguration.builder(serviceTask).build();
-      } else {
-        // fallback to a service task name which has to exist
-        var serviceTaskName = body.getString("serviceTaskName");
-        if (serviceTaskName != null) {
-          var task = this.serviceTaskProvider.serviceTask(serviceTaskName);
-          if (task != null) {
-            configuration = ServiceConfiguration.builder(task).build();
-          } else {
-            // we got a task but it does not exist
-            return ProblemDetail.builder()
-              .type("task-not-found")
-              .title("Task Not Found")
-              .status(HttpResponseCode.NOT_FOUND)
-              .detail(String.format("The requested task %s to start the service with was not found.", serviceTaskName));
-          }
-        } else {
-          return ProblemDetail.builder()
-            .status(HttpResponseCode.BAD_REQUEST)
-            .type("invalid-service-configuration")
-            .title("Invalid Service Configuration")
-            .detail("The provided service configuration in the body is invalid.");
-        }
-      }
+      return ProblemDetail.builder()
+        .type("missing-service-configuration")
+        .title("Missing Service Configuration")
+        .status(HttpResponseCode.BAD_REQUEST)
+        .detail("The request body does not contain a service configuration.");
     }
 
-    var createResult = this.serviceFactory.createCloudService(configuration);
-    var start = body.getBoolean("start", false);
-    if (start && createResult.state() == ServiceCreateResult.State.CREATED) {
-      createResult.serviceInfo().provider().start();
-    }
-
-    return JsonResponse.builder().responseCode(HttpResponseCode.CREATED).body(Map.of("result", createResult));
+    return this.handleServiceCreate(configuration.original(), start);
   }
 
-  @RequestHandler(path = "/api/v2/service/{id}/add", method = HttpMethod.POST)
-  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_add_file"})
-  public @NonNull IntoResponse<?> handleServiceAddFileRequest(
+  @EnableValidation
+  @RequestHandler(path = "/api/v2/service/create/task", method = HttpMethod.POST)
+  @Authentication(
+    providers = "jwt",
+    scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_create_task"})
+  public @NonNull IntoResponse<?> handleServiceCreateRequest(
+    @Optional @FirstRequestQueryParam(value = "start", def = "false") String start,
+    @Nullable @Valid @RequestTypedBody ServiceTaskDto task
+  ) {
+    if (task == null) {
+      return ProblemDetail.builder()
+        .type("missing-service-task")
+        .title("Missing Service Task")
+        .status(HttpResponseCode.BAD_REQUEST)
+        .detail("The request body does not contain a service task.");
+    }
+
+    var configuration = ServiceConfiguration.builder(task.original()).build();
+    return this.handleServiceCreate(configuration, start);
+  }
+
+  @RequestHandler(path = "/api/v2/service/create/taskName", method = HttpMethod.POST)
+  @Authentication(
+    providers = "jwt",
+    scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_create_task_name"})
+  public @NonNull IntoResponse<?> handleServiceCreateRequest(
+    @Optional @FirstRequestQueryParam(value = "start", def = "false") String start,
+    @NonNull @RequestTypedBody Map<String, String> body
+  ) {
+    var taskName = body.get("taskName");
+    if (taskName == null) {
+      return ProblemDetail.builder()
+        .type("missing-service-task-name")
+        .title("Missing Service Task Name")
+        .status(HttpResponseCode.BAD_REQUEST)
+        .detail("The request body does not contain a 'taskName' field.");
+    }
+
+    var serviceTask = this.serviceTaskProvider.serviceTask(taskName);
+    if (serviceTask == null) {
+      return ProblemDetail.builder()
+        .type("task-not-found")
+        .title("Task Not Found")
+        .status(HttpResponseCode.NOT_FOUND)
+        .detail(String.format("The requested task %s to start the service with was not found.", taskName));
+    }
+
+    var configuration = ServiceConfiguration.builder(serviceTask).build();
+    return this.handleServiceCreate(configuration, start);
+  }
+
+  @EnableValidation
+  @RequestHandler(path = "/api/v2/service/{id}/add/template", method = HttpMethod.POST)
+  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_add_template"})
+  public @NonNull IntoResponse<?> handleServiceAddTemplateRequest(
     @NonNull @RequestPathParam("id") String id,
     @NonNull @FirstRequestQueryParam("type") String type,
     @NonNull @Optional @FirstRequestQueryParam(value = "flush", def = "false") String flush,
-    @NonNull @RequestTypedBody Document body
+    @Nullable @RequestTypedBody @Valid ServiceTemplateDto templateDto
   ) {
-    return this.handleServiceProviderContext(id, service -> {
-      var flushAfter = Boolean.parseBoolean(flush);
-      switch (StringUtil.toLower(type)) {
-        case "template" -> {
-          var template = body.readObject("template", ServiceTemplate.class);
-          if (template == null) {
-            return ProblemDetail.builder()
-              .status(HttpResponseCode.BAD_REQUEST)
-              .type("service-add-missing-template")
-              .title("Service Add Missing Template")
-              .detail("The request body does not contain a service template to add to the service.");
-          } else {
-            service.addServiceTemplate(template);
-            if (flushAfter) {
-              service.includeWaitingServiceTemplates();
-            }
-          }
-        }
+    if (templateDto == null) {
+      return ProblemDetail.builder()
+        .status(HttpResponseCode.BAD_REQUEST)
+        .type("service-add-missing-template")
+        .title("Service Add Missing Template")
+        .detail("The request body does not contain a service template to add to the service.");
+    }
 
-        case "deployment" -> {
-          var deployment = body.readObject("deployment", ServiceDeployment.class);
-          if (deployment == null) {
-            return ProblemDetail.builder()
-              .status(HttpResponseCode.BAD_REQUEST)
-              .type("service-add-missing-deployment")
-              .title("Service Add Missing Deployment")
-              .detail("The request body does not contain a service deployment to add to the service.");
-          } else {
-            service.addServiceDeployment(deployment);
-            if (flushAfter) {
-              service.deployResources(body.getBoolean("removeDeployments", true));
-            }
-          }
-        }
-
-        case "inclusion" -> {
-          var inclusion = body.readObject("inclusion", ServiceRemoteInclusion.class);
-          if (inclusion == null) {
-            return ProblemDetail.builder()
-              .status(HttpResponseCode.BAD_REQUEST)
-              .type("service-add-missing-inclusion")
-              .title("Service Add Missing Inclusion")
-              .detail("The request body does not contain a service inclusion to add to the service.");
-          } else {
-            service.addServiceRemoteInclusion(inclusion);
-            if (flushAfter) {
-              service.includeWaitingServiceInclusions();
-            }
-          }
-        }
-
-        default -> {
-          return ProblemDetail.builder()
-            .status(HttpResponseCode.BAD_REQUEST)
-            .type("service-add-invalid-type")
-            .title("Service Add Invalid Type")
-            .detail(String.format(
-              "The requested service add type %s is not supported. Supported values are: template, deployment, inclusion",
-              type));
-        }
+    return this.handleServiceProviderContext(id, provider -> {
+      provider.addServiceTemplate(templateDto.original());
+      if (Boolean.parseBoolean(flush)) {
+        provider.includeWaitingServiceTemplates();
       }
 
       return JsonResponse.builder().noContent();
     });
+  }
+
+  @EnableValidation
+  @RequestHandler(path = "/api/v2/service/{id}/add/deployment", method = HttpMethod.POST)
+  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_add_deployment"})
+  public @NonNull IntoResponse<?> handleServiceAddDeploymentRequest(
+    @NonNull @RequestPathParam("id") String id,
+    @NonNull @FirstRequestQueryParam("type") String type,
+    @NonNull @Optional @FirstRequestQueryParam(value = "flush", def = "false") String flush,
+    @NonNull @Optional @FirstRequestQueryParam(value = "removeDeployment", def = "false") String remove,
+    @Nullable @RequestTypedBody @Valid ServiceDeploymentDto deploymentDto
+  ) {
+    if (deploymentDto == null) {
+      return ProblemDetail.builder()
+        .status(HttpResponseCode.BAD_REQUEST)
+        .type("service-add-missing-template")
+        .title("Service Add Missing Template")
+        .detail("The request body does not contain a service template to add to the service.");
+    }
+
+    return this.handleServiceProviderContext(id, provider -> {
+      provider.addServiceDeployment(deploymentDto.original());
+      if (Boolean.parseBoolean(flush)) {
+        provider.deployResources(Boolean.parseBoolean(remove));
+      }
+
+      return JsonResponse.builder().noContent();
+    });
+  }
+
+  @EnableValidation
+  @RequestHandler(path = "/api/v2/service/{id}/add/inclusion", method = HttpMethod.POST)
+  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_add_inclusion"})
+  public @NonNull IntoResponse<?> handleServiceAddInclusionRequest(
+    @NonNull @RequestPathParam("id") String id,
+    @NonNull @FirstRequestQueryParam("type") String type,
+    @NonNull @Optional @FirstRequestQueryParam(value = "flush", def = "false") String flush,
+    @Nullable @RequestTypedBody @Valid ServiceRemoteInclusionDto inclusionDto
+  ) {
+    if (inclusionDto == null) {
+      return ProblemDetail.builder()
+        .status(HttpResponseCode.BAD_REQUEST)
+        .type("service-add-missing-inclusion")
+        .title("Service Add Missing Inclusion")
+        .detail("The request body does not contain a service inclusion to add to the service.");
+    }
+
+    return this.handleServiceProviderContext(id, provider -> {
+      provider.addServiceRemoteInclusion(inclusionDto.original());
+      if (Boolean.parseBoolean(flush)) {
+        provider.includeWaitingServiceInclusions();
+      }
+
+      return JsonResponse.builder().noContent();
+    });
+  }
+
+  private @NonNull IntoResponse<?> handleServiceCreate(
+    @NonNull ServiceConfiguration configuration,
+    @NonNull String start
+  ) {
+    var createResult = this.serviceFactory.createCloudService(configuration);
+    if (createResult.state() == ServiceCreateResult.State.CREATED && Boolean.parseBoolean(start)) {
+      createResult.serviceInfo().provider().start();
+    }
+
+    return JsonResponse.builder().responseCode(HttpResponseCode.CREATED).body(Map.of("result", createResult));
   }
 
   private @NonNull IntoResponse<?> handleServiceProviderContext(
