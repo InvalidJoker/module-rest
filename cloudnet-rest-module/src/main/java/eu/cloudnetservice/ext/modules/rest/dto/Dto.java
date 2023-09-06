@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-plugins {
-  id("eu.cloudnetservice.juppiter") version "0.2.0"
-  id("com.github.johnrengelman.shadow") version "8.1.1"
-}
+package eu.cloudnetservice.ext.modules.rest.dto;
 
-dependencies {
-  api(projects.webApi)
-  implementation(projects.webJwtAuth)
-  implementation(projects.webImplNetty)
-  implementation(projects.webCodecGson)
-  implementation(projects.webParameterValidator)
-  compileOnlyApi("eu.cloudnetservice.cloudnet:node:4.0.0-RC9")
-}
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Stream;
+import lombok.NonNull;
 
-moduleJson {
-  main = "eu.cloudnetservice.ext.modules.rest.CloudNetRestModule"
-  name = "CloudNet-Rest2"
-  version = "1.0"
-  author = "CloudNetService"
+public interface Dto<T> {
+
+  @NonNull T original();
+
+  static <T, D extends Dto<T>> Stream<T> toStream(@NonNull Collection<D> entries) {
+    return entries.stream().map(Dto::original);
+  }
+
+  static <T, D extends Dto<T>> List<T> toList(@NonNull Collection<D> entries) {
+    return toStream(entries).toList();
+  }
 }

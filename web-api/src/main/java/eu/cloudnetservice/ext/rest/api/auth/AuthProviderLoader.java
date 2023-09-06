@@ -55,10 +55,6 @@ public final class AuthProviderLoader {
     throw new UnsupportedOperationException();
   }
 
-  public static void installAuthProvider(@NonNull AuthProvider<?> provider) {
-    AUTH_PROVIDERS.put(provider.name().toLowerCase(Locale.ROOT), provider);
-  }
-
   public static @NonNull AuthProvider<?> resolveAuthProvider(@NonNull String name) {
     var authProvider = AUTH_PROVIDERS.get(name.toLowerCase(Locale.ROOT));
     if (authProvider == null) {

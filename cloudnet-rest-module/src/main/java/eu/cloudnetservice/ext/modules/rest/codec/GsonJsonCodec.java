@@ -16,6 +16,7 @@
 
 package eu.cloudnetservice.ext.modules.rest.codec;
 
+import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.driver.document.DocumentFactory;
 import eu.cloudnetservice.driver.document.DocumentParseException;
 import eu.cloudnetservice.driver.document.StandardSerialisationStyle;
@@ -34,7 +35,7 @@ public class GsonJsonCodec implements JsonCodec {
    */
   @Override
   public @NonNull String serialize(@NonNull Type type, @NonNull Object object) {
-    return DocumentFactory.json().newDocument(object).serializeToString(StandardSerialisationStyle.COMPACT);
+    return Document.newJsonDocument().appendTree(object).serializeToString(StandardSerialisationStyle.COMPACT);
   }
 
   /**

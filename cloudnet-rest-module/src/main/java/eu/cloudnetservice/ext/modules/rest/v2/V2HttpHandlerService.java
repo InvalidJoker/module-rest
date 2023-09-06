@@ -196,11 +196,12 @@ public final class V2HttpHandlerService {
   }
 
   @RequestHandler(path = "/api/v2/service/{id}/liveLog")
-  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_read", "cloudnet_rest:service_live_log"})
   public @NonNull IntoResponse<?> handleServiceLiveLogRequest(
     @NonNull @RequestPathParam("id") String id,
     @NonNull HttpContext context,
-    @NonNull RestUser restUser
+    @Authentication(
+      providers = "jwt",
+      scopes = {"cloudnet_rest:service_read", "cloudnet_rest:service_live_log"}) @NonNull RestUser restUser
   ) {
     // TODO: can we maybe support this across the cluster using SpecificServiceInfoProvider#toggleScreenEvents
     return this.handleServiceContext(id, service -> {

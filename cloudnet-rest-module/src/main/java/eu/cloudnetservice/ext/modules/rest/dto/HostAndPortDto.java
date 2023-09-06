@@ -14,23 +14,28 @@
  * limitations under the License.
  */
 
-plugins {
-  id("eu.cloudnetservice.juppiter") version "0.2.0"
-  id("com.github.johnrengelman.shadow") version "8.1.1"
-}
+package eu.cloudnetservice.ext.modules.rest.dto;
 
-dependencies {
-  api(projects.webApi)
-  implementation(projects.webJwtAuth)
-  implementation(projects.webImplNetty)
-  implementation(projects.webCodecGson)
-  implementation(projects.webParameterValidator)
-  compileOnlyApi("eu.cloudnetservice.cloudnet:node:4.0.0-RC9")
-}
+import eu.cloudnetservice.driver.network.HostAndPort;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import lombok.NonNull;
 
-moduleJson {
-  main = "eu.cloudnetservice.ext.modules.rest.CloudNetRestModule"
-  name = "CloudNet-Rest2"
-  version = "1.0"
-  author = "CloudNetService"
+public class HostAndPortDto implements Dto<HostAndPort> {
+
+  @NotNull
+  private final String host;
+  @Min(1)
+  @Max(0xFFFF)
+  private final int port;
+
+  public HostAndPortDto(String host, int port) {
+    this.host = host;
+    this.port = port;
+  }
+
+  public @NonNull HostAndPort original() {
+    return new HostAndPort(this.host, this.port);
+  }
 }

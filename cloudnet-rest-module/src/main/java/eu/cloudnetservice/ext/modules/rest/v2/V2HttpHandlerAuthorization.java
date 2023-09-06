@@ -21,6 +21,7 @@ import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestHandler;
+import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
 import eu.cloudnetservice.ext.rest.api.auth.AuthProviderLoader;
 import eu.cloudnetservice.ext.rest.api.auth.AuthenticationResult;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
@@ -32,34 +33,16 @@ import eu.cloudnetservice.ext.rest.jwt.JwtAuthProvider;
 import eu.cloudnetservice.ext.rest.jwt.JwtAuthToken;
 import eu.cloudnetservice.ext.rest.jwt.JwtTokenPropertyParser;
 import jakarta.inject.Singleton;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
 import lombok.NonNull;
 
 @Singleton
 public final class V2HttpHandlerAuthorization {
 
-  private final JwtAuthProvider authProvider;
+  private final AuthProvider<?> authProvider;
   private final RestUserManagement management;
 
   public V2HttpHandlerAuthorization() {
-    // TODO from file
-    KeyPair keyPair;
-    try {
-      keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
-    } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException(e);
-    }
-    this.authProvider = new JwtAuthProvider(
-      "CloudNet Rest",
-      keyPair.getPrivate(),
-      keyPair.getPublic(),
-      Duration.ofHours(12),
-      Duration.ofDays(3));
-    AuthProviderLoader.installAuthProvider(this.authProvider);
-
+    this.authProvider = AuthProviderLoader.resolveAuthProvider("jwt");
     this.management = RestUserManagementLoader.load();
   }
 

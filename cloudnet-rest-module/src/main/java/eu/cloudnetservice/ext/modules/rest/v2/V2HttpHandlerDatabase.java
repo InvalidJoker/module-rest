@@ -50,7 +50,8 @@ public final class V2HttpHandlerDatabase {
     return JsonResponse.builder().body(Map.of("names", this.databaseProvider.databaseNames()));
   }
 
-  @RequestHandler(path = "/api/v2/database/{name}/clear")
+  // TODO docs: method changed
+  @RequestHandler(path = "/api/v2/database/{name}/clear", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_list"})
   public @NonNull IntoResponse<?> handleClearRequest(@NonNull @RequestPathParam("name") String name) {
     this.databaseProvider.database(name).clear();
@@ -110,7 +111,8 @@ public final class V2HttpHandlerDatabase {
     }
   }
 
-  @RequestHandler(path = "/api/v2/database/{name}/get", method = HttpMethod.POST)
+  // TODO docs: method changed
+  @RequestHandler(path = "/api/v2/database/{name}/get")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_get"})
   public @NonNull IntoResponse<?> handleGetRequest(
     @NonNull @RequestPathParam("name") String name,
@@ -120,7 +122,8 @@ public final class V2HttpHandlerDatabase {
     return JsonResponse.builder().body(DocumentFactory.json().newDocument("result", database.get(key)));
   }
 
-  @RequestHandler(path = "/api/v2/database/{name}/find", method = HttpMethod.POST)
+  // TODO docs: method changed
+  @RequestHandler(path = "/api/v2/database/{name}/find")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_find"})
   public @NonNull IntoResponse<?> handleFindRequest(
     @NonNull @RequestPathParam("name") String name,

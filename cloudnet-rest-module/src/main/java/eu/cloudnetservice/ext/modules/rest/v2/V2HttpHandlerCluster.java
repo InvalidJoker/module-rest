@@ -61,7 +61,7 @@ public final class V2HttpHandlerCluster {
   public @NonNull IntoResponse<?> handleNodeList() {
     var nodes = this.nodeServerProvider.nodeServers().stream().map(this::createNodeInfoDocument).toList();
 
-    return JsonResponse.builder().body(nodes);
+    return JsonResponse.builder().body(Map.of("nodes", nodes));
   }
 
   @RequestHandler(path = "/api/v2/cluster/{node}")
@@ -95,7 +95,7 @@ public final class V2HttpHandlerCluster {
         .detail("The request body has no 'command' field.");
     }
 
-    return JsonResponse.builder().body(server.sendCommandLine(command));
+    return JsonResponse.builder().body(Map.of("result", server.sendCommandLine(command)));
   }
 
   @RequestHandler(path = "/api/v2/cluster", method = HttpMethod.POST)
@@ -126,6 +126,9 @@ public final class V2HttpHandlerCluster {
     var removed = this.configuration.clusterConfig().nodes()
       .removeIf(clusterNode -> clusterNode.uniqueId().equals(node));
     if (removed) {
+      this.configuration.save();
+      this.nodeServerProvider.registerNodes(this.configuration.clusterConfig());
+
       return JsonResponse.builder().noContent();
     }
 

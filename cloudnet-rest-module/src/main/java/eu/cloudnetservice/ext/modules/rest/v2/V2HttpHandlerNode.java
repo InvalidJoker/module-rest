@@ -26,6 +26,7 @@ import eu.cloudnetservice.driver.network.NetworkChannel;
 import eu.cloudnetservice.driver.network.NetworkClient;
 import eu.cloudnetservice.driver.provider.GroupConfigurationProvider;
 import eu.cloudnetservice.driver.provider.ServiceTaskProvider;
+import eu.cloudnetservice.ext.modules.rest.dto.JsonConfigurationDto;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
@@ -122,8 +123,10 @@ public final class V2HttpHandlerNode {
 
   @RequestHandler(path = "/api/v2/node/config", method = HttpMethod.PUT)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:node_write", "cloudnet_rest:node_config_update"})
-  public @NonNull IntoResponse<?> handleNodeConfigRequest(@Nullable @RequestTypedBody JsonConfiguration configuration) {
-    if (configuration == null) {
+  public @NonNull IntoResponse<?> handleNodeConfigRequest(
+    @Nullable @RequestTypedBody JsonConfigurationDto configurationDto
+  ) {
+    if (configurationDto == null) {
       return ProblemDetail.builder()
         .type("missing-node-configuration")
         .title("Missing Node Configuration")
@@ -132,8 +135,9 @@ public final class V2HttpHandlerNode {
     }
 
     // TODO: test this
-    configuration.save();
-    this.configuration.reloadFrom(configuration); // this.configuration.load(); previously
+    var config = configurationDto.original();
+    config.save();
+    this.configuration.reloadFrom(config); // this.configuration.load(); previously*/
 
     return JsonResponse.builder().noContent();
   }
@@ -165,8 +169,12 @@ public final class V2HttpHandlerNode {
   }
 
   @RequestHandler(path = "/api/v2/node/liveConsole")
-  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_live_console"})
-  public @NonNull IntoResponse<?> handleLiveConsoleRequest(@NonNull HttpContext context, @NonNull RestUser restUser) {
+  public @NonNull IntoResponse<?> handleLiveConsoleRequest(
+    @NonNull HttpContext context,
+    @Authentication(
+      providers = "jwt",
+      scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_live_console"}) @NonNull RestUser restUser
+  ) {
     context.upgrade().thenAccept(channel -> {
       var handler = new WebSocketLogHandler(restUser, channel, DefaultLogFormatter.END_LINE_SEPARATOR);
       channel.addListener(handler);

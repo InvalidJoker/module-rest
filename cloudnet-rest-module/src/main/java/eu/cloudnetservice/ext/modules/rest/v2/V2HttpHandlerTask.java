@@ -17,7 +17,7 @@
 package eu.cloudnetservice.ext.modules.rest.v2;
 
 import eu.cloudnetservice.driver.provider.ServiceTaskProvider;
-import eu.cloudnetservice.driver.service.ServiceTask;
+import eu.cloudnetservice.ext.modules.rest.dto.service.ServiceTaskDto;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
@@ -27,11 +27,12 @@ import eu.cloudnetservice.ext.rest.api.annotation.RequestTypedBody;
 import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
+import eu.cloudnetservice.ext.rest.validation.EnableValidation;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.NonNull;
-import org.jetbrains.annotations.Nullable;
 
 @Singleton
 public final class V2HttpHandlerTask {
@@ -66,18 +67,10 @@ public final class V2HttpHandlerTask {
     return JsonResponse.builder().body(Map.of("task", task));
   }
 
-  private @NonNull ProblemDetail taskNotFound(@NonNull String name) {
-    return ProblemDetail.builder()
-      .type("service-task-not-found")
-      .title("Service Task Not Found")
-      .status(HttpResponseCode.NOT_FOUND)
-      .detail(String.format("The requested service task %s was not found.", name))
-      .build();
-  }
-
+  @EnableValidation
   @RequestHandler(path = "/api/v2/task", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:task_write", "cloudnet_rest:task_create"})
-  public @NonNull IntoResponse<?> handleTaskCreateRequest(@Nullable @RequestTypedBody ServiceTask serviceTask) {
+  public @NonNull IntoResponse<?> handleTaskCreateRequest(@Valid @RequestTypedBody ServiceTaskDto serviceTask) {
     if (serviceTask == null) {
       return ProblemDetail.builder()
         .type("missing-service-task")
@@ -86,7 +79,7 @@ public final class V2HttpHandlerTask {
         .detail("The request body does not contain a service task.");
     }
 
-    this.taskProvider.addServiceTask(serviceTask);
+    this.taskProvider.addServiceTask(serviceTask.original());
     return JsonResponse.builder().noContent();
   }
 
@@ -100,5 +93,14 @@ public final class V2HttpHandlerTask {
 
     this.taskProvider.removeServiceTask(task);
     return JsonResponse.builder().noContent();
+  }
+
+  private @NonNull ProblemDetail taskNotFound(@NonNull String name) {
+    return ProblemDetail.builder()
+      .type("service-task-not-found")
+      .title("Service Task Not Found")
+      .status(HttpResponseCode.NOT_FOUND)
+      .detail(String.format("The requested service task %s was not found.", name))
+      .build();
   }
 }

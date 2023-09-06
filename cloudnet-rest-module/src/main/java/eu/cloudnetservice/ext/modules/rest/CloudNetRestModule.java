@@ -37,6 +37,7 @@ import eu.cloudnetservice.ext.rest.api.config.ComponentConfig;
 import eu.cloudnetservice.ext.rest.api.config.CorsConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpProxyMode;
 import eu.cloudnetservice.ext.rest.api.factory.HttpComponentFactoryLoader;
+import eu.cloudnetservice.ext.rest.validation.ValidationHandlerMethodContextDecorator;
 import jakarta.inject.Singleton;
 import lombok.NonNull;
 
@@ -56,6 +57,8 @@ public class CloudNetRestModule extends DriverModule {
     var server = componentFactory.construct(config);
 
     server.addListener(1870);
+    server.annotationParser()
+      .registerHandlerContextDecorator(ValidationHandlerMethodContextDecorator.withDefaultValidator());
 
     this.parseAndRegister(
       layer,

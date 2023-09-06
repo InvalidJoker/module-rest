@@ -17,7 +17,7 @@
 package eu.cloudnetservice.ext.modules.rest.v2;
 
 import eu.cloudnetservice.driver.provider.GroupConfigurationProvider;
-import eu.cloudnetservice.driver.service.GroupConfiguration;
+import eu.cloudnetservice.ext.modules.rest.dto.GroupConfigurationDto;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
@@ -27,11 +27,12 @@ import eu.cloudnetservice.ext.rest.api.annotation.RequestTypedBody;
 import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
+import eu.cloudnetservice.ext.rest.validation.EnableValidation;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.NonNull;
-import org.jetbrains.annotations.Nullable;
 
 @Singleton
 public final class V2HttpHandlerGroup {
@@ -70,9 +71,10 @@ public final class V2HttpHandlerGroup {
     return JsonResponse.builder().body(Map.of("group", group));
   }
 
+  @EnableValidation
   @RequestHandler(path = "/api/v2/group", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:group_write", "cloudnet_rest:group_create"})
-  public @NonNull IntoResponse<?> handleGroupCreateRequest(@Nullable @RequestTypedBody GroupConfiguration group) {
+  public @NonNull IntoResponse<?> handleGroupCreateRequest(@Valid @RequestTypedBody GroupConfigurationDto group) {
     if (group == null) {
       return ProblemDetail.builder()
         .status(HttpResponseCode.NOT_FOUND)
@@ -81,7 +83,7 @@ public final class V2HttpHandlerGroup {
         .detail("The request body does not contain a group configuration.");
     }
 
-    this.groupProvider.addGroupConfiguration(group);
+    this.groupProvider.addGroupConfiguration(group.original());
     return JsonResponse.builder().responseCode(HttpResponseCode.CREATED);
   }
 

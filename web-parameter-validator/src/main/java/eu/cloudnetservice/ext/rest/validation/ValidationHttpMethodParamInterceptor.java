@@ -38,7 +38,11 @@ record ValidationHttpMethodParamInterceptor(
 
     // 1. checks if there are actually any constraint violations before passing to the response factory
     // 2. validate that the response factory is willing to break the processing due to the violations
-    var validationResult = this.validator.validateParameters(handlerInstance, handerMethod, this.validationGroups);
+    var validationResult = this.validator.validateParameters(
+      handlerInstance,
+      handerMethod,
+      params,
+      this.validationGroups);
     if (!validationResult.isEmpty()) {
       var response = this.violationResponseFactory.convertConstraintViolations(validationResult);
       if (response != null) {

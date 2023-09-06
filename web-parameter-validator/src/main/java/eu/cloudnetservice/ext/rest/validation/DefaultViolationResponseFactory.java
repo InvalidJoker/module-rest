@@ -60,7 +60,7 @@ final class DefaultViolationResponseFactory implements ViolationResponseFactory 
 
   private @NonNull String prettifyPath(@Nullable Object bean, @NonNull Path propertyPath) {
     // construct a joiner and use an empty string as the default value for further checks
-    var joiner = new StringJoiner(".", bean == null ? "" : bean.getClass().getSimpleName(), "");
+    var joiner = new StringJoiner(".", bean == null ? "" : bean.getClass().getSimpleName() + '.', "");
     joiner.setEmptyValue("");
 
     for (var node : propertyPath) {
