@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.net.URI;
 import lombok.NonNull;
 
-//TODO: this might be totally yek
+// TODO: this might be totally yek
 @Singleton
 public final class V2HttpHandlerDocumentation {
 

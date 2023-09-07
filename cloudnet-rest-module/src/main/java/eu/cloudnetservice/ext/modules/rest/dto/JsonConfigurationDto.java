@@ -33,8 +33,10 @@ public final class JsonConfigurationDto implements Dto<JsonConfiguration> {
   @NotBlank
   private final String language;
 
+  @Valid
   @NotNull
   private final NetworkClusterNodeDto identity;
+  @Valid
   @NotNull
   private final NetworkClusterDto clusterConfig;
 
@@ -68,10 +70,13 @@ public final class JsonConfigurationDto implements Dto<JsonConfiguration> {
   @NotNull
   private final Collection<HostAndPortDto> httpListeners;
 
+  @Valid
   @NotNull
   private final SSLConfigurationDto clientSslConfig;
+  @Valid
   @NotNull
   private final SSLConfigurationDto serverSslConfig;
+  @Valid
   @NotNull
   private final SSLConfigurationDto webSslConfig;
 

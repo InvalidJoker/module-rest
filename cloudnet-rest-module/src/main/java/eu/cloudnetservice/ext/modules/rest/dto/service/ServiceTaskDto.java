@@ -19,6 +19,7 @@ package eu.cloudnetservice.ext.modules.rest.dto.service;
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.driver.service.ServiceTask;
 import eu.cloudnetservice.ext.modules.rest.dto.Dto;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -54,6 +55,7 @@ public final class ServiceTaskDto extends ServiceConfigurationBaseDto implements
   @NotNull
   private final Set<String> deletedFilesAfterStop;
 
+  @Valid
   @NotNull
   private final ProcessConfigurationDto processConfiguration;
 

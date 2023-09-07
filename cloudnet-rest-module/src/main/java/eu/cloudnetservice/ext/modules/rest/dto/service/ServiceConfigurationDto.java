@@ -18,19 +18,24 @@ package eu.cloudnetservice.ext.modules.rest.dto.service;
 
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.driver.service.ServiceConfiguration;
+import eu.cloudnetservice.driver.service.ServiceCreateRetryConfiguration;
 import eu.cloudnetservice.ext.modules.rest.dto.Dto;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.util.Set;
+import lombok.NonNull;
 
 public final class ServiceConfigurationDto extends ServiceConfigurationBaseDto implements Dto<ServiceConfiguration> {
 
+  @Valid
   @NotNull
   private final ServiceIdDto serviceId;
+  @Valid
   @NotNull
   private final ProcessConfigurationDto processConfig;
-  @NotNull
+  @Valid
   private final ServiceCreateRetryConfigurationDto retryConfiguration;
 
   @Min(1)
@@ -81,7 +86,11 @@ public final class ServiceConfigurationDto extends ServiceConfigurationBaseDto i
     this.deletedFilesAfterStop = deletedFilesAfterStop;
   }
 
-  public @NotNull ServiceConfiguration original() {
+  public @NonNull ServiceConfiguration original() {
+    var retry = this.retryConfiguration == null
+      ? ServiceCreateRetryConfiguration.NO_RETRY
+      : this.retryConfiguration.original();
+
     return ServiceConfiguration.builder()
       .serviceId(this.serviceId.original())
       .runtime(this.runtime)
@@ -97,7 +106,7 @@ public final class ServiceConfigurationDto extends ServiceConfigurationBaseDto i
       .deployments(Dto.toList(this.deployments))
       .inclusions(Dto.toList(this.includes))
       .properties(this.properties)
-      .retryConfiguration(this.retryConfiguration.original())
+      .retryConfiguration(retry)
       .build();
   }
 }

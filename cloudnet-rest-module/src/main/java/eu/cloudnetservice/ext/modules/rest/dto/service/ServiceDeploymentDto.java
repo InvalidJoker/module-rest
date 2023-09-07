@@ -19,6 +19,7 @@ package eu.cloudnetservice.ext.modules.rest.dto.service;
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.driver.service.ServiceDeployment;
 import eu.cloudnetservice.ext.modules.rest.dto.Dto;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.regex.Pattern;
@@ -26,6 +27,7 @@ import lombok.NonNull;
 
 public class ServiceDeploymentDto implements Dto<ServiceDeployment>  {
 
+  @Valid
   @NotNull
   private final ServiceTemplateDto template;
   @NotNull

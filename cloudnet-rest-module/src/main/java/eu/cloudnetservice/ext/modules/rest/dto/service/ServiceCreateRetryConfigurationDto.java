@@ -22,7 +22,7 @@ import eu.cloudnetservice.ext.modules.rest.dto.ChannelMessageTargetDto;
 import eu.cloudnetservice.ext.modules.rest.dto.Dto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Positive;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +31,7 @@ import lombok.NonNull;
 
 public class ServiceCreateRetryConfigurationDto implements Dto<ServiceCreateRetryConfiguration> {
 
-  @PositiveOrZero
+  @Positive
   private final int maxRetries;
   @NotNull
   private final List<Long> backoffStrategy;
