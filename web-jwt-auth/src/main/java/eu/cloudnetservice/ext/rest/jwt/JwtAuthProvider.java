@@ -17,6 +17,7 @@
 package eu.cloudnetservice.ext.rest.jwt;
 
 import com.google.common.net.HttpHeaders;
+import com.google.gson.JsonSyntaxException;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
 import eu.cloudnetservice.ext.rest.api.auth.AuthenticationResult;
@@ -134,16 +135,17 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
       var parsedTokens = JwtTokenPropertyParser.parseTokens(tokenPairs);
       if (this.checkValidTokenId(parsedTokens, token.getBody().getId())) {
         // the token id is registered for the user - last check we need to do is the token type checking
+        var tokenId = token.getBody().getId();
         var tokenType = token.getBody().get("type", String.class);
         if (tokenType != null && tokenType.equals(JwtTokenHolder.ACCESS_TOKEN_TYPE)) {
-          return new AuthenticationResult.Success(user);
+          return new AuthenticationResult.Success(user, tokenId);
         } else {
-          return new AuthenticationResult.InvalidTokenType(user, token.getBody().getId(), tokenType);
+          return new AuthenticationResult.InvalidTokenType(user, tokenId, tokenType);
         }
       } else {
         return AuthenticationResult.Constant.INVALID_CREDENTIALS;
       }
-    } catch (JwtException exception) {
+    } catch (JwtException | JsonSyntaxException exception) {
       return AuthenticationResult.Constant.INVALID_CREDENTIALS;
     }
   }

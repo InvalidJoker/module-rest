@@ -93,7 +93,7 @@ public class BasicAuthProvider implements AuthProvider<Void> {
       Arrays.fill(passwordBytes, (byte) 0);
       if (suppliedValidPassword) {
         // valid user and password
-        return new AuthenticationResult.Success(extractedUser);
+        return new AuthenticationResult.Success(extractedUser, null);
       } else {
         // invalid password
         return AuthenticationResult.Constant.INVALID_CREDENTIALS;

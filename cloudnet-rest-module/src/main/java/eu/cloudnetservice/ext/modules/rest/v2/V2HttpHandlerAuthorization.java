@@ -29,10 +29,13 @@ import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagementLoader;
 import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
+import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
 import eu.cloudnetservice.ext.rest.jwt.JwtAuthProvider;
 import eu.cloudnetservice.ext.rest.jwt.JwtAuthToken;
+import eu.cloudnetservice.ext.rest.jwt.JwtTokenHolder;
 import eu.cloudnetservice.ext.rest.jwt.JwtTokenPropertyParser;
 import jakarta.inject.Singleton;
+import java.util.Map;
 import lombok.NonNull;
 
 @Singleton
@@ -94,5 +97,47 @@ public final class V2HttpHandlerAuthorization {
         .status(HttpResponseCode.BAD_REQUEST)
         .detail("The provided refresh token is invalid.");
     }
+  }
+
+  @RequestHandler(path = "/api/v2/auth/verify")
+  public @NonNull IntoResponse<?> handleVerifyRequest(@NonNull HttpContext context) {
+    RestUser user;
+    String tokenId;
+    String tokenType;
+
+    var authenticationResult = this.authProvider.tryAuthenticate(context, this.management);
+    if (authenticationResult instanceof AuthenticationResult.Success success) {
+      user = success.restUser();
+      tokenId = success.tokenId();
+      tokenType = JwtTokenHolder.ACCESS_TOKEN_TYPE;
+    } else if (authenticationResult instanceof AuthenticationResult.InvalidTokenType invalidTokenType) {
+      user = invalidTokenType.restUser();
+      tokenId = invalidTokenType.tokenId();
+      tokenType = JwtTokenHolder.REFRESH_TOKEN_TYPE;
+    } else {
+      return ProblemDetail.builder()
+        .type("invalid-token")
+        .title("Invalid Token")
+        .status(HttpResponseCode.BAD_REQUEST)
+        .detail("The provided token is invalid.");
+    }
+
+    var expiry = JwtTokenPropertyParser.parseTokens(user.properties().get(JwtAuthProvider.JWT_TOKEN_PAIR_KEY))
+      .stream()
+      .filter(token -> token.tokenId().equals(tokenId))
+      .filter(token -> token.tokenType().equals(tokenType))
+      .findFirst()
+      .map(JwtTokenHolder::expiresAt)
+      .orElse(null);
+
+    if (expiry == null) {
+      return ProblemDetail.builder()
+        .type("unknown-token-type")
+        .title("Unknown Token Type")
+        .status(HttpResponseCode.BAD_REQUEST)
+        .detail("The token has an unknown token type.");
+    }
+
+    return JsonResponse.builder().body(Map.of("type", tokenType, "expiresAt", expiry.toEpochMilli()));
   }
 }
