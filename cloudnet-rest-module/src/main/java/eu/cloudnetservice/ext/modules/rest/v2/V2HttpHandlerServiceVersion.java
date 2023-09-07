@@ -19,6 +19,7 @@ package eu.cloudnetservice.ext.modules.rest.v2;
 import eu.cloudnetservice.common.io.FileUtil;
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.driver.service.ServiceTemplate;
+import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
 import eu.cloudnetservice.ext.rest.api.annotation.FirstRequestQueryParam;
@@ -82,7 +83,7 @@ public final class V2HttpHandlerServiceVersion {
     return JsonResponse.builder().body(Map.of("version", versionType));
   }
 
-  @RequestHandler(path = "/api/v2/serviceversion/load")
+  @RequestHandler(path = "/api/v2/serviceversion/load", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:service_version_write", "cloudnet_rest:service_version_load"})
@@ -113,7 +114,7 @@ public final class V2HttpHandlerServiceVersion {
   }
 
   // TODO docs: new route
-  @RequestHandler(path = "/api/v2/serviceversion/install")
+  @RequestHandler(path = "/api/v2/serviceversion/install", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:service_version_write", "cloudnet_rest:service_version_install"})

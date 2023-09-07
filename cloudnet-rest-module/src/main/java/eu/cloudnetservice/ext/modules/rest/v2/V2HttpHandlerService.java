@@ -312,7 +312,6 @@ public final class V2HttpHandlerService {
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_add_template"})
   public @NonNull IntoResponse<?> handleServiceAddTemplateRequest(
     @NonNull @RequestPathParam("id") String id,
-    @NonNull @FirstRequestQueryParam("type") String type,
     @NonNull @Optional @FirstRequestQueryParam(value = "flush", def = "false") String flush,
     @Nullable @RequestTypedBody @Valid ServiceTemplateDto templateDto
   ) {
@@ -339,7 +338,6 @@ public final class V2HttpHandlerService {
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_add_deployment"})
   public @NonNull IntoResponse<?> handleServiceAddDeploymentRequest(
     @NonNull @RequestPathParam("id") String id,
-    @NonNull @FirstRequestQueryParam("type") String type,
     @NonNull @Optional @FirstRequestQueryParam(value = "flush", def = "false") String flush,
     @NonNull @Optional @FirstRequestQueryParam(value = "removeDeployment", def = "false") String remove,
     @Nullable @RequestTypedBody @Valid ServiceDeploymentDto deploymentDto
@@ -367,7 +365,6 @@ public final class V2HttpHandlerService {
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_add_inclusion"})
   public @NonNull IntoResponse<?> handleServiceAddInclusionRequest(
     @NonNull @RequestPathParam("id") String id,
-    @NonNull @FirstRequestQueryParam("type") String type,
     @NonNull @Optional @FirstRequestQueryParam(value = "flush", def = "false") String flush,
     @Nullable @RequestTypedBody @Valid ServiceRemoteInclusionDto inclusionDto
   ) {
