@@ -110,7 +110,7 @@ public final class V2HttpHandlerServiceVersion {
   @RequestHandler(path = "/api/v2/serviceversion/environment", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
-    scopes = {"cloudnet_rest:service_version_write", "cloudnet_rest:service_version_register"})
+    scopes = {"cloudnet_rest:service_version_write", "cloudnet_rest:service_version_environment"})
   public @NonNull IntoResponse<?> handleServiceEnvironmentRegisterRequest(
     @Nullable @Valid @RequestTypedBody ServiceEnvironmentTypeDto environmentTypeDto
   ) {
