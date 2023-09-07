@@ -14,37 +14,43 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.dto.service;
+package eu.cloudnetservice.ext.modules.rest.dto.version;
 
 import eu.cloudnetservice.driver.document.Document;
-import eu.cloudnetservice.driver.service.ServiceRemoteInclusion;
+import eu.cloudnetservice.driver.service.ServiceEnvironmentType;
 import eu.cloudnetservice.ext.modules.rest.dto.Dto;
 import jakarta.validation.constraints.NotNull;
+import java.util.Set;
 import lombok.NonNull;
 
-public final class ServiceRemoteInclusionDto implements Dto<ServiceRemoteInclusion> {
+public final class ServiceEnvironmentTypeDto implements Dto<ServiceEnvironmentType> {
 
   @NotNull
-  private final String url;
+  private final String name;
+  private final int defaultServiceStartPort;
   @NotNull
-  private final String destination;
+  private final Set<String> defaultProcessArguments;
   @NotNull
   private final Document properties;
 
-  public ServiceRemoteInclusionDto(
-    String url,
-    String destination,
+  public ServiceEnvironmentTypeDto(
+    String name,
+    int defaultServiceStartPort,
+    Set<String> defaultProcessArguments,
     Document properties
   ) {
-    this.url = url;
-    this.destination = destination;
+    this.name = name;
+    this.defaultServiceStartPort = defaultServiceStartPort;
+    this.defaultProcessArguments = defaultProcessArguments;
     this.properties = properties;
   }
 
-  public @NonNull ServiceRemoteInclusion original() {
-    return ServiceRemoteInclusion.builder()
-      .url(this.url)
-      .destination(this.destination)
+  @Override
+  public @NonNull ServiceEnvironmentType original() {
+    return ServiceEnvironmentType.builder()
+      .name(this.name)
+      .defaultServiceStartPort(this.defaultServiceStartPort)
+      .defaultProcessArguments(this.defaultProcessArguments)
       .properties(this.properties)
       .build();
   }

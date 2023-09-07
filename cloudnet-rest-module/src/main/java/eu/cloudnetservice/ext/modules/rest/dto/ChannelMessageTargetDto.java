@@ -21,7 +21,7 @@ import eu.cloudnetservice.driver.service.ServiceEnvironmentType;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 
-public class ChannelMessageTargetDto implements Dto<ChannelMessageTarget> {
+public final class ChannelMessageTargetDto implements Dto<ChannelMessageTarget> {
 
   @NotNull
   private final ChannelMessageTarget.Type type;

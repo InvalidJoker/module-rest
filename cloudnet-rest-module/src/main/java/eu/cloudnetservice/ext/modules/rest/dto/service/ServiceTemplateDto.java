@@ -21,7 +21,7 @@ import eu.cloudnetservice.ext.modules.rest.dto.Dto;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 
-public class ServiceTemplateDto implements Dto<ServiceTemplate> {
+public final class ServiceTemplateDto implements Dto<ServiceTemplate> {
 
   @NotNull
   private final String prefix;

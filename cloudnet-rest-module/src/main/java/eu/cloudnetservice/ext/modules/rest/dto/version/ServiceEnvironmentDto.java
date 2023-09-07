@@ -14,28 +14,19 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.dto;
+package eu.cloudnetservice.ext.modules.rest.dto.version;
 
-import eu.cloudnetservice.driver.network.HostAndPort;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.NonNull;
 
-public final class HostAndPortDto implements Dto<HostAndPort> {
+public class ServiceEnvironmentDto {
 
   @NotNull
-  private final String host;
-  @Min(1)
-  @Max(0xFFFF)
-  private final int port;
+  protected final String name;
+  @NotNull
+  protected final String environmentType;
 
-  public HostAndPortDto(String host, int port) {
-    this.host = host;
-    this.port = port;
-  }
-
-  public @NonNull HostAndPort original() {
-    return new HostAndPort(this.host, this.port);
+  public ServiceEnvironmentDto(String name, String environmentType) {
+    this.name = name;
+    this.environmentType = environmentType;
   }
 }

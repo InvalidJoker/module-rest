@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.regex.Pattern;
 import lombok.NonNull;
 
-public class ServiceDeploymentDto implements Dto<ServiceDeployment>  {
+public final class ServiceDeploymentDto implements Dto<ServiceDeployment>  {
 
   @Valid
   @NotNull

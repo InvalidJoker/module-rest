@@ -19,6 +19,8 @@ package eu.cloudnetservice.ext.modules.rest.v2;
 import eu.cloudnetservice.common.io.FileUtil;
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.driver.service.ServiceTemplate;
+import eu.cloudnetservice.ext.modules.rest.dto.version.ServiceEnvironmentTypeDto;
+import eu.cloudnetservice.ext.modules.rest.dto.version.ServiceVersionTypeDto;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
@@ -38,11 +40,13 @@ import eu.cloudnetservice.node.version.information.FileSystemVersionInstaller;
 import eu.cloudnetservice.node.version.information.TemplateVersionInstaller;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import jakarta.validation.Valid;
 import java.io.IOException;
 import java.util.Map;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
+// TODO docs: everything changed
 @Singleton
 public final class V2HttpHandlerServiceVersion {
 
@@ -64,6 +68,62 @@ public final class V2HttpHandlerServiceVersion {
     scopes = {"cloudnet_rest:service_version_read", "cloudnet_rest:service_version_list"})
   public @NonNull IntoResponse<?> handleServiceVersionListRequest() {
     return JsonResponse.builder().body(Map.of("versions", this.versionProvider.serviceVersionTypes()));
+  }
+
+  @RequestHandler(path = "/api/v2/serviceversion", method = HttpMethod.POST)
+  @Authentication(
+    providers = "jwt",
+    scopes = {"cloudnet_rest:service_version_write", "cloudnet_rest:service_version_register"})
+  public @NonNull IntoResponse<?> handleServiceVersionRegisterRequest(
+    @Nullable @Valid @RequestTypedBody ServiceVersionTypeDto versionTypeDto
+  ) {
+    if (versionTypeDto == null) {
+      return ProblemDetail.builder()
+        .status(HttpResponseCode.BAD_REQUEST)
+        .type("missing-service-version-type")
+        .title("Missing Service Version Type")
+        .detail("The request body does not contain a service version type.");
+    }
+
+    var versionType = versionTypeDto.original();
+    var environmentType = this.versionProvider.getEnvironmentType(versionType.environmentType());
+    if (environmentType == null) {
+      return ProblemDetail.builder()
+        .status(HttpResponseCode.NOT_FOUND)
+        .type("service-environment-type-not-found")
+        .title("Service Environment Type Not Found")
+        .detail(String.format("The service environment type %s does not exist.", versionType.environmentType()));
+    }
+
+    this.versionProvider.registerServiceVersionType(versionType);
+    return JsonResponse.builder().noContent();
+  }
+
+  @RequestHandler(path = "/api/v2/serviceversion/environment")
+  @Authentication(
+    providers = "jwt",
+    scopes = {"cloudnet_rest:service_version_read", "cloudnet_rest:service_version_list_environments"})
+  public @NonNull IntoResponse<?> handleServiceEnvironmentListRequest() {
+    return JsonResponse.builder().body(Map.of("environments", this.versionProvider.knownEnvironments()));
+  }
+
+  @RequestHandler(path = "/api/v2/serviceversion/environment", method = HttpMethod.POST)
+  @Authentication(
+    providers = "jwt",
+    scopes = {"cloudnet_rest:service_version_write", "cloudnet_rest:service_version_register"})
+  public @NonNull IntoResponse<?> handleServiceEnvironmentRegisterRequest(
+    @Nullable @Valid @RequestTypedBody ServiceEnvironmentTypeDto environmentTypeDto
+  ) {
+    if (environmentTypeDto == null) {
+      return ProblemDetail.builder()
+        .status(HttpResponseCode.BAD_REQUEST)
+        .type("missing-service-environment-type")
+        .title("Missing Service Environment Type")
+        .detail("The request body does not contain a service environment type.");
+    }
+
+    this.versionProvider.registerServiceEnvironmentType(environmentTypeDto.original());
+    return JsonResponse.builder().noContent();
   }
 
   @RequestHandler(path = "/api/v2/serviceversion/{version}")
@@ -189,6 +249,7 @@ public final class V2HttpHandlerServiceVersion {
 
     return JsonResponse.builder().noContent();
   }
+
 
   private @Nullable ServiceVersionType extractServiceVersionType(@NonNull Document body) {
     var versionName = body.getString("serviceVersionType");

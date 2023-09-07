@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 
-public class ServiceCreateRetryConfigurationDto implements Dto<ServiceCreateRetryConfiguration> {
+public final class ServiceCreateRetryConfigurationDto implements Dto<ServiceCreateRetryConfiguration> {
 
   @Positive
   private final int maxRetries;

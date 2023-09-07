@@ -27,25 +27,25 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.NonNull;
 
-public class ServiceIdDto implements Dto<ServiceId.Builder>  {
+public final class ServiceIdDto implements Dto<ServiceId.Builder>  {
 
   @NotNull
-  protected final String taskName;
+  private final String taskName;
   @NotNull
   @Pattern(regexp = ServiceTask.NAMING_REGEX)
-  protected final String nameSplitter;
+  private final String nameSplitter;
   @NotNull
-  protected final Set<String> allowedNodes;
+  private final Set<String> allowedNodes;
 
   @NotNull
-  protected final UUID uniqueId;
+  private final UUID uniqueId;
   @PositiveOrZero
-  protected final int taskServiceId;
-  protected final String nodeUniqueId;
+  private final int taskServiceId;
+  private final String nodeUniqueId;
 
   @NotNull
-  protected final String environmentName;
-  protected final ServiceEnvironmentType environment;
+  private final String environmentName;
+  private final ServiceEnvironmentType environment;
 
   public ServiceIdDto(
     String taskName,
