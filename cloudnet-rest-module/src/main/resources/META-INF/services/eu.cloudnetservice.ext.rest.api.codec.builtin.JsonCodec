@@ -14,4 +14,4 @@
 # limitations under the License.
 #
 
-eu.cloudnetservice.ext.modules.rest.codec.GsonJsonCodec
+eu.cloudnetservice.ext.modules.rest.codec.CloudNetDocumentJsonCodec

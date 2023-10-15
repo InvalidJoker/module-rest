@@ -17,7 +17,7 @@
 package eu.cloudnetservice.ext.modules.rest.auth.provider;
 
 import eu.cloudnetservice.ext.modules.rest.auth.DefaultRestUser;
-import eu.cloudnetservice.ext.modules.rest.auth.PasswordEncryptionUtil;
+import eu.cloudnetservice.ext.modules.rest.auth.util.PasswordEncryptionUtil;
 import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.auth.basic.BasicAuthProvider;

@@ -28,7 +28,7 @@ import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import lombok.NonNull;
 
-public class GsonJsonCodec implements JsonCodec {
+public final class CloudNetDocumentJsonCodec implements JsonCodec {
 
   /**
    * {@inheritDoc}

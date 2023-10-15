@@ -16,16 +16,27 @@
 
 package eu.cloudnetservice.ext.rest.api.auth;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 import lombok.NonNull;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
-@ApiStatus.Experimental
 public interface RestUser {
+
+  /**
+   * The global administration scope. A user that gets this scope granted has access to all resources.
+   */
+  String GLOBAL_ADMIN_SCOPE = "global:admin";
+
+  // https://regex101.com/r/3nG0Nu/1
+  /**
+   * The regex that scope names need to conform to.
+   */
+  Pattern SCOPE_NAMING_PATTERN = Pattern.compile("(^[a-z][a-z0-9_]{4,39}):([a-z0-9.\\-_]+)");
 
   /**
    * Gets the id of this rest user.
@@ -34,6 +45,7 @@ public interface RestUser {
    */
   @NonNull String id();
 
+  @Unmodifiable
   @NonNull Map<String, String> properties();
 
   /**
@@ -80,7 +92,6 @@ public interface RestUser {
    * @see RestUserManagement
    * @since 4.0
    */
-  @ApiStatus.Experimental
   interface Builder {
 
     /**
@@ -108,28 +119,11 @@ public interface RestUser {
      * @throws NullPointerException     if the given scope is null.
      * @throws IllegalArgumentException if the scope does not follow the mentioned regex pattern.
      */
-    @NonNull Builder addScope(@NonNull String scope);
+    @NonNull Builder scope(@NonNull String scope);
 
-    /**
-     * Removes the given scope from the rest users scopes.
-     *
-     * @param scope the scope to remove from the rest users scopes.
-     * @return the same instance as used to call the method, for chaining.
-     * @throws NullPointerException if the given scope is null.
-     */
-    @NonNull Builder removeScope(@NonNull String scope);
+    @NonNull Builder scopes(@NonNull Collection<String> scopes);
 
-    /**
-     * Sets all scopes of the rest user, overwriting already set scopes. The scopes have to follow the
-     * {@link RestUserManagement#SCOPE_NAMING_REGEX} regex pattern. The only exception to that is the {@code admin}
-     * scope that grants access to everything.
-     *
-     * @param scopes the scopes to set.
-     * @return the same instance as used to call the method, for chaining.
-     * @throws NullPointerException     if the given scope set is null.
-     * @throws IllegalArgumentException if the scopes do not follow the mentioned regex pattern.
-     */
-    @NonNull Builder scopes(@NonNull Set<String> scopes);
+    @NonNull Builder modifyScopes(@NonNull Consumer<Collection<String>> modifier);
 
     /**
      * Creates the rest user from this builder.

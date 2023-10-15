@@ -26,9 +26,9 @@ import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import java.security.Key;
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -39,6 +39,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.crypto.SecretKey;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,10 +64,19 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
   public JwtAuthProvider() {
     this(
       DEFAULT_ISSUER,
-      Keys.secretKeyFor(SignatureAlgorithm.HS512),
+      Jwts.SIG.HS512.key().build(),
       null,
       DEFAULT_ACCESS_TOKEN_EXPIRATION,
       DEFAULT_REFRESH_TOKEN_EXPIRATION);
+  }
+
+  public JwtAuthProvider(
+    @NonNull String issuer,
+    @NonNull KeyPair jwtSigningKeys,
+    @NonNull Duration accessDuration,
+    @NonNull Duration refreshDuration
+  ) {
+    this(issuer, jwtSigningKeys.getPrivate(), jwtSigningKeys.getPublic(), accessDuration, refreshDuration);
   }
 
   public JwtAuthProvider(
@@ -84,7 +94,13 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
     // symmetric keys only use one key for signing and validating
     // asymmetric keys need a separate keys: one to sign and one to validate
     var validationKey = Objects.requireNonNullElse(jwtValidationKey, jwtSigningKey);
-    this.jwtParser = Jwts.parserBuilder().requireIssuer(issuer).setSigningKey(validationKey).build();
+    if (validationKey instanceof SecretKey validationSecretKey) {
+      this.jwtParser = Jwts.parser().requireIssuer(issuer).verifyWith(validationSecretKey).build();
+    } else if (validationKey instanceof PublicKey validationPublicKey) {
+      this.jwtParser = Jwts.parser().requireIssuer(issuer).verifyWith(validationPublicKey).build();
+    } else {
+      throw new IllegalArgumentException("Verify key must either be a SecretKey (for MAC algorithms) or a PublicKey");
+    }
   }
 
   @Override
@@ -121,10 +137,10 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
 
     try {
       // parse the JWT token - this call throws in case the jwt is invalid in any form
-      var token = this.jwtParser.parseClaimsJws(tokenMatcher.group(1));
+      var token = this.jwtParser.parseSignedClaims(tokenMatcher.group(1));
 
       // validate the token subject
-      var subject = token.getBody().getSubject();
+      var subject = token.getPayload().getSubject();
       var user = management.restUser(subject);
       if (user == null) {
         return AuthenticationResult.Constant.USER_NOT_FOUND;
@@ -133,10 +149,10 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
       // validate that the id of the token still has access granted
       var tokenPairs = user.properties().get(JWT_TOKEN_PAIR_KEY);
       var parsedTokens = JwtTokenPropertyParser.parseTokens(tokenPairs);
-      if (this.checkValidTokenId(parsedTokens, token.getBody().getId())) {
+      if (this.checkValidTokenId(parsedTokens, token.getPayload().getId())) {
         // the token id is registered for the user - last check we need to do is the token type checking
-        var tokenId = token.getBody().getId();
-        var tokenType = token.getBody().get("type", String.class);
+        var tokenId = token.getPayload().getId();
+        var tokenType = token.getPayload().get("type", String.class);
         if (tokenType != null && tokenType.equals(JwtTokenHolder.ACCESS_TOKEN_TYPE)) {
           return new AuthenticationResult.Success(user, tokenId);
         } else {
@@ -200,11 +216,11 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
   ) {
     var expiration = Instant.now().plus(validDuration);
     var jwtToken = Jwts.builder()
-      .setIssuer(this.issuer)
-      .setSubject(subject.id())
-      .setIssuedAt(new Date())
-      .setExpiration(Date.from(expiration))
-      .setId(tokenId)
+      .issuer(this.issuer)
+      .subject(subject.id())
+      .issuedAt(new Date())
+      .expiration(Date.from(expiration))
+      .id(tokenId)
       .claim("type", tokenType)
       .signWith(this.jwtSigningKey)
       .compact();

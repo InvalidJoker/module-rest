@@ -16,6 +16,7 @@
 
 package eu.cloudnetservice.ext.modules.rest;
 
+import dev.derklaro.aerogel.binding.BindingBuilder;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.driver.module.ModuleLifeCycle;
 import eu.cloudnetservice.driver.module.ModuleTask;
@@ -42,10 +43,11 @@ import jakarta.inject.Singleton;
 import lombok.NonNull;
 
 @Singleton
-public class CloudNetRestModule extends DriverModule {
+public final class CloudNetRestModule extends DriverModule {
 
-  @ModuleTask(lifecycle = ModuleLifeCycle.STARTED)
-  public void init(@NonNull InjectionLayer<?> layer) {
+  @ModuleTask(order = 127, lifecycle = ModuleLifeCycle.STARTED)
+  public void initHttpServer(@NonNull InjectionLayer<?> injectionLayer) {
+    // todo: configuration
     var config = ComponentConfig.builder()
       .haProxyMode(HttpProxyMode.AUTO_DETECT)
       .corsConfig(CorsConfig.builder()
@@ -53,37 +55,47 @@ public class CloudNetRestModule extends DriverModule {
         .addAllowedHeader("*")
         .build()).build();
 
+    // construct the http server component
     var componentFactory = HttpComponentFactoryLoader.getFirstComponentFactory(HttpServer.class);
     var server = componentFactory.construct(config);
 
-    server.addListener(1870);
-    server.annotationParser()
-      .registerHandlerContextDecorator(ValidationHandlerMethodContextDecorator.withDefaultValidator());
+    // registers the validation-enabling context decorator
+    var validationDecorator = ValidationHandlerMethodContextDecorator.withDefaultValidator();
+    server.annotationParser().registerHandlerContextDecorator(validationDecorator);
 
-    this.parseAndRegister(
-      layer,
-      server,
-      V2HttpHandlerAuthorization.class,
-      V2HttpHandlerCluster.class,
-      V2HttpHandlerDatabase.class,
-      V2HttpHandlerDocumentation.class,
-      V2HttpHandlerGroup.class,
-      V2HttpHandlerModule.class,
-      V2HttpHandlerNode.class,
-      V2HttpHandlerService.class,
-      V2HttpHandlerServiceVersion.class,
-      V2HttpHandlerTask.class,
-      V2HttpHandlerTemplate.class,
-      V2HttpHandlerTemplateStorage.class);
+    // bind the server and register it for injection
+    server.addListener(1870);
+    injectionLayer.install(BindingBuilder.create().bind(HttpServer.class).toInstance(server));
   }
 
-  private void parseAndRegister(
-    @NonNull InjectionLayer<?> layer,
-    @NonNull HttpServer server,
-    @NonNull Class<?>... handlers
+  @ModuleTask(order = 107, lifecycle = ModuleLifeCycle.STARTED)
+  public void registerHttpHandlers(
+    @NonNull HttpServer httpServer,
+    @NonNull V2HttpHandlerTask taskHandler,
+    @NonNull V2HttpHandlerNode nodeHandler,
+    @NonNull V2HttpHandlerGroup groupHandler,
+    @NonNull V2HttpHandlerModule moduleHandler,
+    @NonNull V2HttpHandlerCluster clusterHandler,
+    @NonNull V2HttpHandlerService serviceHandler,
+    @NonNull V2HttpHandlerDatabase databaseHandler,
+    @NonNull V2HttpHandlerTemplate templateHandler,
+    @NonNull V2HttpHandlerServiceVersion versionHandler,
+    @NonNull V2HttpHandlerTemplateStorage storageHandler,
+    @NonNull V2HttpHandlerAuthorization authorizationHandler,
+    @NonNull V2HttpHandlerDocumentation documentationHandler
   ) {
-    for (var handlerType : handlers) {
-      server.annotationParser().parseAndRegister(layer.instance(handlerType));
-    }
+    httpServer.annotationParser()
+      .parseAndRegister(taskHandler)
+      .parseAndRegister(nodeHandler)
+      .parseAndRegister(groupHandler)
+      .parseAndRegister(moduleHandler)
+      .parseAndRegister(clusterHandler)
+      .parseAndRegister(serviceHandler)
+      .parseAndRegister(databaseHandler)
+      .parseAndRegister(templateHandler)
+      .parseAndRegister(versionHandler)
+      .parseAndRegister(storageHandler)
+      .parseAndRegister(authorizationHandler)
+      .parseAndRegister(documentationHandler);
   }
 }

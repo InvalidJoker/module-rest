@@ -41,25 +41,25 @@ import lombok.NonNull;
 @Singleton
 public final class V2HttpHandlerAuthorization {
 
-  private final AuthProvider<?> authProvider;
-  private final RestUserManagement management;
+  private final AuthProvider<?> jwtAuthProvider;
+  private final RestUserManagement userManagement;
 
   public V2HttpHandlerAuthorization() {
-    this.authProvider = AuthProviderLoader.resolveAuthProvider("jwt");
-    this.management = RestUserManagementLoader.load();
+    this.jwtAuthProvider = AuthProviderLoader.resolveAuthProvider("jwt");
+    this.userManagement = RestUserManagementLoader.load();
   }
 
   @RequestHandler(path = "/api/v2/auth")
   public @NonNull IntoResponse<?> handleBasicAuthLoginRequest(
     @Authentication(providers = "basic") @NonNull RestUser user
   ) {
-    var token = (JwtAuthToken) this.authProvider.generateAuthToken(this.management, user);
+    var token = (JwtAuthToken) this.jwtAuthProvider.generateAuthToken(this.management, user);
     return token.intoResponseBuilder();
   }
 
   @RequestHandler(path = "/api/v2/auth/refresh", method = HttpMethod.POST)
   public @NonNull IntoResponse<?> handleRefreshRequest(@NonNull HttpContext context) {
-    var authenticationResult = this.authProvider.tryAuthenticate(context, this.management);
+    var authenticationResult = this.jwtAuthProvider.tryAuthenticate(context, this.management);
     if (authenticationResult instanceof AuthenticationResult.Success) {
       return ProblemDetail.builder()
         .type("refresh-access-token-used")
@@ -88,7 +88,7 @@ public final class V2HttpHandlerAuthorization {
         }
       }).build();
 
-      var token = this.authProvider.generateAuthToken(this.management, user);
+      var token = this.jwtAuthProvider.generateAuthToken(this.management, user);
       return token.intoResponseBuilder();
     } else {
       return ProblemDetail.builder()
@@ -105,7 +105,7 @@ public final class V2HttpHandlerAuthorization {
     String tokenId;
     String tokenType;
 
-    var authenticationResult = this.authProvider.tryAuthenticate(context, this.management);
+    var authenticationResult = this.jwtAuthProvider.tryAuthenticate(context, this.management);
     if (authenticationResult instanceof AuthenticationResult.Success success) {
       user = success.restUser();
       tokenId = success.tokenId();
