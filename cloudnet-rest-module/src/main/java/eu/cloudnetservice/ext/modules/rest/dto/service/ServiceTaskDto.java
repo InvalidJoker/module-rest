@@ -104,7 +104,8 @@ public final class ServiceTaskDto extends ServiceConfigurationBaseDto implements
     this.minServiceCount = minServiceCount;
   }
 
-  public @NonNull ServiceTask original() {
+  @Override
+  public @NonNull ServiceTask toEntity() {
     return ServiceTask.builder()
       .name(this.name)
       .javaCommand(this.javaCommand)
@@ -129,7 +130,7 @@ public final class ServiceTaskDto extends ServiceConfigurationBaseDto implements
       .minServiceCount(this.minServiceCount)
 
       .properties(this.properties)
-      .processConfiguration(this.processConfiguration.original())
+      .processConfiguration(this.processConfiguration.toEntity())
       .build();
   }
 }

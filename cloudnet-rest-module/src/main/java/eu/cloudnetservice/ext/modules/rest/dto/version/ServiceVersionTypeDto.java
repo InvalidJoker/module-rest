@@ -47,7 +47,7 @@ public final class ServiceVersionTypeDto extends ServiceEnvironmentDto implement
   }
 
   @Override
-  public @NonNull ServiceVersionType original() {
+  public @NonNull ServiceVersionType toEntity() {
     return new ServiceVersionType(this.name, this.environmentType, this.installSteps, Dto.toList(this.versions));
   }
 }

@@ -46,7 +46,8 @@ public final class SSLConfigurationDto implements Dto<SSLConfiguration> {
     this.privateKeyPath = privateKeyPath;
   }
 
-  public @NonNull SSLConfiguration original() {
+  @Override
+  public @NonNull SSLConfiguration toEntity() {
     return new SSLConfiguration(
       this.enabled,
       this.clientAuth,

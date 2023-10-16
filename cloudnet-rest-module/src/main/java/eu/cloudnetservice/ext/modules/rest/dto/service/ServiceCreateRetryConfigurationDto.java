@@ -49,7 +49,8 @@ public final class ServiceCreateRetryConfigurationDto implements Dto<ServiceCrea
     this.eventReceivers = eventReceivers;
   }
 
-  public @NonNull ServiceCreateRetryConfiguration original() {
+  @Override
+  public @NonNull ServiceCreateRetryConfiguration toEntity() {
     return ServiceCreateRetryConfiguration.builder()
       .maxRetries(this.maxRetries)
       .backoffStrategy(this.backoffStrategy.stream().map(Duration::ofMillis).toList())

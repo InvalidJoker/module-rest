@@ -49,9 +49,10 @@ public final class ServiceDeploymentDto implements Dto<ServiceDeployment>  {
     this.properties = properties;
   }
 
-  public @NonNull ServiceDeployment original() {
+  @Override
+  public @NonNull ServiceDeployment toEntity() {
     return ServiceDeployment.builder()
-      .template(this.template.original())
+      .template(this.template.toEntity())
       .excludes(this.excludes)
       .includes(this.includes)
       .properties(this.properties)

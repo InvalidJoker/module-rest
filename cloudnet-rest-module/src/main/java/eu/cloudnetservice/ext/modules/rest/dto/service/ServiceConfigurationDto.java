@@ -86,20 +86,21 @@ public final class ServiceConfigurationDto extends ServiceConfigurationBaseDto i
     this.deletedFilesAfterStop = deletedFilesAfterStop;
   }
 
-  public @NonNull ServiceConfiguration original() {
+  @Override
+  public @NonNull ServiceConfiguration toEntity() {
     var retry = this.retryConfiguration == null
       ? ServiceCreateRetryConfiguration.NO_RETRY
-      : this.retryConfiguration.original();
+      : this.retryConfiguration.toEntity();
 
     return ServiceConfiguration.builder()
-      .serviceId(this.serviceId.original())
+      .serviceId(this.serviceId.toEntity())
       .runtime(this.runtime)
       .hostAddress(this.hostAddress)
       .javaCommand(this.javaCommand)
       .autoDeleteOnStop(this.autoDeleteOnStop)
       .staticService(this.staticService)
       .startPort(this.port)
-      .processConfig(this.processConfig.original())
+      .processConfig(this.processConfig.toEntity())
       .groups(this.groups)
       .deletedFilesAfterStop(this.deletedFilesAfterStop)
       .templates(Dto.toList(this.templates))

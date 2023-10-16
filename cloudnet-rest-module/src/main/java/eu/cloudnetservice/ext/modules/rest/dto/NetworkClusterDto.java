@@ -36,7 +36,8 @@ public final class NetworkClusterDto implements Dto<NetworkCluster> {
     this.nodes = nodes;
   }
 
-  public @NonNull NetworkCluster original() {
+  @Override
+  public @NonNull NetworkCluster toEntity() {
     return new NetworkCluster(this.clusterId, Dto.toList(this.nodes));
   }
 }

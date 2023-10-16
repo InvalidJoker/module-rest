@@ -51,7 +51,8 @@ public final class ProcessConfigurationDto implements Dto<ProcessConfiguration.B
     this.environmentVariables = environmentVariables;
   }
 
-  public @NonNull ProcessConfiguration.Builder original() {
+  @Override
+  public @NonNull ProcessConfiguration.Builder toEntity() {
     return ProcessConfiguration.builder()
       .environment(this.environment)
       .maxHeapMemorySize(this.maxHeapMemorySize)

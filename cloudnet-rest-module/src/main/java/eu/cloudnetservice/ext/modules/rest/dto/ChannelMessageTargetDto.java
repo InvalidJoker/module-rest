@@ -38,7 +38,8 @@ public final class ChannelMessageTargetDto implements Dto<ChannelMessageTarget> 
     this.environment = environment;
   }
 
-  public @NonNull ChannelMessageTarget original() {
+  @Override
+  public @NonNull ChannelMessageTarget toEntity() {
     if (this.type == null) {
       return ChannelMessageTarget.environment(this.environment);
     }

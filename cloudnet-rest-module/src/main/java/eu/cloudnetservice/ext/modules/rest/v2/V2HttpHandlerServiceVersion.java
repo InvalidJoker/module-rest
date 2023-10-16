@@ -85,7 +85,7 @@ public final class V2HttpHandlerServiceVersion {
         .detail("The request body does not contain a service version type.");
     }
 
-    var versionType = versionTypeDto.original();
+    var versionType = versionTypeDto.toEntity();
     var environmentType = this.versionProvider.getEnvironmentType(versionType.environmentType());
     if (environmentType == null) {
       return ProblemDetail.builder()
@@ -122,7 +122,7 @@ public final class V2HttpHandlerServiceVersion {
         .detail("The request body does not contain a service environment type.");
     }
 
-    this.versionProvider.registerServiceEnvironmentType(environmentTypeDto.original());
+    this.versionProvider.registerServiceEnvironmentType(environmentTypeDto.toEntity());
     return JsonResponse.builder().noContent();
   }
 

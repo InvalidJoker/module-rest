@@ -41,7 +41,8 @@ public final class ServiceRemoteInclusionDto implements Dto<ServiceRemoteInclusi
     this.properties = properties;
   }
 
-  public @NonNull ServiceRemoteInclusion original() {
+  @Override
+  public @NonNull ServiceRemoteInclusion toEntity() {
     return ServiceRemoteInclusion.builder()
       .url(this.url)
       .destination(this.destination)

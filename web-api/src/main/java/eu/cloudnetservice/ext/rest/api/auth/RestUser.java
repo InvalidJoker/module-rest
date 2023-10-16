@@ -109,9 +109,9 @@ public interface RestUser {
 
     @NonNull Builder modifyProperties(@NonNull Consumer<Map<String, String>> modifier);
 
-    /**
+    /* TODO: fix
      * Adds the given scope to the rest users scopes. The scope has to follow the
-     * {@link RestUserManagement#SCOPE_NAMING_REGEX} regex pattern. The only exception to that is the {@code admin}
+     * {@link RestUserManagement#SCOPE_NAMING_REGEX} regex pattern. The only exception to that is the {@link GLOBAL_ADMIN_SCOPE}
      * scope that grants access to everything.
      *
      * @param scope the scope to add to the rest users scope.

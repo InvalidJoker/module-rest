@@ -46,7 +46,7 @@ public final class ServiceEnvironmentTypeDto implements Dto<ServiceEnvironmentTy
   }
 
   @Override
-  public @NonNull ServiceEnvironmentType original() {
+  public @NonNull ServiceEnvironmentType toEntity() {
     return ServiceEnvironmentType.builder()
       .name(this.name)
       .defaultServiceStartPort(this.defaultServiceStartPort)

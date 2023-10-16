@@ -138,7 +138,7 @@ public final class V2HttpHandlerNode {
     }
 
     // TODO: test this
-    var config = configurationDto.original();
+    var config = configurationDto.toEntity();
     config.save();
     this.configuration.reloadFrom(config); // this.configuration.load(); previously*/
 

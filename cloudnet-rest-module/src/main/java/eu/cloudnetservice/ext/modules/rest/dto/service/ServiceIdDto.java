@@ -67,7 +67,8 @@ public final class ServiceIdDto implements Dto<ServiceId.Builder>  {
     this.environment = environment;
   }
 
-  public @NonNull ServiceId.Builder original() {
+  @Override
+  public @NonNull ServiceId.Builder toEntity() {
     return ServiceId.builder()
       .taskName(this.taskName)
       .nameSplitter(this.nameSplitter)

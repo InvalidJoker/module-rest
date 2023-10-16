@@ -83,7 +83,7 @@ public final class V2HttpHandlerGroup {
         .detail("The request body does not contain a group configuration.");
     }
 
-    this.groupProvider.addGroupConfiguration(group.original());
+    this.groupProvider.addGroupConfiguration(group.toEntity());
     return JsonResponse.builder().responseCode(HttpResponseCode.CREATED);
   }
 

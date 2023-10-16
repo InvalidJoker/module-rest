@@ -35,7 +35,8 @@ public final class HostAndPortDto implements Dto<HostAndPort> {
     this.port = port;
   }
 
-  public @NonNull HostAndPort original() {
+  @Override
+  public @NonNull HostAndPort toEntity() {
     return new HostAndPort(this.host, this.port);
   }
 }

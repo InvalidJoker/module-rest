@@ -65,7 +65,7 @@ public final class DefaultRestUser implements RestUser {
    */
   @Override
   public boolean hasScope(@NonNull String scope) {
-    return this.scopes.contains("admin") || this.scopes.contains(StringUtil.toLower(scope));
+    return this.scopes.contains(RestUser.GLOBAL_ADMIN_SCOPE) || this.scopes.contains(StringUtil.toLower(scope));
   }
 
   /**

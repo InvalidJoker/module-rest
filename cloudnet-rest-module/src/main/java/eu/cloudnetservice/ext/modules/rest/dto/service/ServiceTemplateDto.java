@@ -46,7 +46,8 @@ public final class ServiceTemplateDto implements Dto<ServiceTemplate> {
     this.alwaysCopyToStaticServices = alwaysCopyToStaticServices;
   }
 
-  public @NonNull ServiceTemplate original() {
+  @Override
+  public @NonNull ServiceTemplate toEntity() {
     return ServiceTemplate.builder()
       .prefix(this.prefix)
       .name(this.name)

@@ -63,7 +63,7 @@ public final class ServiceVersionDto implements Dto<ServiceVersion> {
 
 
   @Override
-  public @NonNull ServiceVersion original() {
+  public @NonNull ServiceVersion toEntity() {
     return new ServiceVersion(
       this.name,
       this.url,

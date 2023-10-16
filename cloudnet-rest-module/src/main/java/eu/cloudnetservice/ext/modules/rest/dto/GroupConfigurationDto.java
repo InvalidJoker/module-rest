@@ -62,7 +62,8 @@ public final class GroupConfigurationDto extends ServiceConfigurationBaseDto imp
     this.environmentVariables = environmentVariables;
   }
 
-  public @NonNull GroupConfiguration original() {
+  @Override
+  public @NonNull GroupConfiguration toEntity() {
     return GroupConfiguration.builder()
       .name(this.name)
       .jvmOptions(this.jvmOptions)

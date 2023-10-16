@@ -253,7 +253,7 @@ public final class V2HttpHandlerService {
         .detail("The request body does not contain a service configuration.");
     }
 
-    return this.handleServiceCreate(configuration.original(), start);
+    return this.handleServiceCreate(configuration.toEntity(), start);
   }
 
   @EnableValidation
@@ -273,7 +273,7 @@ public final class V2HttpHandlerService {
         .detail("The request body does not contain a service task.");
     }
 
-    var configuration = ServiceConfiguration.builder(task.original()).build();
+    var configuration = ServiceConfiguration.builder(task.toEntity()).build();
     return this.handleServiceCreate(configuration, start);
   }
 
@@ -324,7 +324,7 @@ public final class V2HttpHandlerService {
     }
 
     return this.handleServiceProviderContext(id, provider -> {
-      provider.addServiceTemplate(templateDto.original());
+      provider.addServiceTemplate(templateDto.toEntity());
       if (Boolean.parseBoolean(flush)) {
         provider.includeWaitingServiceTemplates();
       }
@@ -351,7 +351,7 @@ public final class V2HttpHandlerService {
     }
 
     return this.handleServiceProviderContext(id, provider -> {
-      provider.addServiceDeployment(deploymentDto.original());
+      provider.addServiceDeployment(deploymentDto.toEntity());
       if (Boolean.parseBoolean(flush)) {
         provider.deployResources(Boolean.parseBoolean(remove));
       }
@@ -377,7 +377,7 @@ public final class V2HttpHandlerService {
     }
 
     return this.handleServiceProviderContext(id, provider -> {
-      provider.addServiceRemoteInclusion(inclusionDto.original());
+      provider.addServiceRemoteInclusion(inclusionDto.toEntity());
       if (Boolean.parseBoolean(flush)) {
         provider.includeWaitingServiceInclusions();
       }

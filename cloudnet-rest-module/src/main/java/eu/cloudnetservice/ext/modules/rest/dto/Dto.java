@@ -23,10 +23,10 @@ import lombok.NonNull;
 
 public interface Dto<T> {
 
-  @NonNull T original();
+  @NonNull T toEntity();
 
   static <T, D extends Dto<T>> Stream<T> toStream(@NonNull Collection<D> entries) {
-    return entries.stream().map(Dto::original);
+    return entries.stream().map(Dto::toEntity);
   }
 
   static <T, D extends Dto<T>> List<T> toList(@NonNull Collection<D> entries) {

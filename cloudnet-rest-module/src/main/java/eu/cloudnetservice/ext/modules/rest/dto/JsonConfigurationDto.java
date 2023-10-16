@@ -125,11 +125,12 @@ public final class JsonConfigurationDto implements Dto<JsonConfiguration> {
     this.properties = properties;
   }
 
-  public @NonNull JsonConfiguration original() {
+  @Override
+  public @NonNull JsonConfiguration toEntity() {
     var config = new JsonConfiguration();
     config.language(this.language);
-    config.identity(this.identity.original());
-    config.clusterConfig(this.clusterConfig.original());
+    config.identity(this.identity.toEntity());
+    config.clusterConfig(this.clusterConfig.toEntity());
     config.ipWhitelist(this.ipWhitelist);
     config.maxCPUUsageToStartServices(this.maxCPUUsageToStartServices);
     config.maxMemory(this.maxMemory);
@@ -142,9 +143,9 @@ public final class JsonConfigurationDto implements Dto<JsonConfiguration> {
     config.hostAddress(this.hostAddress);
     config.ipAliases(this.ipAliases);
     config.httpListeners(Dto.toList(this.httpListeners));
-    config.clientSSLConfig(this.clientSslConfig.original());
-    config.serverSSLConfig(this.serverSslConfig.original());
-    config.webSSLConfig(this.webSslConfig.original());
+    config.clientSSLConfig(this.clientSslConfig.toEntity());
+    config.serverSSLConfig(this.serverSslConfig.toEntity());
+    config.webSSLConfig(this.webSslConfig.toEntity());
     config.properties(this.properties);
     return config;
   }

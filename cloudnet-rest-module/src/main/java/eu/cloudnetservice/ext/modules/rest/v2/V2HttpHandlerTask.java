@@ -79,7 +79,7 @@ public final class V2HttpHandlerTask {
         .detail("The request body does not contain a service task.");
     }
 
-    this.taskProvider.addServiceTask(serviceTask.original());
+    this.taskProvider.addServiceTask(serviceTask.toEntity());
     return JsonResponse.builder().noContent();
   }
 
