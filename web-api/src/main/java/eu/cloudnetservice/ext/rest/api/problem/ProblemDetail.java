@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 /**
  * An implementation of the problem details response body described in <a
- * href="https://datatracker.ietf.org/doc/html/rfc7807">RFC 7807</a>.
+ * href="https://datatracker.ietf.org/doc/html/rfc9457">RFC 9457</a>.
  *
  * @since 1.0
  */
@@ -156,7 +156,7 @@ public final class ProblemDetail implements IntoResponse<Map<String, Object>> {
   @Override
   public @NonNull Response.Builder<Map<String, Object>, ?> intoResponseBuilder() {
     // serializes the members of the problem details body
-    // see https://datatracker.ietf.org/doc/html/rfc7807#section-3.1
+    // see https://datatracker.ietf.org/doc/html/rfc9457#section-3.1
     Map<String, Object> serializedProblemDetail = new HashMap<>();
     this.registerFieldToSerialize(serializedProblemDetail, "type", this.type);
     this.registerFieldToSerialize(serializedProblemDetail, "title", this.title);
@@ -327,6 +327,9 @@ public final class ProblemDetail implements IntoResponse<Map<String, Object>> {
         Map.copyOf(this.additionalFields));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public @NonNull Response.Builder<Map<String, Object>, ?> intoResponseBuilder() {
       return this.build().intoResponseBuilder();

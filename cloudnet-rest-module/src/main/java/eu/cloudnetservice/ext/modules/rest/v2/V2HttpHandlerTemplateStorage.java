@@ -39,7 +39,7 @@ public final class V2HttpHandlerTemplateStorage {
     this.storageProvider = storageProvider;
   }
 
-  @RequestHandler(path = "/api/v2/templateStorage")
+  @RequestHandler(path = "/api/v3/templateStorage")
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:template_storage_read", "cloudnet_rest:template_storage_list"})
@@ -47,7 +47,7 @@ public final class V2HttpHandlerTemplateStorage {
     return JsonResponse.builder().body(Map.of("storages", this.storageProvider.availableTemplateStorages()));
   }
 
-  @RequestHandler(path = "/api/v2/templateStorage/{storage}/templates")
+  @RequestHandler(path = "/api/v3/templateStorage/{storage}/templates")
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:template_storage_read", "cloudnet_rest:template_storage_template_list"})

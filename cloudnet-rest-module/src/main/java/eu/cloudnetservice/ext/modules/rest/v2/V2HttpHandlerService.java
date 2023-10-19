@@ -80,32 +80,32 @@ public final class V2HttpHandlerService {
     this.serviceTaskProvider = serviceTaskProvider;
   }
 
-  @RequestHandler(path = "/api/v2/service")
+  @RequestHandler(path = "/api/v3/service")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_read", "cloudnet_rest:service_list"})
   public @NonNull IntoResponse<?> handleServiceListRequest() {
     return JsonResponse.builder().body(Map.of("services", this.serviceManager.services()));
   }
 
-  @RequestHandler(path = "/api/v2/service/{id}")
+  @RequestHandler(path = "/api/v3/service/{id}")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_read", "cloudnet_rest:service_get"})
   public @NonNull IntoResponse<?> handleServiceGetRequest(@NonNull @RequestPathParam("id") String id) {
     return this.handleServiceContext(id, service -> JsonResponse.builder().body(Map.of("snapshot", service)));
   }
 
-  @RequestHandler(path = "/api/v2/service/{id}", method = HttpMethod.DELETE)
+  @RequestHandler(path = "/api/v3/service/{id}", method = HttpMethod.DELETE)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_delete"})
   public @NonNull IntoResponse<?> handleServiceDeleteRequest(@NonNull @RequestPathParam("id") String id) {
     return this.handleEmptyServiceProviderContext(id, SpecificCloudServiceProvider::delete);
   }
 
   // TODO docs: this route is new
-  @RequestHandler(path = "/api/v2/service/{id}/deleteFiles", method = HttpMethod.DELETE)
+  @RequestHandler(path = "/api/v3/service/{id}/deleteFiles", method = HttpMethod.DELETE)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_delete_files"})
   public @NonNull IntoResponse<?> handleServiceDeleteFilesRequest(@NonNull @RequestPathParam("id") String id) {
     return this.handleEmptyServiceProviderContext(id, SpecificCloudServiceProvider::deleteFiles);
   }
 
-  @RequestHandler(path = "/api/v2/service/{id}/lifecycle", method = HttpMethod.PATCH)
+  @RequestHandler(path = "/api/v3/service/{id}/lifecycle", method = HttpMethod.PATCH)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_lifecycle"})
   public @NonNull IntoResponse<?> handleServiceLifecycleRequest(
     @NonNull @RequestPathParam("id") String id,
@@ -132,7 +132,7 @@ public final class V2HttpHandlerService {
     });
   }
 
-  @RequestHandler(path = "/api/v2/service/{id}/command", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/service/{id}/command", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_send_commands"})
   public @NonNull IntoResponse<?> handleServiceCommandRequest(
     @NonNull @RequestPathParam("id") String id,
@@ -154,7 +154,7 @@ public final class V2HttpHandlerService {
   }
 
   // TODO docs: request method changed
-  @RequestHandler(path = "/api/v2/service/{id}/include", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/service/{id}/include", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_include"})
   public @NonNull IntoResponse<?> handleServiceIncludeRequest(
     @NonNull @RequestPathParam("id") String id,
@@ -181,7 +181,7 @@ public final class V2HttpHandlerService {
   }
 
   // TODO docs: request method changed
-  @RequestHandler(path = "/api/v2/service/{id}/deployResources", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/service/{id}/deployResources", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_deploy_resources"})
   public @NonNull IntoResponse<?> handleServiceDeployRequest(
     @NonNull @RequestPathParam("id") String id,
@@ -190,7 +190,7 @@ public final class V2HttpHandlerService {
     return this.handleEmptyServiceProviderContext(id, service -> service.deployResources(Boolean.parseBoolean(remove)));
   }
 
-  @RequestHandler(path = "/api/v2/service/{id}/logLines")
+  @RequestHandler(path = "/api/v3/service/{id}/logLines")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_read", "cloudnet_rest:service_log_lines"})
   public @NonNull IntoResponse<?> handleServiceLogRequest(@NonNull @RequestPathParam("id") String id) {
     return this.handleServiceProviderContext(
@@ -198,7 +198,7 @@ public final class V2HttpHandlerService {
       service -> JsonResponse.builder().body(Map.of("lines", service.cachedLogMessages())));
   }
 
-  @RequestHandler(path = "/api/v2/service/{id}/liveLog")
+  @RequestHandler(path = "/api/v3/service/{id}/liveLog")
   public @NonNull IntoResponse<?> handleServiceLiveLogRequest(
     @NonNull @RequestPathParam("id") String id,
     @NonNull HttpContext context,
@@ -237,7 +237,7 @@ public final class V2HttpHandlerService {
 
   // TODO docs: split
   @EnableValidation
-  @RequestHandler(path = "/api/v2/service/create/serviceConfig", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/service/create/serviceConfig", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_create_service_config"})
@@ -257,7 +257,7 @@ public final class V2HttpHandlerService {
   }
 
   @EnableValidation
-  @RequestHandler(path = "/api/v2/service/create/task", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/service/create/task", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_create_task"})
@@ -277,7 +277,7 @@ public final class V2HttpHandlerService {
     return this.handleServiceCreate(configuration, start);
   }
 
-  @RequestHandler(path = "/api/v2/service/create/taskName", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/service/create/taskName", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_create_task_name"})
@@ -308,7 +308,7 @@ public final class V2HttpHandlerService {
   }
 
   @EnableValidation
-  @RequestHandler(path = "/api/v2/service/{id}/add/template", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/service/{id}/add/template", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_add_template"})
   public @NonNull IntoResponse<?> handleServiceAddTemplateRequest(
     @NonNull @RequestPathParam("id") String id,
@@ -334,7 +334,7 @@ public final class V2HttpHandlerService {
   }
 
   @EnableValidation
-  @RequestHandler(path = "/api/v2/service/{id}/add/deployment", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/service/{id}/add/deployment", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_add_deployment"})
   public @NonNull IntoResponse<?> handleServiceAddDeploymentRequest(
     @NonNull @RequestPathParam("id") String id,
@@ -361,7 +361,7 @@ public final class V2HttpHandlerService {
   }
 
   @EnableValidation
-  @RequestHandler(path = "/api/v2/service/{id}/add/inclusion", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/service/{id}/add/inclusion", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_add_inclusion"})
   public @NonNull IntoResponse<?> handleServiceAddInclusionRequest(
     @NonNull @RequestPathParam("id") String id,

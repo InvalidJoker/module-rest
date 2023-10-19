@@ -32,16 +32,16 @@ import lombok.NonNull;
 @Singleton
 public final class V2HttpHandlerDocumentation {
 
-  @RequestHandler(path = "/api/v2/documentation")
+  @RequestHandler(path = "/api/v3/documentation")
   public @NonNull IntoResponse<?> handleDocumentationRequest() {
     return PlainTextResponse.builder()
       .responseCode(HttpResponseCode.MOVED_PERMANENTLY)
-      .location(URI.create("/api/v2/documentation/index.html"));
+      .location(URI.create("/api/v3/documentation/index.html"));
   }
 
-  @RequestHandler(path = "/api/v2/documentation/*")
+  @RequestHandler(path = "/api/v3/documentation/*")
   public @NonNull IntoResponse<?> handleDocumentationFileRequest(@NonNull @RequestPath String path) throws IOException {
-    var filePath = path.replaceFirst("/api/v2/", "");
+    var filePath = path.replaceFirst("/api/v3/", "");
     if (filePath.contains("..")) {
       return ProblemDetail.builder()
         .type("file-browsing-is-forbidden")

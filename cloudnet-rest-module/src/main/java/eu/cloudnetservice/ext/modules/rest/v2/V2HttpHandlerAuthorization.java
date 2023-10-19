@@ -37,6 +37,7 @@ import io.vavr.Tuple;
 import io.vavr.Tuple3;
 import jakarta.inject.Singleton;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,14 +52,14 @@ public final class V2HttpHandlerAuthorization {
     this.userManagement = RestUserManagementLoader.load();
   }
 
-  @RequestHandler(path = "/api/v2/auth")
+  @RequestHandler(path = "/api/v3/auth", method = HttpMethod.POST)
   public @NonNull IntoResponse<?> handleBasicAuthLoginRequest(
     @Authentication(providers = "basic") @NonNull RestUser user
   ) {
     return this.jwtAuthProvider.generateAuthToken(this.userManagement, user);
   }
 
-  @RequestHandler(path = "/api/v2/auth/refresh", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/auth/refresh", method = HttpMethod.POST)
   public @NonNull IntoResponse<?> handleRefreshRequest(@NonNull HttpContext context) {
     // TODO: use switch over the auth result with Java21
     var authenticationResult = this.jwtAuthProvider.tryAuthenticate(context, this.userManagement);
@@ -102,7 +103,7 @@ public final class V2HttpHandlerAuthorization {
     }
   }
 
-  @RequestHandler(path = "/api/v2/auth/verify")
+  @RequestHandler(path = "/api/v3/auth/verify", method = HttpMethod.POST)
   public @NonNull IntoResponse<?> handleVerifyRequest(@NonNull HttpContext context) {
     var authenticationResult = this.jwtAuthProvider.tryAuthenticate(context, this.userManagement);
     var convertedAuthResult = this.convertAuthResult(authenticationResult);
@@ -131,6 +132,38 @@ public final class V2HttpHandlerAuthorization {
     }
 
     return JsonResponse.builder().body(Map.of("type", convertedAuthResult._2(), "expiresAt", expiry.toEpochMilli()));
+  }
+
+  @RequestHandler(path = "/api/v3/auth/revoke", method = HttpMethod.POST)
+  public @NonNull IntoResponse<?> revokeAuthToken(@NonNull HttpContext context) {
+    var authenticationResult = this.jwtAuthProvider.tryAuthenticate(context, this.userManagement);
+    var convertedAuthResult = this.convertAuthResult(authenticationResult);
+    if (convertedAuthResult == null) {
+      return ProblemDetail.builder()
+        .type("invalid-token")
+        .title("Invalid Token")
+        .status(HttpResponseCode.UNAUTHORIZED)
+        .detail("The provided authentication token is invalid");
+    }
+
+    // filter out the token to invalidate & re-compute the valid token property
+    var compactedValidTokens = convertedAuthResult._1().properties().get(JwtAuthProvider.JWT_TOKEN_PAIR_KEY);
+    var validTokens = JwtTokenPropertyParser.parseTokens(compactedValidTokens)
+      .stream()
+      .filter(token -> !token.tokenId().equals(convertedAuthResult._3()))
+      .collect(Collectors.collectingAndThen(Collectors.toUnmodifiableList(), JwtTokenPropertyParser::compactTokens));
+
+    // save the rest user with the token property removed or set to the new value
+    var newRestUser = this.userManagement.builder(convertedAuthResult._1()).modifyProperties(properties -> {
+      if (validTokens == null) {
+        properties.remove(JwtAuthProvider.JWT_TOKEN_PAIR_KEY);
+      } else {
+        properties.put(JwtAuthProvider.JWT_TOKEN_PAIR_KEY, validTokens);
+      }
+    }).build();
+    this.userManagement.saveRestUser(newRestUser);
+
+    return HttpResponseCode.NO_CONTENT;
   }
 
   // do not expose, returning Tuple3 here is awful :)

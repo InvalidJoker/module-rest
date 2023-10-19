@@ -62,7 +62,7 @@ public final class V2HttpHandlerServiceVersion {
     this.versionProvider = versionProvider;
   }
 
-  @RequestHandler(path = "/api/v2/serviceversion")
+  @RequestHandler(path = "/api/v3/serviceversion")
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:service_version_read", "cloudnet_rest:service_version_list"})
@@ -70,7 +70,7 @@ public final class V2HttpHandlerServiceVersion {
     return JsonResponse.builder().body(Map.of("versions", this.versionProvider.serviceVersionTypes()));
   }
 
-  @RequestHandler(path = "/api/v2/serviceversion", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/serviceversion", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:service_version_write", "cloudnet_rest:service_version_register"})
@@ -99,7 +99,7 @@ public final class V2HttpHandlerServiceVersion {
     return JsonResponse.builder().noContent();
   }
 
-  @RequestHandler(path = "/api/v2/serviceversion/environment")
+  @RequestHandler(path = "/api/v3/serviceversion/environment")
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:service_version_read", "cloudnet_rest:service_version_list_environments"})
@@ -107,7 +107,7 @@ public final class V2HttpHandlerServiceVersion {
     return JsonResponse.builder().body(Map.of("environments", this.versionProvider.knownEnvironments()));
   }
 
-  @RequestHandler(path = "/api/v2/serviceversion/environment", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/serviceversion/environment", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:service_version_write", "cloudnet_rest:service_version_environment"})
@@ -126,7 +126,7 @@ public final class V2HttpHandlerServiceVersion {
     return JsonResponse.builder().noContent();
   }
 
-  @RequestHandler(path = "/api/v2/serviceversion/{version}")
+  @RequestHandler(path = "/api/v3/serviceversion/{version}")
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:service_version_read", "cloudnet_rest:service_version_get"})
@@ -143,7 +143,7 @@ public final class V2HttpHandlerServiceVersion {
     return JsonResponse.builder().body(Map.of("version", versionType));
   }
 
-  @RequestHandler(path = "/api/v2/serviceversion/load", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/serviceversion/load", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:service_version_write", "cloudnet_rest:service_version_load"})
@@ -174,7 +174,7 @@ public final class V2HttpHandlerServiceVersion {
   }
 
   // TODO docs: new route
-  @RequestHandler(path = "/api/v2/serviceversion/install", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/serviceversion/install", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:service_version_write", "cloudnet_rest:service_version_install"})

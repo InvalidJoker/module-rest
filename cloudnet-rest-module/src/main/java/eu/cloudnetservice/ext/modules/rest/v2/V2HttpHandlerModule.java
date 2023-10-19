@@ -68,7 +68,7 @@ public final class V2HttpHandlerModule {
   }
 
   // TODO docs: request method changed
-  @RequestHandler(path = "/api/v2/module/reload", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/module/reload", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_write", "cloudnet_rest:module_reload_all"})
   public @NonNull IntoResponse<?> handleModuleReloadRequest() {
     this.moduleProvider.reloadAll();
@@ -76,7 +76,7 @@ public final class V2HttpHandlerModule {
   }
 
   // TODO docs: route changed
-  @RequestHandler(path = "/api/v2/module/loaded")
+  @RequestHandler(path = "/api/v3/module/loaded")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_read", "cloudnet_rest:module_list_loaded"})
   public @NonNull IntoResponse<?> handleModuleLoadedListRequest() {
     var modules = this.moduleProvider.modules().stream().map(this::constructModuleInformation).toList();
@@ -84,7 +84,7 @@ public final class V2HttpHandlerModule {
   }
 
   // TODO docs: new route
-  @RequestHandler(path = "/api/v2/module/present")
+  @RequestHandler(path = "/api/v3/module/present")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_read", "cloudnet_rest:module_list_present"})
   public @NonNull IntoResponse<?> handleModulePresentListRequest() {
     List<String> fileNames = new ArrayList<>();
@@ -98,14 +98,14 @@ public final class V2HttpHandlerModule {
   }
 
   // TODO docs: new route
-  @RequestHandler(path = "/api/v2/module/available")
+  @RequestHandler(path = "/api/v3/module/available")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_read", "cloudnet_rest:module_list_available"})
   public @NonNull IntoResponse<?> handleModuleInstalledListRequest() {
     var modules = this.modulesHolder.entries().stream().peek(ModuleEntry::url).toList();
     return JsonResponse.builder().body(Map.of("modules", modules));
   }
 
-  @RequestHandler(path = "/api/v2/module/{module}")
+  @RequestHandler(path = "/api/v3/module/{module}")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_read", "cloudnet_rest:module_get"})
   public @NonNull IntoResponse<?> handleModuleGetRequest(@NonNull @RequestPathParam("module") String name) {
     return this.handleModuleContext(
@@ -114,7 +114,7 @@ public final class V2HttpHandlerModule {
   }
 
   // TODO: this route is new, replaced some old ones
-  @RequestHandler(path = "/api/v2/module/{module}/lifecycle", method = HttpMethod.PATCH)
+  @RequestHandler(path = "/api/v3/module/{module}/lifecycle", method = HttpMethod.PATCH)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_write", "cloudnet_rest:module_lifecycle"})
   public @NonNull IntoResponse<?> handleModuleLifecycleRequest(
     @NonNull @RequestPathParam("module") String name,
@@ -143,7 +143,7 @@ public final class V2HttpHandlerModule {
   }
 
   // TODO docs: this route is completely new
-  @RequestHandler(path = "/api/v2/module/{module}/uninstall", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/module/{module}/uninstall", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_write", "cloudnet_rest:module_uninstall"})
   public @NonNull IntoResponse<?> handleModuleUninstallRequest(@NonNull @RequestPathParam("module") String name) {
     return this.handleModuleContext(name, module -> {
@@ -165,7 +165,7 @@ public final class V2HttpHandlerModule {
   }
 
   // TODO docs: this now supports jars that are available but not loaded
-  @RequestHandler(path = "/api/v2/module/{module}/load", method = HttpMethod.PUT)
+  @RequestHandler(path = "/api/v3/module/{module}/load", method = HttpMethod.PUT)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_write", "cloudnet_rest:module_load"})
   public @NonNull IntoResponse<?> handleModuleLoadRequest(
     @NonNull @RequestPathParam("module") String name,
@@ -209,7 +209,7 @@ public final class V2HttpHandlerModule {
   }
 
   // TODO docs: new route
-  @RequestHandler(path = "/api/v2/module/{module}/install", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/module/{module}/install", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_write", "cloudnet_rest:module_install"})
   public @NonNull IntoResponse<?> handleModuleInstallRequest(
     @NonNull @RequestPathParam("module") String name,
@@ -275,7 +275,7 @@ public final class V2HttpHandlerModule {
     return JsonResponse.builder().responseCode(HttpResponseCode.CREATED).body(this.constructModuleInformation(wrapper));
   }
 
-  @RequestHandler(path = "/api/v2/module/{module}/config")
+  @RequestHandler(path = "/api/v3/module/{module}/config")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_read", "cloudnet_rest:module_config_get"})
   public @NonNull IntoResponse<?> handleModuleConfigRequest(@NonNull @RequestPathParam("module") String name) {
     return this.handleModuleContext(name, module -> {
@@ -292,7 +292,7 @@ public final class V2HttpHandlerModule {
     });
   }
 
-  @RequestHandler(path = "/api/v2/module/{module}/config", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/module/{module}/config", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_write", "cloudnet_rest:module_config_update"})
   public @NonNull IntoResponse<?> handleModuleConfigRequest(
     @NonNull @RequestPathParam("module") String name,

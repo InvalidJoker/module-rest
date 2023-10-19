@@ -44,19 +44,19 @@ public final class V2HttpHandlerTask {
     this.taskProvider = taskProvider;
   }
 
-  @RequestHandler(path = "/api/v2/task")
+  @RequestHandler(path = "/api/v3/task")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:task_read", "cloudnet_rest:task_list"})
   public @NonNull IntoResponse<?> handleTaskListRequest() {
     return JsonResponse.builder().body(Map.of("tasks", this.taskProvider.serviceTasks()));
   }
 
-  @RequestHandler(path = "/api/v2/task/{name}/exists")
+  @RequestHandler(path = "/api/v3/task/{name}/exists")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:task_read", "cloudnet_rest:task_exists"})
   public @NonNull IntoResponse<?> handleTaskExistsRequest(@NonNull @RequestPathParam("name") String name) {
     return JsonResponse.builder().body(Map.of("result", this.taskProvider.serviceTask(name) != null));
   }
 
-  @RequestHandler(path = "/api/v2/task/{name}")
+  @RequestHandler(path = "/api/v3/task/{name}")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:task_read", "cloudnet_rest:task_get"})
   public @NonNull IntoResponse<?> handleTaskGetRequest(@NonNull @RequestPathParam("name") String name) {
     var task = this.taskProvider.serviceTask(name);
@@ -68,7 +68,7 @@ public final class V2HttpHandlerTask {
   }
 
   @EnableValidation
-  @RequestHandler(path = "/api/v2/task", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/task", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:task_write", "cloudnet_rest:task_create"})
   public @NonNull IntoResponse<?> handleTaskCreateRequest(@Valid @RequestTypedBody ServiceTaskDto serviceTask) {
     if (serviceTask == null) {
@@ -83,7 +83,7 @@ public final class V2HttpHandlerTask {
     return JsonResponse.builder().noContent();
   }
 
-  @RequestHandler(path = "/api/v2/task/{name}", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/task/{name}", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:task_write", "cloudnet_rest:task_delete"})
   public @NonNull IntoResponse<?> handleTaskDeleteRequest(@NonNull @RequestPathParam("name") String name) {
     var task = this.taskProvider.serviceTask(name);

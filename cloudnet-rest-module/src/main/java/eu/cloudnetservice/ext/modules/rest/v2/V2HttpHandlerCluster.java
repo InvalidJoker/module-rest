@@ -56,7 +56,7 @@ public final class V2HttpHandlerCluster {
     this.nodeServerProvider = nodeServerProvider;
   }
 
-  @RequestHandler(path = "/api/v2/cluster")
+  @RequestHandler(path = "/api/v3/cluster")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:cluster_read", "cloudnet_rest:cluster_node_list"})
   public @NonNull IntoResponse<?> handleNodeList() {
     var nodes = this.nodeServerProvider.nodeServers().stream().map(this::createNodeInfoDocument).toList();
@@ -64,7 +64,7 @@ public final class V2HttpHandlerCluster {
     return JsonResponse.builder().body(Map.of("nodes", nodes));
   }
 
-  @RequestHandler(path = "/api/v2/cluster/{node}")
+  @RequestHandler(path = "/api/v3/cluster/{node}")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:cluster_read", "cloudnet_rest:cluster_node_list"})
   public @NonNull IntoResponse<?> handleNodeRequest(@NonNull @RequestPathParam("node") String node) {
     var server = this.nodeServerProvider.node(node);
@@ -75,7 +75,7 @@ public final class V2HttpHandlerCluster {
     return this.nodeServerNotFound(node);
   }
 
-  @RequestHandler(path = "/api/v2/cluster/{node}/command", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/cluster/{node}/command", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:cluster_write", "cloudnet_rest:cluster_node_command"})
   public @NonNull IntoResponse<?> handleNodeCommandRequest(
     @NonNull @RequestPathParam("node") String node,
@@ -98,7 +98,7 @@ public final class V2HttpHandlerCluster {
     return JsonResponse.builder().body(Map.of("result", server.sendCommandLine(command)));
   }
 
-  @RequestHandler(path = "/api/v2/cluster", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/cluster", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:cluster_write", "cloudnet_rest:cluster_node_create"})
   public @NonNull IntoResponse<?> handleNodeCreateRequest(@Nullable @RequestTypedBody NetworkClusterNode node) {
     if (node == null) {
@@ -120,7 +120,7 @@ public final class V2HttpHandlerCluster {
     return JsonResponse.builder().responseCode(HttpResponseCode.CREATED);
   }
 
-  @RequestHandler(path = "/api/v2/cluster/{node}", method = HttpMethod.DELETE)
+  @RequestHandler(path = "/api/v3/cluster/{node}", method = HttpMethod.DELETE)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:cluster_write", "cloudnet_rest:cluster_node_delete"})
   public @NonNull IntoResponse<?> handleNodeDeleteRequest(@NonNull @RequestPathParam("node") String node) {
     var removed = this.configuration.clusterConfig().nodes()
@@ -135,7 +135,7 @@ public final class V2HttpHandlerCluster {
     return this.nodeServerNotFound(node);
   }
 
-  @RequestHandler(path = "/api/v2/cluster", method = HttpMethod.PUT)
+  @RequestHandler(path = "/api/v3/cluster", method = HttpMethod.PUT)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:cluster_write", "cloudnet_rest:cluster_node_update"})
   public @NonNull IntoResponse<?> handleNodeUpdateRequest(@Nullable @RequestTypedBody NetworkClusterNode node) {
     if (node == null) {

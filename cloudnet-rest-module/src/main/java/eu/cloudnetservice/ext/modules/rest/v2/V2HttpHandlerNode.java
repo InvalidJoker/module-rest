@@ -98,13 +98,13 @@ public final class V2HttpHandlerNode {
   }
 
   // TODO docs: route path changed
-  @RequestHandler(path = "/api/v2/node/ping")
+  @RequestHandler(path = "/api/v3/node/ping")
   @Authentication(providers = "basic", scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_ping"})
   public @NonNull IntoResponse<?> handleNodePingRequest() {
     return JsonResponse.builder().noContent();
   }
 
-  @RequestHandler(path = "/api/v2/node")
+  @RequestHandler(path = "/api/v3/node")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_info"})
   public @NonNull IntoResponse<?> handleNodeInfoRequest() {
     var node = this.nodeServerProvider.localNode();
@@ -117,14 +117,14 @@ public final class V2HttpHandlerNode {
     return JsonResponse.builder().body(information);
   }
 
-  @RequestHandler(path = "/api/v2/node/config")
+  @RequestHandler(path = "/api/v3/node/config")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_config_get"})
   public @NonNull IntoResponse<?> handleNodeConfigRequest() {
     return JsonResponse.builder().body(Map.of("config", this.configuration));
   }
 
   @EnableValidation
-  @RequestHandler(path = "/api/v2/node/config", method = HttpMethod.PUT)
+  @RequestHandler(path = "/api/v3/node/config", method = HttpMethod.PUT)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:node_write", "cloudnet_rest:node_config_update"})
   public @NonNull IntoResponse<?> handleNodeConfigRequest(
     @Nullable @RequestTypedBody @Valid JsonConfigurationDto configurationDto
@@ -146,7 +146,7 @@ public final class V2HttpHandlerNode {
   }
 
   // TODO docs: request method changed
-  @RequestHandler(path = "/api/v2/node/reload", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/node/reload", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:node_write", "cloudnet_rest:node_reload"})
   public @NonNull IntoResponse<?> handleReloadRequest(
     @NonNull @Optional @FirstRequestQueryParam(value = "type", def = "all") String type
@@ -171,7 +171,7 @@ public final class V2HttpHandlerNode {
     return JsonResponse.builder().noContent();
   }
 
-  @RequestHandler(path = "/api/v2/node/liveConsole")
+  @RequestHandler(path = "/api/v3/node/liveConsole")
   public @NonNull IntoResponse<?> handleLiveConsoleRequest(
     @NonNull HttpContext context,
     @Authentication(

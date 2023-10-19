@@ -44,19 +44,19 @@ public final class V2HttpHandlerGroup {
     this.groupProvider = groupProvider;
   }
 
-  @RequestHandler(path = "/api/v2/group")
+  @RequestHandler(path = "/api/v3/group")
   @Authentication(providers = "jwt", scopes = {"cloudnet_cloudnet_rest:group_read", "cloudnet_rest:group_list"})
   public @NonNull IntoResponse<?> handleGroupListRequest() {
     return JsonResponse.builder().body(Map.of("groups", this.groupProvider.groupConfigurations()));
   }
 
-  @RequestHandler(path = "/api/v2/group/{name}/exists")
+  @RequestHandler(path = "/api/v3/group/{name}/exists")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:group_read", "cloudnet_rest:group_exists"})
   public @NonNull IntoResponse<?> handleGroupExistsRequest(@NonNull @RequestPathParam("name") String name) {
     return JsonResponse.builder().body(Map.of("result", this.groupProvider.groupConfiguration(name) != null));
   }
 
-  @RequestHandler(path = "/api/v2/group/{name}")
+  @RequestHandler(path = "/api/v3/group/{name}")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:group_read", "cloudnet_rest:group_get"})
   public @NonNull IntoResponse<?> handleGroupGetRequest(@NonNull @RequestPathParam("name") String name) {
     var group = this.groupProvider.groupConfiguration(name);
@@ -72,7 +72,7 @@ public final class V2HttpHandlerGroup {
   }
 
   @EnableValidation
-  @RequestHandler(path = "/api/v2/group", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/group", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:group_write", "cloudnet_rest:group_create"})
   public @NonNull IntoResponse<?> handleGroupCreateRequest(@Valid @RequestTypedBody GroupConfigurationDto group) {
     if (group == null) {
@@ -87,7 +87,7 @@ public final class V2HttpHandlerGroup {
     return JsonResponse.builder().responseCode(HttpResponseCode.CREATED);
   }
 
-  @RequestHandler(path = "/api/v2/group/{name}", method = HttpMethod.DELETE)
+  @RequestHandler(path = "/api/v3/group/{name}", method = HttpMethod.DELETE)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:group_write", "cloudnet_rest:group_delete"})
   public @NonNull IntoResponse<?> handleGroupDeleteRequest(@NonNull @RequestPathParam("name") String name) {
     var group = this.groupProvider.groupConfiguration(name);

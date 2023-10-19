@@ -44,21 +44,21 @@ public final class V2HttpHandlerDatabase {
     this.databaseProvider = databaseProvider;
   }
 
-  @RequestHandler(path = "/api/v2/database")
+  @RequestHandler(path = "/api/v3/database")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_list"})
   public @NonNull IntoResponse<?> handleNamesRequest() {
     return JsonResponse.builder().body(Map.of("names", this.databaseProvider.databaseNames()));
   }
 
   // TODO docs: method changed
-  @RequestHandler(path = "/api/v2/database/{name}/clear", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/database/{name}/clear", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_list"})
   public @NonNull IntoResponse<?> handleClearRequest(@NonNull @RequestPathParam("name") String name) {
     this.databaseProvider.database(name).clear();
     return JsonResponse.builder().noContent();
   }
 
-  @RequestHandler(path = "/api/v2/database/{name}/contains")
+  @RequestHandler(path = "/api/v3/database/{name}/contains")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_contains"})
   public @NonNull IntoResponse<?> handleContainsRequest(
     @NonNull @RequestPathParam("name") String name,
@@ -68,21 +68,21 @@ public final class V2HttpHandlerDatabase {
     return JsonResponse.builder().body(Map.of("result", database.contains(key)));
   }
 
-  @RequestHandler(path = "/api/v2/database/{name}/keys")
+  @RequestHandler(path = "/api/v3/database/{name}/keys")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_keys"})
   public @NonNull IntoResponse<?> handleKeysRequest(@NonNull @RequestPathParam("name") String name) {
     var database = this.databaseProvider.database(name);
     return JsonResponse.builder().body(Map.of("keys", database.keys()));
   }
 
-  @RequestHandler(path = "/api/v2/database/{name}/count")
+  @RequestHandler(path = "/api/v3/database/{name}/count")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_count"})
   public @NonNull IntoResponse<?> handleCountRequest(@NonNull @RequestPathParam("name") String name) {
     var database = this.databaseProvider.database(name);
     return JsonResponse.builder().body(Map.of("count", database.documentCount()));
   }
 
-  @RequestHandler(path = "/api/v2/database/{name}", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/database/{name}", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_write", "cloudnet_rest:database_insert"})
   public @NonNull IntoResponse<?> handleInsert(
     @NonNull @RequestPathParam("name") String name,
@@ -112,7 +112,7 @@ public final class V2HttpHandlerDatabase {
   }
 
   // TODO docs: method changed
-  @RequestHandler(path = "/api/v2/database/{name}/get")
+  @RequestHandler(path = "/api/v3/database/{name}/get")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_get"})
   public @NonNull IntoResponse<?> handleGetRequest(
     @NonNull @RequestPathParam("name") String name,
@@ -123,7 +123,7 @@ public final class V2HttpHandlerDatabase {
   }
 
   // TODO docs: method changed
-  @RequestHandler(path = "/api/v2/database/{name}/find")
+  @RequestHandler(path = "/api/v3/database/{name}/find")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_find"})
   public @NonNull IntoResponse<?> handleFindRequest(
     @NonNull @RequestPathParam("name") String name,
@@ -133,7 +133,7 @@ public final class V2HttpHandlerDatabase {
     return JsonResponse.builder().body(Map.of("result", database.find(filter)));
   }
 
-  @RequestHandler(path = "/api/v2/database/{name}", method = HttpMethod.DELETE)
+  @RequestHandler(path = "/api/v3/database/{name}", method = HttpMethod.DELETE)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_write", "cloudnet_rest:database_delete"})
   public @NonNull IntoResponse<?> handleDeleteRequest(
     @NonNull @RequestPathParam("name") String name,

@@ -46,7 +46,7 @@ public final class V2HttpHandlerTemplate {
 
   private static final Logger LOGGER = LogManager.logger(V2HttpHandlerTemplate.class);
 
-  @RequestHandler(path = "/api/v2/template/{storage}/{prefix}/{name}/download")
+  @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/download")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:template_read", "cloudnet_rest:template_download"})
   public @NonNull IntoResponse<?> handleTemplateDownloadRequest(
     @NonNull @RequestPathParam("storage") String storageName,
@@ -67,7 +67,7 @@ public final class V2HttpHandlerTemplate {
     });
   }
 
-  @RequestHandler(path = "/api/v2/template/{storage}/{prefix}/{name}/file/download")
+  @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/file/download")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:template_read", "cloudnet_rest:template_file_download"})
   public @NonNull IntoResponse<?> handleTemplateFileDownloadRequest(
     @NonNull @RequestPathParam("storage") String storageName,
@@ -89,7 +89,7 @@ public final class V2HttpHandlerTemplate {
     });
   }
 
-  @RequestHandler(path = "/api/v2/template/{storage}/{prefix}/{name}/file/info")
+  @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/file/info")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:template_read", "cloudnet_rest:template_file_info"})
   public @NonNull IntoResponse<?> handleTemplateFileInfoRequest(
     @NonNull @RequestPathParam("storage") String storageName,
@@ -111,7 +111,7 @@ public final class V2HttpHandlerTemplate {
     });
   }
 
-  @RequestHandler(path = "/api/v2/template/{storage}/{prefix}/{name}/file/exists")
+  @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/file/exists")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:template_read", "cloudnet_rest:template_file_exists"})
   public @NonNull IntoResponse<?> handleTemplateFileExistsRequest(
     @NonNull @RequestPathParam("storage") String storageName,
@@ -126,7 +126,7 @@ public final class V2HttpHandlerTemplate {
       (template, storage) -> JsonResponse.builder().body(Map.of("exists", storage.hasFile(template, path))));
   }
 
-  @RequestHandler(path = "/api/v2/template/{storage}/{prefix}/{name}/directory/list")
+  @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/directory/list")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:template_read", "cloudnet_rest:template_directory_list"})
   public @NonNull IntoResponse<?> handleTemplateDirectoryListRequest(
     @NonNull @RequestPathParam("storage") String storageName,
@@ -144,7 +144,7 @@ public final class V2HttpHandlerTemplate {
   }
 
   // TODO docs: request method changed
-  @RequestHandler(path = "/api/v2/template/{storage}/{prefix}/{name}/create", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/create", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:template_write", "cloudnet_rest:template_create"})
   public @NonNull IntoResponse<?> handleTemplateCreateRequest(
     @NonNull @RequestPathParam("storage") String storageName,
@@ -168,7 +168,7 @@ public final class V2HttpHandlerTemplate {
   }
 
   // TODO docs: new route
-  @RequestHandler(path = "/api/v2/template/{storage}/{prefix}/{name}/exists")
+  @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/exists")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:template_read", "cloudnet_rest:template_exists"})
   public @NonNull IntoResponse<?> handleTemplateExistsRequest(
     @NonNull @RequestPathParam("storage") String storageName,
@@ -182,7 +182,7 @@ public final class V2HttpHandlerTemplate {
       (template, storage) -> JsonResponse.builder().body(Map.of("exists", storage.contains(template))));
   }
 
-  @RequestHandler(path = "/api/v2/template/{storage}/{prefix}/{name}/file", method = HttpMethod.DELETE)
+  @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/file", method = HttpMethod.DELETE)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:template_write", "cloudnet_rest:template_delete_file"})
   public @NonNull IntoResponse<?> handleTemplateDeleteFileRequest(
     @NonNull @RequestPathParam("storage") String storageName,
@@ -203,7 +203,7 @@ public final class V2HttpHandlerTemplate {
     });
   }
 
-  @RequestHandler(path = "/api/v2/template/{storage}/{prefix}/{name}", method = HttpMethod.DELETE)
+  @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}", method = HttpMethod.DELETE)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:template_write", "cloudnet_rest:template_delete"})
   public @NonNull IntoResponse<?> handleTemplateDeleteRequest(
     @NonNull @RequestPathParam("storage") String storageName,
@@ -223,7 +223,7 @@ public final class V2HttpHandlerTemplate {
     });
   }
 
-  @RequestHandler(path = "/api/v2/template/{storage}/{prefix}/{name}/directory/create", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/directory/create", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:template_write", "cloudnet_rest:template_directory_create"})
@@ -246,7 +246,7 @@ public final class V2HttpHandlerTemplate {
     });
   }
 
-  @RequestHandler(path = "/api/v2/template/{storage}/{prefix}/{name}/file/create", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/file/create", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:template_write", "cloudnet_rest:template_file_create"})
@@ -260,7 +260,7 @@ public final class V2HttpHandlerTemplate {
     return this.handleFileRequest(storageName, prefix, name, path, body, false);
   }
 
-  @RequestHandler(path = "/api/v2/template/{storage}/{prefix}/{name}/file/append", method = HttpMethod.POST)
+  @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/file/append", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_rest:template_write", "cloudnet_rest:template_file_append"})

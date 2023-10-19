@@ -188,21 +188,21 @@ public final class HttpHandlerRegistryTest {
   @Test
   void testMultipleHandlerRegister() {
     Assertions.assertDoesNotThrow(() -> this.registry.registerHandler(
-      "/api/v2/test",
+      "/api/v3/test",
       context -> PlainTextResponse.builder(),
       HttpHandlerConfig.builder().httpMethod(HttpMethod.GET).build()));
     Assertions.assertDoesNotThrow(() -> this.registry.registerHandler(
-      "/api/v2/test",
+      "/api/v3/test",
       context -> JsonResponse.builder(),
       HttpHandlerConfig.builder().httpMethod(HttpMethod.POST).build()));
     Assertions.assertDoesNotThrow(() -> this.registry.registerHandler(
-      "/api/v2/test",
+      "/api/v3/test",
       context -> PlainTextResponse.builder(),
       HttpHandlerConfig.builder().httpMethod(HttpMethod.DELETE).build()));
 
     Assertions.assertEquals(3, this.registry.registeredHandlers().size());
 
-    var treeNode = this.registry.findHandler("/api/v2/test", this.httpContext);
+    var treeNode = this.registry.findHandler("/api/v3/test", this.httpContext);
     Assertions.assertNotNull(treeNode);
 
     var pathNode = treeNode.pathNode();
