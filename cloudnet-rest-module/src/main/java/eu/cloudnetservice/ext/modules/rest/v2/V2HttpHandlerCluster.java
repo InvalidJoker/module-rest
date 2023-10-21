@@ -60,8 +60,7 @@ public final class V2HttpHandlerCluster {
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:cluster_read", "cloudnet_rest:cluster_node_list"})
   public @NonNull IntoResponse<?> handleNodeList() {
     var nodes = this.nodeServerProvider.nodeServers().stream().map(this::createNodeInfoDocument).toList();
-
-    return JsonResponse.builder().body(Map.of("nodes", nodes));
+    return JsonResponse.builder().body(nodes);
   }
 
   @RequestHandler(path = "/api/v3/cluster/{node}")
@@ -82,11 +81,11 @@ public final class V2HttpHandlerCluster {
     @NonNull @RequestTypedBody Map<String, String> body
   ) {
     var server = this.nodeServerProvider.node(node);
-    var command = body.get("command");
     if (server == null) {
       return this.nodeServerNotFound(node);
     }
 
+    var command = body.get("command");
     if (command == null) {
       return ProblemDetail.builder()
         .title("Missing Command Line")
@@ -95,7 +94,7 @@ public final class V2HttpHandlerCluster {
         .detail("The request body has no 'command' field.");
     }
 
-    return JsonResponse.builder().body(Map.of("result", server.sendCommandLine(command)));
+    return JsonResponse.builder().body(server.sendCommandLine(command));
   }
 
   @RequestHandler(path = "/api/v3/cluster", method = HttpMethod.POST)
@@ -117,19 +116,17 @@ public final class V2HttpHandlerCluster {
     this.configuration.save();
     this.nodeServerProvider.registerNode(node);
 
-    return JsonResponse.builder().responseCode(HttpResponseCode.CREATED);
+    return HttpResponseCode.CREATED;
   }
 
   @RequestHandler(path = "/api/v3/cluster/{node}", method = HttpMethod.DELETE)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:cluster_write", "cloudnet_rest:cluster_node_delete"})
   public @NonNull IntoResponse<?> handleNodeDeleteRequest(@NonNull @RequestPathParam("node") String node) {
-    var removed = this.configuration.clusterConfig().nodes()
-      .removeIf(clusterNode -> clusterNode.uniqueId().equals(node));
+    var removed = this.configuration.clusterConfig().nodes().removeIf(cn -> cn.uniqueId().equals(node));
     if (removed) {
       this.configuration.save();
       this.nodeServerProvider.registerNodes(this.configuration.clusterConfig());
-
-      return JsonResponse.builder().noContent();
+      return HttpResponseCode.NO_CONTENT;
     }
 
     return this.nodeServerNotFound(node);
@@ -167,8 +164,7 @@ public final class V2HttpHandlerCluster {
     this.configuration.save();
 
     this.nodeServerProvider.registerNodes(this.configuration.clusterConfig());
-
-    return JsonResponse.builder().noContent();
+    return HttpResponseCode.NO_CONTENT;
   }
 
   private @NonNull ProblemDetail.Builder nodeServerNotFound(@NonNull String node) {
