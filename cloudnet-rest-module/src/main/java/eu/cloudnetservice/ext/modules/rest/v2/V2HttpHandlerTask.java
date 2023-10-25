@@ -47,7 +47,7 @@ public final class V2HttpHandlerTask {
   @RequestHandler(path = "/api/v3/task")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:task_read", "cloudnet_rest:task_list"})
   public @NonNull IntoResponse<?> handleTaskListRequest() {
-    return JsonResponse.builder().body(Map.of("tasks", this.taskProvider.serviceTasks()));
+    return JsonResponse.builder().body(this.taskProvider.serviceTasks());
   }
 
   @RequestHandler(path = "/api/v3/task/{name}/exists")
@@ -64,7 +64,7 @@ public final class V2HttpHandlerTask {
       return this.taskNotFound(name);
     }
 
-    return JsonResponse.builder().body(Map.of("task", task));
+    return JsonResponse.builder().body(task);
   }
 
   @EnableValidation
@@ -80,7 +80,7 @@ public final class V2HttpHandlerTask {
     }
 
     this.taskProvider.addServiceTask(serviceTask.toEntity());
-    return JsonResponse.builder().noContent();
+    return HttpResponseCode.NO_CONTENT;
   }
 
   @RequestHandler(path = "/api/v3/task/{name}", method = HttpMethod.POST)
@@ -92,7 +92,7 @@ public final class V2HttpHandlerTask {
     }
 
     this.taskProvider.removeServiceTask(task);
-    return JsonResponse.builder().noContent();
+    return HttpResponseCode.NO_CONTENT;
   }
 
   private @NonNull ProblemDetail taskNotFound(@NonNull String name) {
