@@ -19,7 +19,7 @@ gson = "2.10.1"
 jjwt = "0.11.5"
 slf4j = "2.0.7"
 guava = "32.1.2-jre"
-annotations = "24.0.1"
+annotations = "24.1.0"
 
 # validation
 expressly = "5.0.0"
