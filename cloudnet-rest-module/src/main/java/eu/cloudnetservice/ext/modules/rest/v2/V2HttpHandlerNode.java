@@ -97,7 +97,6 @@ public final class V2HttpHandlerNode {
     this.groupConfigurationProvider = groupConfigurationProvider;
   }
 
-  // TODO docs: route path changed
   @RequestHandler(path = "/api/v3/node/ping")
   @Authentication(providers = "basic", scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_ping"})
   public @NonNull IntoResponse<?> handleNodePingRequest() {
@@ -120,7 +119,7 @@ public final class V2HttpHandlerNode {
   @RequestHandler(path = "/api/v3/node/config")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_config_get"})
   public @NonNull IntoResponse<?> handleNodeConfigRequest() {
-    return JsonResponse.builder().body(Map.of("config", this.configuration));
+    return JsonResponse.builder().body(this.configuration);
   }
 
   @EnableValidation
@@ -145,7 +144,6 @@ public final class V2HttpHandlerNode {
     return JsonResponse.builder().noContent();
   }
 
-  // TODO docs: request method changed
   @RequestHandler(path = "/api/v3/node/reload", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:node_write", "cloudnet_rest:node_reload"})
   public @NonNull IntoResponse<?> handleReloadRequest(

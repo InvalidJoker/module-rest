@@ -47,10 +47,9 @@ public final class V2HttpHandlerDatabase {
   @RequestHandler(path = "/api/v3/database")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_list"})
   public @NonNull IntoResponse<?> handleNamesRequest() {
-    return JsonResponse.builder().body(Map.of("names", this.databaseProvider.databaseNames()));
+    return JsonResponse.builder().body(this.databaseProvider.databaseNames());
   }
 
-  // TODO docs: method changed
   @RequestHandler(path = "/api/v3/database/{name}/clear", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_list"})
   public @NonNull IntoResponse<?> handleClearRequest(@NonNull @RequestPathParam("name") String name) {
@@ -72,7 +71,7 @@ public final class V2HttpHandlerDatabase {
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_keys"})
   public @NonNull IntoResponse<?> handleKeysRequest(@NonNull @RequestPathParam("name") String name) {
     var database = this.databaseProvider.database(name);
-    return JsonResponse.builder().body(Map.of("keys", database.keys()));
+    return JsonResponse.builder().body(database.keys());
   }
 
   @RequestHandler(path = "/api/v3/database/{name}/count")
@@ -111,7 +110,6 @@ public final class V2HttpHandlerDatabase {
     }
   }
 
-  // TODO docs: method changed
   @RequestHandler(path = "/api/v3/database/{name}/get")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_get"})
   public @NonNull IntoResponse<?> handleGetRequest(

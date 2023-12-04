@@ -1,0 +1,3681 @@
+openapi: 3.1.0
+info:
+  description: >
+    CloudNet's rest API version 2 is the next generation in CloudNet's rest
+    history. It has
+
+    definitely more opportunities than the previous version of it and provides
+
+    a lot of methods to manage and control the CloudNet node and cluster
+    behaviour.
+
+
+    The API is based on http/https requests and mostly JSON responses. You need
+
+    to send your session bearer token when you make a request. The token can be
+
+    obtained by sending a request to the /auth route. Most of the routes require
+
+    an authentication and a permission which must be set to access the endpoint.
+
+
+    All the responses contain a `success` boolean (if they are JSON responses)
+    giving
+
+    information whether or not the request was handled successfully. If that
+    boolean is
+
+    `false` an extra `reason` field is appended to the JSON entity defining the
+    cause
+
+    of the failure.
+
+    WICHTIG:
+
+      Erwähnen, dass cloudnet alles case-sensitive macht -> namen etc müssen übereinstimmen
+
+
+    Every rest rout is fixed to a version number and every call must contain
+    one.
+
+    The latest one is 2. The latest stable endpoint base URL is
+
+    `http(s)://{host}:{port}/api/v2/`. Host and port is the one defined in your
+
+    CloudNet's node config.json `httpListeners` section. If you want to use
+    https
+
+    you have to configure the web SSL settings in the same file.
+  version: '3'
+  title: CloudNet
+  contact:
+    name: CloudNet
+    url: https://cloudnetservice.eu
+  license:
+    name: Apache license, version 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: '{protocol}://{host}:{port}/api/v3/'
+    variables:
+      protocol:
+        enum:
+          - http
+          - https
+        default: https
+      host:
+        default: 127.0.0.1
+      port:
+        default: '2812'
+security:
+  - bearerAuth: [ ]
+externalDocs:
+  description: Contact us on Discord
+  url: https://discord.cloudnetservice.eu
+tags:
+  - name: Session Management
+    description: Management of the user's rest api authentication and session
+  - name: Node
+    description: Access to some node functions the request is sent to
+  - name: Cluster
+    description: Management of the cluster the current node is part of
+    externalDocs:
+      url: https://cloudnetservice.eu/docs/3.3/setup/cluster
+      description: More information
+  - name: Database
+    description: Management of the cloudnet internal database
+  - name: Groups
+    description: Management of the cloudnet group system
+    externalDocs:
+      url: https://cloudnetservice.eu/docs/3.3/components/groups
+      description: More information
+  - name: Player
+    description: Management of cloudnet players
+    externalDocs:
+      url: https://cloudnetservice.eu/docs/3.3/commands/players
+      description: More information
+  - name: Tasks
+    description: Management of the cloudnet task system
+    externalDocs:
+      url: https://cloudnetservice.eu/docs/3.3/components/tasks
+      description: More information
+  - name: Services
+    description: Management of the services which are running in the cluster
+    externalDocs:
+      url: https://cloudnetservice.eu/docs/3.3/components/services
+      description: More information
+  - name: Template Storage
+    description: Management of the templates
+    externalDocs:
+      url: https://cloudnetservice.eu/docs/3.3/components/template-storages
+  - name: Templates
+    description: Management of the templates
+    externalDocs:
+      url: https://cloudnetservice.eu/docs/3.3/components/templates
+      description: More information
+  - name: Service Versions
+    description: Management of service versions
+  - name: Modules
+    description: Management of the modules
+paths:
+  /auth:
+    post:
+      security:
+        - basicAuth: [ ]
+      tags:
+        - Session Management
+      summary: Authenticate a user at the rest endpoint
+      description: >
+        Authenticates a rest user and issues a JWT auth token for furthe
+        requests.
+      responses:
+        '200':
+          description: >
+            Successfully authenticated the user at the rest endpoint. The
+            resulting json object will contain the bearer token for further
+            requests to the endpoint.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JwtToken'
+        '400':
+          $ref: '#/components/responses/Problem'
+          description: >-
+            If the auth header is missing or not containing basic auth
+            credentials
+        '401':
+          $ref: '#/components/responses/Problem'
+          description: If the provided authentication information is invalid
+  /auth/refresh:
+    post:
+      tags:
+        - Session Management
+      summary: Refreshes an auth token
+      description: >
+        Invalidates the current auth and refresh token that is used when calling
+        the route and issues new ones to be used afterwards.
+      responses:
+        '200':
+          $ref: '#/components/schemas/JwtToken'
+          description: The auth token was refreshed successfully.
+        '400':
+          $ref: '#/components/responses/Problem'
+          description: >-
+            In case an access token instead of a refresh token is used to call
+            the route
+        '401':
+          $ref: '#/components/responses/Problem'
+          description: If the provided refresh token is invalid
+  /auth/verify:
+    post:
+      tags:
+        - Session Management
+      summary: Checks if an auth token is still valid
+      description: |
+        This route can be used to check if the given auth or refresh token is still 
+        valid and how long
+      responses:
+        '200':
+          description: The auth token is still valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    description: The type of token used to call the route
+                    enum:
+                      - access
+                      - refresh
+                  expiresAt:
+                    type: integer
+                    description: The epoch milli when the used token is going to expire
+                    examples:
+                      - 1697724270214
+        '401':
+          $ref: '#/components/responses/Problem'
+          description: The provided auth token is no longer valid
+  /auth/revoke:
+    post:
+      tags:
+        - Session Management
+      summary: Revokes an auth token and the corresponding refresh token
+      description: |
+        This route can be used to revoke an auth and a refresh token by calling it
+        with either of these token types.
+      responses:
+        '204':
+          description: The auth token was removed successfully
+        '401':
+          $ref: '#/components/responses/Problem'
+          description: The provided auth token is no longer valid
+
+  /cluster:
+    get:
+      tags:
+        - Cluster
+      summary: Lists all nodes
+      description: |
+        Lists all nodes which are registered in the node. This includes nodes
+        which are currently not connected to the node. If they are not connected
+        available will be `false` and the `nodeInfoSnapshot` will be null.
+
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:cluster_read`
+         - `cloudnet_rest:cluster_node_list`
+      operationId: cluster
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NodeServer'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+    put:
+      requestBody:
+        required: true
+        description: The new node configuration entry.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NetworkClusterNode'
+      tags:
+        - Cluster
+      summary: Updates a node
+      description: |
+        Changes the configuration of a specific node in the local node's config
+        file. The update will be pushed live to the node cluster settings. That
+        does not mean that the node tries to connect to the updated node.
+
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:cluster_write`
+         - `cloudnet_rest:cluster_node_update`
+      operationId: clusterUpdate
+      responses:
+        '204':
+          description: The node was updated successfully
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+    post:
+      requestBody:
+        required: true
+        description: The node configuration entry.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NetworkClusterNode'
+      tags:
+        - Cluster
+      summary: Creates a new node
+      description: |
+        Creates a node in the node's local configuration and updates it live to
+        the node cluster settings. That does not mean that the node tries to
+        connect to the newly registered node.
+
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:cluster_write`
+         - `cloudnet_rest:cluster_node_create`
+      operationId: clusterCreate
+      responses:
+        '201':
+          description: The new node was created successfully
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /cluster/{uniqueId}:
+    parameters:
+      - name: uniqueId
+        in: path
+        required: true
+        description: The id of the target node
+        schema:
+          type: string
+    get:
+      tags:
+        - Cluster
+      summary: Get detail information of a specific node
+      description: |
+        Get the detailed information about the node that is associated with the given node id.
+
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:cluster_read`
+         - `cloudnet_rest:cluster_node_get`
+      operationId: clusterInfo
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeServer'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+    delete:
+      tags:
+        - Cluster
+      summary: Deletes a node configuration entry
+      description: |
+        Deletes a node from the config of the local node and pushes the changes
+        live to the local cluster settings. That does not mean that the node
+        gets disconnected.
+
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:cluster_write`
+         - `cloudnet_rest:cluster_node_delete`
+      operationId: clusterDelete
+      responses:
+        '204':
+          description: The node configuration entry was deleted successfully
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /cluster/{uniqueId}/command:
+    parameters:
+      - name: uniqueId
+        in: path
+        required: true
+        description: The id of the target node
+        schema:
+          type: string
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                command:
+                  type: string
+                  examples:
+                    - 'service Lobby-1 delete'
+      tags:
+        - Cluster
+      summary: Sends a command to the given node
+      description: |
+        Sends a command to a specific node in the cluster.
+
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:cluster_write`
+        
+         - `cloudnet_rest:cluster_node_command`
+      operationId: clusterCommand
+      responses:
+        '200':
+          description: The command was executed successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  examples:
+                    - 'Command Response Line 1'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+
+  /node:
+    get:
+      security:
+        - { }
+        - bearerAuth: [ ]
+      tags:
+        - Node
+      summary: Node info
+      description: |
+        Information about the node the rest listener belongs to.
+
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:node_read`
+
+         - `cloudnet_rest:node_info`
+      operationId: generalInfo
+      responses:
+        '200':
+          description: Information about the node the request was sent to
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeInfo'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /node/ping:
+    get:
+      security:
+        - basicAuth: [ ]
+      tags:
+        - Node
+      summary: Node ping
+      description: |
+        Tests whether the rest api is available and is responding
+
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:node_read`
+
+         - `cloudnet_rest:node_ping`
+      operationId: nodePing
+      responses:
+        '204':
+          description: The rest api is running and responding
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /node/liveConsole:
+    get:
+      tags:
+        - Node
+      summary: Live console
+      description: >
+        Upgrades the connection to a web socket connection and sends all new
+        command
+
+        lines received to the connection.
+
+
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:node_read`
+
+         - `cloudnet_rest:node_live_console`
+      responses:
+        '101':
+          description: Switching the protocol to a websocket
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /node/reload:
+    parameters:
+      - name: type
+        in: query
+        required: false
+        description: The reload type
+        schema:
+          type: string
+          enum:
+            - all
+            - config
+          default: all
+    post:
+      tags:
+        - Node
+      summary: Reloads the node the request is sent to
+      description: |
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:node_write`
+
+         - `cloudnet_rest:node_reload`
+      responses:
+        '204':
+          description: "The node was reloaded."
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /node/config:
+    get:
+      tags:
+        - Node
+      summary: Get the current configuration file of the node the request is sent to
+      description: |
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:node_read`
+
+         - `cloudnet_rest:node_config_get`
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeConfiguration'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+    put:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NodeConfiguration'
+      tags:
+        - Node
+      summary: Updates the configuration file of the node the request is sent to
+      description: |
+        To add/remove a node from the configuration please use the cluster 
+        routes to add/remove a node.
+
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:node_write`
+
+         - `cloudnet_rest:node_config_update`
+      responses:
+        '204':
+          description: The node configuration was updated.
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /database:
+    get:
+      tags:
+        - Database
+      summary: Lists all database names
+      description: |
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:database_read`
+
+         - `cloudnet_rest:database_list`
+      operationId: listDatabase
+      responses:
+        '200':
+          description: All database names.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  examples:
+                    - 'Database A'
+                    - 'Database B'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /database/{name}:
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      requestBody:
+        required: true
+        description: The document value to insert
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+                  example: Signs 0utplayyyy
+                document:
+                  type: object
+                  example:
+                    Name: Peter
+      tags:
+        - Database
+      summary: Creates a new document in a database
+      description: |
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:database_write`
+
+         - `cloudnet_rest:database_insert`
+      responses:
+        '201':
+          description: The document was inserted into the database
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+    delete:
+      parameters:
+        - name: key
+          in: query
+          required: true
+          description: The key to delete from a database
+          schema:
+            type: string
+      tags:
+        - Database
+      summary: Deletes a document from the database
+      description: |
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:database_write`
+
+         - `cloudnet_rest:database_delete`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /database/{name}/clear:
+    post:
+      tags:
+        - Database
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      summary: Clears a database
+      description: |
+        Clears the content of the given database.
+
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:database_write`
+
+         - `cloudnet_rest:database_clear`
+      responses:
+        '204':
+          description: The database was cleared.
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /database/{name}/keys:
+    get:
+      tags:
+        - Database
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      summary: Get all keys in a database
+      description: |
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:database_read`
+
+         - `cloudnet_rest:database_keys`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  examples:
+                    - Key1
+                    - Key2
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /database/{name}/count:
+    get:
+      tags:
+        - Database
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      summary: Get the document count of a database
+      description: |
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:database_read`
+
+         - `cloudnet_rest:database_count`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 5
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /database/{name}/contains:
+    get:
+      tags:
+        - Database
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: key
+          in: query
+          required: true
+          description: The key to check for
+          schema:
+            type: string
+      summary: Checks if the provided database contains a specific key
+      description: |
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:database_read`
+
+         - `cloudnet_rest:database_contains`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /database/{name}/get:
+    get:
+      tags:
+        - Database
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+      summary: Get a specific document from a database
+      description: |
+        Get the document out of the provided database by using the provided
+        key.
+
+        One of the following scopes is needed to execute the request:
+         - `cloudnet_rest:database_read`
+
+         - `cloudnet_rest:database_get`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    items:
+                      type: object
+                      examples:
+                        - Name: Peter
+                        - LastName: Parker
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /database/{name}/find:
+    post:
+      requestBody:
+        required: true
+        description: Defines the search filter to get the documents
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  example:
+                    Signs: 0utplayyyy
+      tags:
+        - Database
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      summary: Get a specific document from a database
+      description: >
+        Gets all documents out of the provided database, by using the provided
+        search filter.
+
+
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:database_read`
+
+          - `cloudnet_rest:database_find`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      result:
+                        type: array
+                        items:
+                          type: string
+                          example:
+                            - Name: Peter
+                            - Lastname: Parker
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /group:
+    post:
+      requestBody:
+        required: true
+        description: The json data representing the group to create or update
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupConfiguration'
+      tags:
+        - Groups
+      summary: Creates a new group or updates an already existing one
+      description: |
+        Creates a new group if there is no other group known with the provided name. If there is a group known then the known group is updated using the provided data.
+        
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:group_write`
+
+          - `cloudnet_rest:group_create`
+      responses:
+        '201':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+    get:
+      tags:
+        - Groups
+      summary: Lists all groups that are known by the node handling the request
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:group_read`
+
+          - `cloudnet_rest:group_list`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupConfiguration'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /group/{name}:
+    parameters:
+      - name: name
+        in: path
+        required: true
+        description: The name of the group to retrieve
+        schema:
+          type: string
+    get:
+      tags:
+        - Groups
+      summary: Get a group configuration using the given name
+      description: |
+        Get a group configuration using the name given as path parameter. The group name is case-sensitive.
+
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:group_read`
+
+          - `cloudnet_rest:group_get`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupConfiguration'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no group with the provided name.
+          $ref: '#/components/responses/Problem'
+    delete:
+      tags:
+        - Groups
+      summary: Deletes the task with the provided name
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:group_write`
+
+          - `cloudnet_rest:group_delete`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no task with the provided name.
+          $ref: '#/components/responses/Problem'
+  /player:
+    post:
+      requestBody:
+        required: true
+        description: The player to create or update
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfflinePlayer'
+      tags:
+        - Player
+      summary: Creates or updates an offline player
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `bridge:player_write`
+
+          - `bridge:player_create`
+      responses:
+        '201':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /player/onlineCount:
+    get:
+      tags:
+        - Player
+      summary: Get the number of online players
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `bridge:player_read`
+
+          - `bridge:player_online_count`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      onlineCount:
+                        type: integer
+                        example: 10
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /player/registeredCount:
+    get:
+      tags:
+        - Player
+      summary: Get the number of registered players
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `bridge:player_read`
+
+          - `bridge:player_registered_count`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      registeredCount:
+                        type: integer
+                        example: 10
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /player/{identifier}:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the player to get
+        example: bcc582ed-494d-4b93-86cb-b58564651a26
+        schema:
+          type: string
+    get:
+      tags:
+        - Player
+      summary: Get a player by his unique id or name
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `bridge:player_read`
+
+          - `bridge:player_get`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      player:
+                        $ref: '#/components/schemas/OfflinePlayer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    delete:
+      tags:
+        - Player
+      summary: Deletes a player by his unique id or name
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `bridge:player_write`
+
+          - `bridge:player_delete`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /player/{identifier}/exists:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the player to check for
+        example: bcc582ed-494d-4b93-86cb-b58564651a26
+        schema:
+          type: string
+    get:
+      tags:
+        - Player
+      summary: Checks if a specific player is registered
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `bridge:player_read`
+
+          - `bridge:player_exists`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      result:
+                        type: boolean
+                        example: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /task:
+    post:
+      requestBody:
+        required: true
+        description: The json data representing the task to create or update
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceTask'
+      tags:
+        - Tasks
+      summary: Creates a new task or updates an already existing one
+      description: |
+        Creates a new task if there is no other task known with the provided name. If there is a task known then the known task is updated using the provided data.
+
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:task_write`
+
+          - `cloudnet_rest:task_create`
+      responses:
+        '204':
+          description: The task was created successfully
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+    get:
+      tags:
+        - Tasks
+      summary: Lists all tasks that are known by the node handling the request
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:task_read`
+
+          - `cloudnet_rest:task_list`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceTask'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /task/{name}:
+    parameters:
+      - name: name
+        in: path
+        required: true
+        description: The name of the task to retrieve
+        schema:
+          type: string
+    get:
+      tags:
+        - Tasks
+      summary: Get a service task using the given name
+      description: |
+        Get a service task using the name given as path parameter. The task name is case-sensitive.
+
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:task_read`
+
+          - `cloudnet_rest:task_get`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceTask'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no task with the provided name.
+          $ref: '#/components/responses/Problem'
+    delete:
+      tags:
+        - Tasks
+      summary: Deletes the task with the provided name
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:task_write`
+
+          - `cloudnet_rest:task_delete`
+      responses:
+        '204':
+          description: The task was deleted successfully
+          content:
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no task with the provided name.
+          $ref: '#/components/responses/Problem'
+  /service:
+    get:
+      tags:
+        - Services
+      summary: Lists all known services
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_read`
+
+          - `cloudnet_rest:service_list`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      services:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ServiceInfoSnapshot'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /service/{identifier}:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the service
+        schema:
+          type: string
+    get:
+      tags:
+        - Services
+      summary: Shows a specific service if it's exists
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_read`
+
+          - `cloudnet_rest:service_get`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      snapshot:
+                        $ref: '#/components/schemas/ServiceInfoSnapshot'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    delete:
+      tags:
+        - Services
+      summary: Deletes a service
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /service/{identifier}/lifecycle:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the service
+        schema:
+          type: string
+      - name: target
+        in: query
+        required: true
+        description: The target service lifecycle
+        schema:
+          type: string
+          enum:
+            - start
+            - stop
+            - restart
+            - kill
+    patch:
+      tags:
+        - Services
+      summary: Updates the lifecycle of a service
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_write`
+
+          - `cloudnet_rest:service_lifecycle`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /service/{identifier}/include:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the service
+        schema:
+          type: string
+      - name: type
+        in: query
+        required: true
+        description: The type of inclusion to include
+        schema:
+          type: string
+          enum:
+            - templates
+            - inclusions
+    get:
+      tags:
+        - Services
+      summary: Includes a specific type of inclusion added to a service
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_write`
+
+          - `cloudnet_rest:service_include`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /service/{identifier}/deployResources:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the service
+        schema:
+          type: string
+      - name: remove
+        in: query
+        required: false
+        description: If the deployments should be removed afterwards
+        schema:
+          type: boolean
+          default: true
+    get:
+      tags:
+        - Services
+      summary: Deploys all waiting deployments of a service
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_write`
+
+          - `cloudnet_rest:service_deploy_resources`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /service/{identifier}/logLines:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the service
+        schema:
+          type: string
+    get:
+      tags:
+        - Services
+      summary: Get the cached log lines of a service
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_read`
+
+          - `cloudnet_rest:service_log_lines`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      lines:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - Line1
+                          - Line2
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /service/{identifier}/liveLog:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the service
+        schema:
+          type: string
+    get:
+      tags:
+        - Services
+      summary: Live console of a service
+      description: >
+        Upgrades the connection to a web socket connection and sends all new log
+        lines
+
+        received to the connection.
+
+
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_read`
+
+          - `cloudnet_rest:service_live_log`
+      responses:
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /service/create:
+    post:
+      tags:
+        - Services
+      summary: Creates a new service
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_write`
+
+          - `cloudnet_rest:service_create`
+      requestBody:
+        required: true
+        description: >
+          The request body can contain a service configuration, a service task
+          or a name of a
+
+          service task to base the new service on. The start boolean in the body
+          defines whether
+
+          the service should get started after the creation.
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - properties:
+                    start:
+                      type: boolean
+                      default: false
+                    serviceConfiguration:
+                      $ref: '#/components/schemas/ServiceConfiguration'
+                - properties:
+                    start:
+                      type: boolean
+                      default: false
+                    task:
+                      $ref: '#/components/schemas/ServiceTask'
+                - properties:
+                    start:
+                      type: boolean
+                      default: false
+                    serviceTaskName:
+                      type: string
+                      example: Lobby
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      result:
+                        $ref: '#/components/schemas/ServiceCreateResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /service/{identifier}/add:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the service
+        schema:
+          type: string
+      - name: type
+        in: query
+        required: true
+        description: The type of
+        schema:
+          type: string
+          enum:
+            - template
+            - deployment
+            - inclusion
+      - name: flush
+        in: query
+        required: false
+        description: >
+          If the inclusions/deployments of the service should be
+          included/deployed after the add
+        schema:
+          type: boolean
+          default: false
+    post:
+      requestBody:
+        required: true
+        description: The inclusion/deployment to add
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - properties:
+                    template:
+                      $ref: '#/components/schemas/ServiceTemplate'
+                - properties:
+                    removeDeployments:
+                      type: boolean
+                      default: true
+                    deployment:
+                      $ref: '#/components/schemas/ServiceDeployment'
+                - properties:
+                    inclusion:
+                      $ref: '#/components/schemas/ServiceRemoteInclusion'
+      tags:
+        - Services
+      summary: Adds an inclusion/deployment to a service
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_write`
+
+          - `cloudnet_rest:service_add_file`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /service/{identifier}/command:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the service
+        schema:
+          type: string
+    post:
+      requestBody:
+        required: true
+        description: The command to execute on the service
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                command:
+                  type: string
+                  example: whitelist on
+      tags:
+        - Services
+      summary: Executes the specified command on a service
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_write`
+
+          - `cloudnet_rest:service_send_commands`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /templateStorage:
+    get:
+      tags:
+        - Template Storage
+      summary: Shows every available template storage
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:template_storage_read`
+
+          - `cloudnet_rest:template_storage_list`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      storages:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - local
+                          - ftp
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /templateStorage/{storage}/templates:
+    get:
+      parameters:
+        - name: storage
+          in: path
+          required: true
+          description: The name of the template storage
+          schema:
+            type: string
+      tags:
+        - Template Storage
+      summary: List every template in the given storage
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:template_storage_read`
+
+          - `cloudnet_rest:template_storage_template_list`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      templates:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ServiceTemplate'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /template/{storage}/{prefix}/{name}/file/download:
+    get:
+      parameters:
+        - name: storage
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: prefix
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          required: true
+      tags:
+        - Templates
+      summary: Download a file from the specified template
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:template_read`
+
+          - `cloudnet_rest:template_file_download`
+      responses:
+        '200':
+          description: OK
+          headers:
+            Content-Disposition:
+              description: |
+                A header indicating that the content is expected to be displayed
+                as an attachment, that is downloaded and saved locally.
+              style: simple
+              schema:
+                type: string
+          content:
+            application/octet-stream:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: |
+            The path requested doesn't exist in the template or is a directory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /template/{storage}/{prefix}/{name}/file/info:
+    get:
+      parameters:
+        - name: storage
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: prefix
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          required: true
+      tags:
+        - Templates
+      summary: Get information about a path in a template
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:template_read`
+
+          - `cloudnet_rest:template_file_info`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      info:
+                        $ref: '#/components/schemas/FileInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: The path requested doesn't exist in the template
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /template/{storage}/{prefix}/{name}/file/exists:
+    get:
+      parameters:
+        - name: storage
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: prefix
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          schema:
+            type: string
+          required: true
+      tags:
+        - Templates
+      summary: Checks whether a file/directory exists at the specified path
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:template_read`
+
+          - `cloudnet_rest:template_file_exists`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      exists:
+                        type: boolean
+                        example: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /template/{storage}/{prefix}/{name}/download:
+    get:
+      parameters:
+        - name: storage
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: prefix
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - Templates
+      summary: Download a template as a zip file
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:template_read`
+
+          - `cloudnet_rest:template_download`
+      responses:
+        '200':
+          description: OK
+          headers:
+            Content-Disposition:
+              description: |
+                A header indicating that the content is expected to be displayed
+                as an attachment, that is downloaded and saved locally.
+              style: simple
+              schema:
+                type: string
+          content:
+            application/zip:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /template/{storage}/{prefix}/{name}/directory/list:
+    get:
+      parameters:
+        - name: storage
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: prefix
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: directory
+          in: query
+          required: false
+          schema:
+            type: string
+            default: ''
+        - name: deep
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+      tags:
+        - Templates
+      summary: Lists all files in a template's directory
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:template_read`
+
+          - `cloudnet_rest:template_directory_list`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      files:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/FileInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /template/{storage}/{prefix}/{name}/create:
+    put:
+      parameters:
+        - name: storage
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: prefix
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - Templates
+      summary: Creates a template in a storage
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:template_write`
+
+          - `cloudnet_rest:template_create`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /template/{storage}/{prefix}/{name}/install:
+    post:
+      requestBody:
+        required: true
+        description: Information about the type and version to install
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - properties:
+                    force:
+                      type: boolean
+                      default: false
+                    type:
+                      $ref: '#/components/schemas/ServiceVersionType'
+                    version:
+                      $ref: '#/components/schemas/ServiceVersion'
+                - properties:
+                    force:
+                      type: boolean
+                      default: false
+                    typeName:
+                      type: string
+                      example: paperspigot
+                    versionName:
+                      type: string
+                      example: latest
+      parameters:
+        - name: storage
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: prefix
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - Templates
+      summary: Installs a service version in a template
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:template_write`
+
+          - `cloudnet_rest:template_install`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /template/{storage}/{prefix}/{name}/deploy:
+    post:
+      requestBody:
+        required: true
+        description: The content of the template in zip form
+        content:
+          application/zip:
+            schema:
+              type: object
+      parameters:
+        - name: storage
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: prefix
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - Templates
+      summary: Deploys the zip archive into a template
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:template_write`
+
+          - `cloudnet_rest:template_deploy`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /template/{storage}/{prefix}/{name}/file/create:
+    post:
+      requestBody:
+        required: true
+        description: The content of the file
+        content:
+          '*':
+            schema:
+              type: object
+      parameters:
+        - name: storage
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: prefix
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+      tags:
+        - Templates
+      summary: Creates/Overrides a file in a template
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:template_write`
+
+          - `cloudnet_rest:template_file_create`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /template/{storage}/{prefix}/{name}/file/append:
+    post:
+      requestBody:
+        required: true
+        description: The content of the file
+        content:
+          '*':
+            schema:
+              type: object
+      parameters:
+        - name: storage
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: prefix
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+      tags:
+        - Templates
+      summary: Appends the content to a file in a template
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:template_write`
+
+          - `cloudnet_rest:template_file_append`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /template/{storage}/{prefix}/{name}/directory/create:
+    post:
+      parameters:
+        - name: storage
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: prefix
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+      tags:
+        - Templates
+      summary: Creates a directory in a template
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:template_write`
+
+          - `cloudnet_rest:template_directory_create`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /template/{storage}/{prefix}/{name}:
+    delete:
+      parameters:
+        - name: storage
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: prefix
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - Templates
+      summary: Deletes a template
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:template_write`
+
+          - `cloudnet_rest:template_delete`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /template/{storage}/{prefix}/{name}/file:
+    delete:
+      parameters:
+        - name: storage
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: prefix
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+      tags:
+        - Templates
+      summary: Deletes a file or directory from a template
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:template_write`
+
+          - `cloudnet_rest:template_delete_file`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /serviceversion:
+    get:
+      tags:
+        - Service Versions
+      summary: Lists all available service version types
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_version_read`
+
+          - `cloudnet_rest:service_version_list`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      versions:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ServiceVersionType'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /serviceversion/{version}:
+    parameters:
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags:
+        - Service Versions
+      summary: Get a specific service version type
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_version_read`
+
+          - `cloudnet_rest:service_version_get`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      version:
+                        $ref: '#/components/schemas/ServiceVersionType'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /serviceversion/load:
+    get:
+      parameters:
+        - name: url
+          in: query
+          required: false
+          description: >
+            The url to load the service types from. If no url is provided the
+            service types
+
+            loaded are the fallback types compiled into the jar file.
+          schema:
+            type: string
+      tags:
+        - Service Versions
+      summary: Loads the service types into the service type provider
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_version_write`
+
+          - `cloudnet_rest:service_version_load`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /serviceversion/add:
+    post:
+      requestBody:
+        required: true
+        description: The service type to add to the service type provider
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceVersionType'
+      tags:
+        - Service Versions
+      summary: Adds a service version type to the service type provider
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_version_write`
+
+          - `cloudnet_rest:service_version_add`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /module:
+    get:
+      tags:
+        - Modules
+      summary: Lists all loaded modules
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:module_read`
+
+          - `cloudnet_rest:module_list`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      modules:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ModuleInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /module/reload:
+    get:
+      tags:
+        - Modules
+      summary: Unloads and loads all loaded modules
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:module_write`
+
+          - `cloudnet_rest:module_reload_all`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /module/{name}:
+    get:
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - Modules
+      summary: Get the information about a specific module
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:module_read`
+
+          - `cloudnet_rest:module_get`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - $ref: '#/components/schemas/ModuleInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /module/{name}/reload:
+    get:
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - Modules
+      summary: Unloads and loads a specific module
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:module_write`
+
+          - `cloudnet_rest:module_reload`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /module/{name}/unload:
+    get:
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - Modules
+      summary: Unloads a specific module
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:module_write`
+
+          - `cloudnet_rest:module_unreload`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /module/{name}/config:
+    get:
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - Modules
+      summary: Get the configuration file of a module
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - properties:
+                      config:
+                        type: object
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    put:
+      requestBody:
+        required: true
+        description: The updated configuration file of the module
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - Modules
+      summary: Updates the configuration file of a module
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:module_write`
+
+          - `cloudnet_rest:module_config_update`
+      responses:
+        '200':
+          $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Forbidden'
+        '403':
+          $ref: '#/components/responses/Unauthorized'
+  /module/{name}/load:
+    post:
+      requestBody:
+        required: true
+        description: The jar file of the module to copy and load
+        content:
+          application/java-archive:
+            schema:
+              type: object
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - Modules
+      summary: Copies a module from the request body and loads it
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:module_write`
+
+          - `cloudnet_rest:module_load`
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Success'
+                  - $ref: '#/components/schemas/ModuleInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    basicAuth:
+      type: http
+      scheme: basic
+  responses:
+    Problem:
+      description: The action couldn't be exececuted
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Success:
+      description: The action was executed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Success'
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+        text/plain:
+          example: Resource not found!
+    Unauthorized:
+      description: The the credentials for a successful login are missing
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: |
+        The user has not the required permissions to execute that action
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadRequest:
+      description: >
+        The request sent to the server does not contain all necessary
+        information
+
+        or a specific information provided is invalid.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Problem:
+      description: >-
+        An object describing a problem as specific in RFC 9457. Note that this
+        object can contain any number of additional properties depending on the
+        called route and error cause.
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: An absolute URI that identifies the problem type
+          default: about:blank
+        title:
+          type: string
+          description: >-
+            A short summary of the problem type. Written in English and readable
+            for engineers (usually not suited for non technical stakeholders and
+            not localized).
+          example: Service Unavailable
+        status:
+          type: integer
+          format: int32
+          description: >-
+            The HTTP status code generated by the origin server for this
+            occurrence of the problem.
+          minimum: 400
+          exclusiveMaximum: 600
+          example: 503
+        detail:
+          type: string
+          description: >-
+            A human-readable explanation specific to this occurrence of the
+            problem
+        instance:
+          type: string
+          format: uri
+          description: >-
+            An absolute URI reference that identifies the specific occurrence of
+            the problem. It may or may not yield further information if
+            dereferenced.
+    NetworkClusterNode:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/JsonDocPropertyable'
+        - properties:
+            uniqueId:
+              type: string
+              example: Node-1
+            listeners:
+              type: array
+              items:
+                $ref: '#/components/schemas/HostAndPort'
+    NodeConfiguration:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/JsonDocPropertyable'
+        - properties:
+            identity:
+              $ref: '#/components/schemas/NetworkClusterNode'
+            clusterConfig:
+              type: object
+              properties:
+                clusterId:
+                  type: string
+                  example: a0e8765e-7853-455b-bb2b-7a022a607be2
+                nodes:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/NetworkClusterNode'
+            ipWhitelist:
+              type: array
+              items:
+                type: string
+              example:
+                - 192.168.56.1
+                - 127.0.0.1
+            maxCPUUsageToStartServices:
+              type: number
+              example: 90
+            maxMemory:
+              type: number
+              example: 2048
+            maxServiceConsoleLogCacheSize:
+              type: integer
+              example: 128
+            processTerminationTimeoutSeconds:
+              type: integer
+              example: 5
+            forceInitialClusterDataSync:
+              type: boolean
+              example: true
+            printErrorStreamLinesFromServices:
+              type: boolean
+              example: true
+            runBlockedServiceStartTryLaterAutomatic:
+              type: boolean
+              example: true
+            jvmCommand:
+              type: string
+              example: java
+            hostAddress:
+              type: string
+              example: 127.0.0.1
+            connectHostAddress:
+              type: string
+              example: 127.0.0.1
+            httpListeners:
+              type: array
+              items:
+                $ref: '#/components/schemas/HostAndPort'
+            clientSslConfig:
+              $ref: '#/components/schemas/ConfigurationOptionSSL'
+            serverSslConfig:
+              $ref: '#/components/schemas/ConfigurationOptionSSL'
+            webSslConfig:
+              $ref: '#/components/schemas/ConfigurationOptionSSL'
+    ConfigurationOptionSSL:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          example: false
+        clientAuth:
+          type: boolean
+          example: true
+        trustCertificatePath:
+          type: string
+          example: null
+        certificatePath:
+          type: string
+          example: local/certificate.pem
+        privateKeyPath:
+          type: string
+          example: local/privateKey.key
+    NodeServer:
+      type: object
+      properties:
+        node:
+          $ref: '#/components/schemas/NetworkClusterNode'
+        state:
+          type: string
+          enum:
+            - UNAVAILABLE
+            - SYNCING
+            - READY
+            - DISCONNECTED
+        head:
+          type: boolean
+          description: If the node server is the current head node.
+        local:
+          type: boolean
+          description: If the node server is the node that handled the request.
+        nodeInfoSnapshot:
+          $ref: '#/components/schemas/NodeInfoSnapshot'
+
+    NetworkClusterNodeInfoSnapshot:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/JsonDocPropertyable'
+        - properties:
+            node:
+              $ref: '#/components/schemas/NetworkClusterNode'
+            state:
+              type: string
+              enum:
+                - UNAVAILABLE
+                - SYNCING
+                - READY
+                - DISCONNECTED
+              example: READY
+            head:
+              type: boolean
+              example: false
+            local:
+              type: boolean
+              example: true
+            nodeInfoSnapshot:
+              $ref: '#/components/schemas/NodeInfoSnapshot'
+    NodeInfoSnapshot:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/JsonDocPropertyable'
+        - properties:
+            creationTime:
+              type: integer
+              description: The unix epoch millis when the snapshot was created
+              examples:
+                - 1620819600457
+            startupMillis:
+              type: integer
+              description: The unix epoch millis when the node was started
+              examples:
+                - 1620819600457
+            maxMemory:
+              type: number
+              description: The maximum memory amount (in MB) the node can consume
+              examples:
+                - 2048
+            usedMemory:
+              type: integer
+              description: The memory (in MB) that is used by services on the node
+              examples:
+                - 512
+            reservedMemory:
+              type: integer
+              description: The memory (in MB) that is reserved for services on the node
+              examples:
+                - 725
+            currentServicesCount:
+              type: integer
+              description: The amount of services that are registered on the node
+              examples:
+                - 2
+            drain:
+              type: boolean
+              description: Indicates if the node is draining (stopping after all running services were stopped)
+            node:
+              $ref: '#/components/schemas/NetworkClusterNode'
+            version:
+              $ref: '#/components/schemas/CloudNetVersion'
+            processSnapshot:
+              $ref: '#/components/schemas/ProcessSnapshot'
+            maxCPUUsageToStartServices:
+              type: number
+              examples:
+                - 90.0
+            modules:
+              type: array
+              items:
+                $ref: '#/components/schemas/ModuleConfiguration'
+    JwtToken:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        creationTime:
+          type: integer
+    JsonDocPropertyable:
+      type: object
+      properties:
+        properties:
+          type: object
+          examples:
+            - { }
+    ServiceRemoteInclusion:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/JsonDocPropertyable'
+        - properties:
+            url:
+              type: string
+              examples:
+                - https://my-plugins.de/cool.jar
+            destination:
+              type: string
+              examples:
+                - plugins/cool.jar
+    ServiceDeployment:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/JsonDocPropertyable'
+        - properties:
+            template:
+              $ref: '#/components/schemas/ServiceTemplate'
+            excludes:
+              type: array
+              items:
+                type: string
+              examples:
+                - [ 'spigot.jar', 'plugins/cool.jar' ]
+    ServiceConfigurationBase:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/JsonDocPropertyable'
+        - properties:
+            templates:
+              type: array
+              items:
+                $ref: '#/components/schemas/ServiceTemplate'
+            deployments:
+              type: array
+              items:
+                $ref: '#/components/schemas/ServiceDeployment'
+            includes:
+              type: array
+              items:
+                $ref: '#/components/schemas/ServiceRemoteInclusion'
+    GroupConfiguration:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ServiceConfigurationBase'
+        - properties:
+            name:
+              type: string
+              examples:
+                - Lobby
+            jvmOptions:
+              type: array
+              items:
+                type: string
+              examples:
+                - [ Option1, Option2 ]
+            processParameters:
+              type: array
+              items:
+                type: string
+              examples:
+                - [ Parameter1, Parameter2 ]
+            targetEnvironments:
+              type: array
+              items:
+                type: string
+              examples:
+                - [ MINECRAFT_SERVER, VELOCITY ]
+    OfflinePlayer:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/JsonDocPropertyable'
+        - properties:
+            name:
+              type: string
+              example: derklaro
+            firstLoginTimeMillis:
+              type: number
+              example: 1642409856
+            lastLoginTimeMillis:
+              type: number
+              example: 1642409856
+            lastNetworkPlayerProxyInfo:
+              $ref: '#/components/schemas/NetworkPlayerProxyInfo'
+    NetworkPlayerProxyInfo:
+      type: object
+      properties:
+        uniqueId:
+          type: string
+          example: 05bf52c6-7bb0-4f13-8951-0e1fd803df35
+        name:
+          type: string
+          example: TheMeinerLP
+        xBoxId:
+          type: string
+          example: null
+        version:
+          type: integer
+          example: 47
+        address:
+          $ref: '#/components/schemas/HostAndPort'
+        listener:
+          $ref: '#/components/schemas/HostAndPort'
+        onlineMode:
+          type: boolean
+          example: true
+        networkService:
+          $ref: '#/components/schemas/NetworkServiceInfo'
+    NetworkServiceInfo:
+      type: object
+      properties:
+        groups:
+          type: array
+          items:
+            type: string
+        serviceId:
+          $ref: '#/components/schemas/ServiceId'
+    ServiceTemplate:
+      type: object
+      properties:
+        prefix:
+          type: string
+          examples:
+            - Global
+        name:
+          type: string
+          examples:
+            - server
+        storage:
+          type: string
+          examples:
+            - local
+        priority:
+          type: integer
+          examples:
+            - 5
+        alwaysCopyToStaticServices:
+          type: boolean
+          examples:
+            - false
+    NodeInfo:
+      type: object
+      properties:
+        version:
+          $ref: '#/components/schemas/CloudNetVersion'
+        nodeInfoSnapshot:
+          $ref: '#/components/schemas/NetworkClusterNodeInfoSnapshot'
+        lastNodeInfoSnapshot:
+          $ref: '#/components/schemas/NetworkClusterNodeInfoSnapshot'
+        serviceCount:
+          type: integer
+          example: 0
+        clientConnections:
+          type: array
+          items:
+            type: string
+            examples:
+              - 127.0.0.1:1411
+              - 127.0.0.1:1412
+    ProcessSnapshot:
+      type: object
+      properties:
+        pid:
+          type: integer
+          example: 8168
+        cpuUsage:
+          type: number
+          example: 0.7781862806132257
+        systemCpuUsage:
+          type: number
+          example: 0.7781862806132257
+        maxHeapMemory:
+          type: number
+          example: 2111832064
+        heapUsageMemory:
+          type: number
+          example: 230091112
+        noHeapUsageMemory:
+          type: number
+          example: 46906136
+        unloadedClassCount:
+          type: number
+          example: 21
+        totalLoadedClassCount:
+          type: number
+          example: 5940
+        currentLoadedClassCount:
+          type: number
+          example: 5919
+        threads:
+          type: array
+          items:
+            $ref: '#/components/schemas/ThreadSnapshot'
+    ThreadSnapshot:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 5
+        priority:
+          type: integer
+          example: 1
+        daemon:
+          type: boolean
+          example: true
+        name:
+          type: string
+          example: WindowsStreamPump
+        threadState:
+          type: string
+          enum:
+            - NEW
+            - RUNNABLE
+            - BLOCKED
+            - WAITING
+            - TIMED_WAITING
+            - TERMINATED
+          example: RUNNABLE
+    ModuleConfiguration:
+      type: object
+      properties:
+        runtimeModule:
+          type: boolean
+          example: false
+        storesSensitiveData:
+          type: boolean
+          example: true
+        group:
+          type: string
+          example: eu.cloudnetservice.modules
+        name:
+          type: string
+          example: CloudNet-CloudFlare
+        version:
+          type: string
+          example: '1.1'
+        main:
+          type: string
+          example: eu.cloudnetservice.modules.cloudflare.CloudNetCloudflareModule
+        description:
+          type: string
+          example: Node extension for the https://cloudflare.com REST-API
+        author:
+          type: string
+          example: CloudNetService
+        website:
+          type: string
+          example: https://cloudnetservice.eu
+        dataFolder:
+          type: string
+          example: null
+        repositories:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example: CloudNet
+              url:
+                type: string
+                example: https://repo.cloudnetservice.eu/
+        dependencies:
+          type: array
+          items:
+            type: object
+            properties:
+              repo:
+                type: string
+                example: CloudNet
+              url:
+                type: string
+                example: https://repo.cloudnetservice.eu/
+              group:
+                type: string
+                example: eu.cloudnetservice.cloudnet
+              name:
+                type: string
+                example: CloudNet-Bridge
+              version:
+                type: string
+                example: '1.1'
+        minJavaVersionId:
+          type: integer
+          example: 11
+        properties:
+          type: object
+          example: { }
+    ProcessConfiguration:
+      type: object
+      properties:
+        environment:
+          type: string
+          examples:
+            - MINECRAFT_SERVER
+        maxHeapMemorySize:
+          type: integer
+          examples:
+            - 512
+        jvmOptions:
+          type: array
+          items:
+            type: string
+          examples:
+            - [ Option1, Option2 ]
+        processParameters:
+          type: array
+          items:
+            type: string
+          examples:
+            - [ Parameter1, Parameter2 ]
+        environmentVariables:
+          type: object
+          additionalProperties:
+            type: string
+          examples:
+            - MYSQL_PASSWORD: PASSWORD
+    ServiceTask:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ServiceConfigurationBase'
+        - properties:
+            name:
+              type: string
+              examples:
+                - Lobby
+              pattern: ^[a-zA-Z0-9._\-*]*$
+            runtime:
+              type: string
+              examples:
+                - jvm
+            javaCommand:
+              type: string
+              examples:
+                - java
+            nameSplitter:
+              type: string
+              examples:
+                - '-'
+            disableIpRewrite:
+              type: boolean
+              examples:
+                - true
+            maintenance:
+              type: boolean
+              examples:
+                - false
+            autoDeleteOnStop:
+              type: boolean
+              examples:
+                - false
+            staticServices:
+              type: boolean
+              examples:
+                - true
+            groups:
+              type: array
+              items:
+                type: string
+                examples:
+                  - Lobby
+            associatedNodes:
+              type: array
+              items:
+                type: string
+                examples:
+                  - Node-1
+            deletedFilesAfterStop:
+              type: array
+              items:
+                type: string
+              examples:
+                - server.properties
+                - plugins/cool/config.json
+            processConfiguration:
+              $ref: '#/components/schemas/ProcessConfiguration'
+            startPort:
+              type: integer
+              examples:
+                - 25565
+            minServiceCount:
+              type: integer
+              examples:
+                - 2
+    ServiceId:
+      type: object
+      properties:
+        taskName:
+          type: string
+          example: Lobby
+        nameSplitter:
+          type: string
+          example: '-'
+        environmentName:
+          type: string
+          example: MINECRAFT_SERVER
+        allowedNodes:
+          type: array
+          items:
+            type: string
+          example:
+            - Node-1
+            - Node-2
+        uniqueId:
+          type: string
+          example: 43a9e824-cc3c-459b-b574-4f41e6509bda
+        taskServiceId:
+          type: integer
+          example: 2
+        nodeUniqueId:
+          type: string
+          example: Node-2
+        environment:
+          $ref: '#/components/schemas/ServiceEnvironmentType'
+    ServiceConfiguration:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/JsonDocPropertyable'
+        - properties:
+            retryConfiguration:
+              $ref: '#/components/schemas/ServiceCreateRetryConfiguration'
+            serviceId:
+              $ref: '#/components/schemas/ServiceId'
+            processConfig:
+              $ref: '#/components/schemas/ProcessConfiguration'
+            runtime:
+              type: string
+              example: jvm
+            javaCommand:
+              type: string
+              example: java
+            autoDeleteOnStop:
+              type: boolean
+              example: true
+            staticService:
+              type: boolean
+              example: true
+            groups:
+              type: array
+              items:
+                type: string
+              example:
+                - Lobby
+                - Lobby-Global
+            deletedFilesAfterStop:
+              type: array
+              items:
+                type: string
+              example:
+                - server.properties
+                - plugins/cool/config.json
+            templates:
+              type: array
+              items:
+                $ref: '#/components/schemas/ServiceTemplate'
+            deployments:
+              type: array
+              items:
+                $ref: '#/components/schemas/ServiceDeployment'
+            includes:
+              type: array
+              items:
+                $ref: '#/components/schemas/ServiceRemoteInclusion'
+            port:
+              type: integer
+              example: 25565
+    ServiceInfoSnapshot:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/JsonDocPropertyable'
+        - properties:
+            creationTime:
+              type: number
+              example: 1620824797570
+            address:
+              $ref: '#/components/schemas/HostAndPort'
+            connectAddress:
+              $ref: '#/components/schemas/HostAndPort'
+            processSnapshot:
+              $ref: '#/components/schemas/ProcessSnapshot'
+            configuration:
+              $ref: '#/components/schemas/ServiceConfiguration'
+            connectedTime:
+              type: number
+              example: 1620824797599
+            lifeCycle:
+              type: string
+              enum:
+                - PREPARED
+                - RUNNING
+                - STOPPED
+                - DELETED
+              example: PREPARED
+    ServiceCreateRetryConfiguration:
+      type: object
+      properties:
+        maxRetries:
+          type: integer
+          example: 5
+        backoffStrategy:
+          type: array
+          items:
+            type: integer
+            example:
+              - 500
+              - 1500
+        eventReceivers:
+          type: object
+    ServiceCreateResult:
+      type: object
+      properties:
+        state:
+          type: string
+          enum:
+            - CREATED
+            - DEFERRED
+            - FAILED
+        creationId:
+          type: string
+          example: 43a9e824-cc3c-459b-b574-4f41e6509bda
+        serviceInfo:
+          $ref: '#/components/schemas/ServiceInfoSnapshot'
+    HostAndPort:
+      type: object
+      properties:
+        host:
+          type: string
+          example: 127.0.0.1
+        port:
+          type: integer
+          example: 1410
+    FileInfo:
+      type: object
+      properties:
+        path:
+          type: string
+          example: plugins/cool.jar
+        name:
+          type: string
+          example: cool.jar
+        directory:
+          type: boolean
+          example: false
+        hidden:
+          type: boolean
+          example: false
+        creationTime:
+          type: number
+          example: 1619200785568
+        lastModified:
+          type: number
+          example: 1619200785568
+        lastAccess:
+          type: number
+          example: 1620804114355
+        size:
+          type: number
+          example: 13785007
+    ServiceVersion:
+      type: object
+      properties:
+        name:
+          type: string
+          example: latest
+        url:
+          type: string
+          example: >-
+            https://api.papermc.io/v2/projects/paper/versions/1.14.4/builds/243/downloads/paper-1.14.4-243.jar
+        minJavaVersion:
+          type: integer
+          example: 8
+        maxJavaVersion:
+          type: integer
+          example: 11
+        deprecated:
+          type: boolean
+          example: false
+        cacheFiles:
+          type: boolean
+          example: false
+        properties:
+          type: object
+          example: { }
+        additionalDownloads:
+          type: object
+          additionalProperties:
+            type: string
+    ServiceVersionType:
+      type: object
+      properties:
+        name:
+          type: string
+          example: paperspigot
+        environmentType:
+          type: string
+          example: MINECRAFT_SERVER
+        installSteps:
+          type: array
+          items:
+            type: string
+          example:
+            - DOWNLOAD
+            - BUILD
+            - UNZIP
+            - COPY_FILTER
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceVersion'
+    ServiceEnvironmentType:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/JsonDocPropertyable'
+        - properties:
+            name:
+              type: string
+              example: MINECRAFT_SERVER
+            defaultServiceStartPort:
+              type: integer
+              example: 25565
+            defaultProcessArguments:
+              type: array
+              items:
+                type: string
+    ModuleInfo:
+      type: object
+      properties:
+        lifecycle:
+          type: string
+          enum:
+            - CREATED
+            - LOADED
+            - STARTED
+            - RELOADING
+            - STOPPED
+            - UNLOADED
+            - UNUSEABLE
+        configuration:
+          $ref: '#/components/schemas/ModuleConfiguration'
+    CloudNetVersion:
+      type: object
+      properties:
+        major:
+          type: integer
+          example: 4
+        minor:
+          type: integer
+          example: 0
+        patch:
+          type: integer
+          example: 1
+        revision:
+          type: string
+          example: 5dd7f63
+        versionType:
+          type: string
+          example: RELEASE
+        versionTitle:
+          type: string
+          example: Blizzard
+    Success:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: false
+          description: This boolean will always be false when an error occurred
+        reason:
+          type: string
+          example: Error message
+          description: The error that occurred during the processing of the request

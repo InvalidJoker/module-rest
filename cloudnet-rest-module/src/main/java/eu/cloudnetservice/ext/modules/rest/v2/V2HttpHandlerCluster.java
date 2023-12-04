@@ -16,8 +16,8 @@
 
 package eu.cloudnetservice.ext.modules.rest.v2;
 
-import eu.cloudnetservice.driver.cluster.NetworkClusterNode;
 import eu.cloudnetservice.driver.document.Document;
+import eu.cloudnetservice.ext.modules.rest.dto.NetworkClusterNodeDto;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
@@ -33,6 +33,7 @@ import eu.cloudnetservice.node.cluster.NodeServerProvider;
 import eu.cloudnetservice.node.config.Configuration;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
@@ -99,10 +100,14 @@ public final class V2HttpHandlerCluster {
 
   @RequestHandler(path = "/api/v3/cluster", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:cluster_write", "cloudnet_rest:cluster_node_create"})
-  public @NonNull IntoResponse<?> handleNodeCreateRequest(@Nullable @RequestTypedBody NetworkClusterNode node) {
-    if (node == null) {
+  public @NonNull IntoResponse<?> handleNodeCreateRequest(
+    @Nullable @RequestTypedBody @Valid NetworkClusterNodeDto nodeDto
+  ) {
+    if (nodeDto == null) {
       return MISSING_CLUSTER_NODE;
     }
+
+    var node = nodeDto.toEntity();
 
     if (this.nodeServerProvider.node(node.uniqueId()) != null) {
       return ProblemDetail.builder()
@@ -134,10 +139,14 @@ public final class V2HttpHandlerCluster {
 
   @RequestHandler(path = "/api/v3/cluster", method = HttpMethod.PUT)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:cluster_write", "cloudnet_rest:cluster_node_update"})
-  public @NonNull IntoResponse<?> handleNodeUpdateRequest(@Nullable @RequestTypedBody NetworkClusterNode node) {
-    if (node == null) {
+  public @NonNull IntoResponse<?> handleNodeUpdateRequest(
+    @Nullable @RequestTypedBody @Valid NetworkClusterNodeDto nodeDto
+  ) {
+    if (nodeDto == null) {
       return MISSING_CLUSTER_NODE;
     }
+
+    var node = nodeDto.toEntity();
 
     // check if we are trying to update the local node
     if (this.nodeServerProvider.localNode().info().uniqueId().equals(node.uniqueId())) {
