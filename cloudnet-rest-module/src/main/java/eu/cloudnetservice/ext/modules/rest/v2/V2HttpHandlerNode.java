@@ -136,10 +136,9 @@ public final class V2HttpHandlerNode {
         .detail("The request body does not contain a node configuration.");
     }
 
-    // TODO: test this
     var config = configurationDto.toEntity();
     config.save();
-    this.configuration.reloadFrom(config); // this.configuration.load(); previously*/
+    this.configuration.reloadFrom(config);
 
     return JsonResponse.builder().noContent();
   }
@@ -182,7 +181,6 @@ public final class V2HttpHandlerNode {
       LogManager.rootLogger().addHandler(handler);
     });
 
-    // TODO is the response correct here?
     return JsonResponse.builder().responseCode(HttpResponseCode.SWITCHING_PROTOCOLS);
   }
 

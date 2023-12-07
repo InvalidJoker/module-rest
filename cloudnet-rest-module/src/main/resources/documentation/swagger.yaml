@@ -1257,21 +1257,19 @@ paths:
           - `cloudnet_rest:service_list`
       responses:
         '200':
-          description: OK
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      services:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ServiceInfoSnapshot'
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceInfoSnapshot'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no service with the provided name / id.
+          $ref: '#/components/responses/Problem'
   /service/{identifier}:
     parameters:
       - name: identifier
@@ -1295,30 +1293,62 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      snapshot:
-                        $ref: '#/components/schemas/ServiceInfoSnapshot'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: '#/components/schemas/ServiceInfoSnapshot'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no service with the provided name / id.
+          $ref: '#/components/responses/Problem'
     delete:
       tags:
         - Services
       summary: Deletes a service
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_write`
+        
+          - `cloudnet_rest:service_delete`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        '204':
+          description: The service was deleted
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no service with the provided name / id.
+          $ref: '#/components/responses/Problem'
+  /service/{identifier}/deleteFiles:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the service
+        schema:
+          type: string
+    delete:
+      tags:
+        - Services
+      summary: Deletes all files of a service
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_write`
+        
+          - `cloudnet_rest:service_delete_files`
+        
+        WARNING: This will delete files of static services too.
+      responses:
+        '204':
+          description: The services files were deleted
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no service with the provided name / id.
+          $ref: '#/components/responses/Problem'
   /service/{identifier}/lifecycle:
     parameters:
       - name: identifier
@@ -1337,7 +1367,6 @@ paths:
             - start
             - stop
             - restart
-            - kill
     patch:
       tags:
         - Services
@@ -1348,14 +1377,15 @@ paths:
 
           - `cloudnet_rest:service_lifecycle`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        '204':
+          description: The service lifecycle was changed
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no service with the provided name / id.
+          $ref: '#/components/responses/Problem'
   /service/{identifier}/include:
     parameters:
       - name: identifier
@@ -1373,7 +1403,7 @@ paths:
           enum:
             - templates
             - inclusions
-    get:
+    post:
       tags:
         - Services
       summary: Includes a specific type of inclusion added to a service
@@ -1383,14 +1413,15 @@ paths:
 
           - `cloudnet_rest:service_include`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        '204':
+          description: All waiting components of the given type were included.
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no service with the provided name / id.
+          $ref: '#/components/responses/Problem'
   /service/{identifier}/deployResources:
     parameters:
       - name: identifier
@@ -1406,7 +1437,7 @@ paths:
         schema:
           type: boolean
           default: true
-    get:
+    post:
       tags:
         - Services
       summary: Deploys all waiting deployments of a service
@@ -1416,14 +1447,15 @@ paths:
 
           - `cloudnet_rest:service_deploy_resources`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        '204':
+          description: All deployments were executed
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no service with the provided name / id.
+          $ref: '#/components/responses/Problem'
   /service/{identifier}/logLines:
     parameters:
       - name: identifier
@@ -1447,22 +1479,19 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      lines:
-                        type: array
-                        items:
-                          type: string
-                        example:
-                          - Line1
-                          - Line2
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                type: array
+                items:
+                  type: string
+                example:
+                  - Line1
+                  - Line2
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no service with the provided name / id.
+          $ref: '#/components/responses/Problem'
   /service/{identifier}/liveLog:
     parameters:
       - name: identifier
@@ -1487,13 +1516,94 @@ paths:
 
           - `cloudnet_rest:service_live_log`
       responses:
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        '101':
+          description: Switching to websockets.
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
-  /service/create:
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no service with the provided name / id running on this node.
+          $ref: '#/components/responses/Problem'
+  /service/create/serviceConfig:
+    post:
+      parameters:
+        - name: start
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Whether the created service should be started
+      tags:
+        - Services
+      summary: Creates a new service based on a service configuration
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_write`
+
+          - `cloudnet_rest:service_create_service_config`
+      requestBody:
+        required: true
+        description: >
+          The service configuration to create the new service from
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceConfiguration'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceCreateResult'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /service/create/task:
+    post:
+      parameters:
+        - name: start
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Whether the created service should be started
+      tags:
+        - Services
+      summary: Creates a new service based on a service task
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_write`
+
+          - `cloudnet_rest:service_create_task`
+      requestBody:
+        required: true
+        description: >
+          The service task to create the new service from
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceTask'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceCreateResult'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /service/create/taskName:
     post:
       tags:
         - Services
@@ -1502,58 +1612,29 @@ paths:
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_write`
 
-          - `cloudnet_rest:service_create`
+          - `cloudnet_rest:service_create_task_name`
       requestBody:
         required: true
-        description: >
-          The request body can contain a service configuration, a service task
-          or a name of a
-
-          service task to base the new service on. The start boolean in the body
-          defines whether
-
-          the service should get started after the creation.
         content:
           application/json:
             schema:
-              oneOf:
-                - properties:
-                    start:
-                      type: boolean
-                      default: false
-                    serviceConfiguration:
-                      $ref: '#/components/schemas/ServiceConfiguration'
-                - properties:
-                    start:
-                      type: boolean
-                      default: false
-                    task:
-                      $ref: '#/components/schemas/ServiceTask'
-                - properties:
-                    start:
-                      type: boolean
-                      default: false
-                    serviceTaskName:
-                      type: string
-                      example: Lobby
+              taskName:
+                type: string
+                example: Lobby
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      result:
-                        $ref: '#/components/schemas/ServiceCreateResult'
+                $ref: '#/components/schemas/ServiceCreateResult'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
-  /service/{identifier}/add:
+          $ref: '#/components/responses/Problem'
+  /service/{identifier}/add/template:
     parameters:
       - name: identifier
         in: path
@@ -1561,62 +1642,127 @@ paths:
         description: The name or unique id of the service
         schema:
           type: string
-      - name: type
-        in: query
-        required: true
-        description: The type of
-        schema:
-          type: string
-          enum:
-            - template
-            - deployment
-            - inclusion
       - name: flush
         in: query
         required: false
         description: >
-          If the inclusions/deployments of the service should be
-          included/deployed after the add
+          Whether the template should be included to the service after adding it
         schema:
           type: boolean
           default: false
     post:
       requestBody:
         required: true
-        description: The inclusion/deployment to add
+        description: The template to add to the service
         content:
           application/json:
-            schema:
-              oneOf:
-                - properties:
-                    template:
-                      $ref: '#/components/schemas/ServiceTemplate'
-                - properties:
-                    removeDeployments:
-                      type: boolean
-                      default: true
-                    deployment:
-                      $ref: '#/components/schemas/ServiceDeployment'
-                - properties:
-                    inclusion:
-                      $ref: '#/components/schemas/ServiceRemoteInclusion'
+            $ref: '#/components/schemas/ServiceTemplate'
       tags:
         - Services
-      summary: Adds an inclusion/deployment to a service
+      summary: Adds a template to a service
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:service_write`
 
-          - `cloudnet_rest:service_add_file`
+          - `cloudnet_rest:service_add_template`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
+        '204':
+          description: The template was added to the service
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no service with the provided name / id.
+          $ref: '#/components/responses/Problem'
+  /service/{identifier}/add/deployment:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the service
+        schema:
+          type: string
+      - name: flush
+        in: query
+        required: false
+        description: >
+          Whether the deployment should be included to the service after adding it
+        schema:
+          type: boolean
+          default: false
+    post:
+      requestBody:
+        required: true
+        description: The deployment to add to the service
+        content:
+          application/json:
+            $ref: '#/components/schemas/ServiceDeployment'
+      tags:
+        - Services
+      summary: Adds a deployment to a service
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_write`
+
+          - `cloudnet_rest:service_add_deployment`
+      responses:
+        '204':
+          description: The deployment was added to the service
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no service with the provided name / id.
+          $ref: '#/components/responses/Problem'
+  /service/{identifier}/add/inclusion:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the service
+        schema:
+          type: string
+      - name: flush
+        in: query
+        required: false
+        description: >
+          Whether the inclusion should be included to the service after adding it
+        schema:
+          type: boolean
+          default: false
+    post:
+      requestBody:
+        required: true
+        description: The inclusion to add to the service
+        content:
+          application/json:
+            $ref: '#/components/schemas/ServiceRemoteInclusion'
+      tags:
+        - Services
+      summary: Adds an inclusion to a service
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_write`
+
+          - `cloudnet_rest:service_add_inclusion`
+      responses:
+        '204':
+          description: The inclusion was added to the service
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no service with the provided name / id.
+          $ref: '#/components/responses/Problem'
   /service/{identifier}/command:
     parameters:
       - name: identifier
@@ -1646,14 +1792,15 @@ paths:
 
           - `cloudnet_rest:service_send_commands`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        '204':
+          description: The command was executed on the service
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no service with the provided name / id.
+          $ref: '#/components/responses/Problem'
   /templateStorage:
     get:
       tags:

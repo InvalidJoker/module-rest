@@ -83,13 +83,13 @@ public final class V2HttpHandlerService {
   @RequestHandler(path = "/api/v3/service")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_read", "cloudnet_rest:service_list"})
   public @NonNull IntoResponse<?> handleServiceListRequest() {
-    return JsonResponse.builder().body(Map.of("services", this.serviceManager.services()));
+    return JsonResponse.builder().body(this.serviceManager.services());
   }
 
   @RequestHandler(path = "/api/v3/service/{id}")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_read", "cloudnet_rest:service_get"})
   public @NonNull IntoResponse<?> handleServiceGetRequest(@NonNull @RequestPathParam("id") String id) {
-    return this.handleServiceContext(id, service -> JsonResponse.builder().body(Map.of("snapshot", service)));
+    return this.handleServiceContext(id, service -> JsonResponse.builder().body(service));
   }
 
   @RequestHandler(path = "/api/v3/service/{id}", method = HttpMethod.DELETE)
@@ -98,7 +98,6 @@ public final class V2HttpHandlerService {
     return this.handleEmptyServiceProviderContext(id, SpecificCloudServiceProvider::delete);
   }
 
-  // TODO docs: this route is new
   @RequestHandler(path = "/api/v3/service/{id}/deleteFiles", method = HttpMethod.DELETE)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_delete_files"})
   public @NonNull IntoResponse<?> handleServiceDeleteFilesRequest(@NonNull @RequestPathParam("id") String id) {
@@ -153,7 +152,6 @@ public final class V2HttpHandlerService {
     });
   }
 
-  // TODO docs: request method changed
   @RequestHandler(path = "/api/v3/service/{id}/include", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_include"})
   public @NonNull IntoResponse<?> handleServiceIncludeRequest(
@@ -180,7 +178,6 @@ public final class V2HttpHandlerService {
     });
   }
 
-  // TODO docs: request method changed
   @RequestHandler(path = "/api/v3/service/{id}/deployResources", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_write", "cloudnet_rest:service_deploy_resources"})
   public @NonNull IntoResponse<?> handleServiceDeployRequest(
@@ -195,7 +192,7 @@ public final class V2HttpHandlerService {
   public @NonNull IntoResponse<?> handleServiceLogRequest(@NonNull @RequestPathParam("id") String id) {
     return this.handleServiceProviderContext(
       id,
-      service -> JsonResponse.builder().body(Map.of("lines", service.cachedLogMessages())));
+      service -> JsonResponse.builder().body(service.cachedLogMessages()));
   }
 
   @RequestHandler(path = "/api/v3/service/{id}/liveLog")
@@ -230,7 +227,6 @@ public final class V2HttpHandlerService {
           handler));
       });
 
-      // todo is this response correct?
       return JsonResponse.builder().responseCode(HttpResponseCode.SWITCHING_PROTOCOLS);
     });
   }
@@ -395,7 +391,7 @@ public final class V2HttpHandlerService {
       createResult.serviceInfo().provider().start();
     }
 
-    return JsonResponse.builder().responseCode(HttpResponseCode.CREATED).body(Map.of("result", createResult));
+    return JsonResponse.builder().responseCode(HttpResponseCode.CREATED).body(createResult);
   }
 
   private @NonNull IntoResponse<?> handleServiceProviderContext(
