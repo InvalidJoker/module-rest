@@ -120,7 +120,6 @@ public final class V2HttpHandlerDatabase {
     return JsonResponse.builder().body(DocumentFactory.json().newDocument("result", database.get(key)));
   }
 
-  // TODO docs: method changed
   @RequestHandler(path = "/api/v3/database/{name}/find")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_find"})
   public @NonNull IntoResponse<?> handleFindRequest(
@@ -128,7 +127,7 @@ public final class V2HttpHandlerDatabase {
     @NonNull @RequestTypedBody Map<String, String> filter
   ) {
     var database = this.databaseProvider.database(name);
-    return JsonResponse.builder().body(Map.of("result", database.find(filter)));
+    return JsonResponse.builder().body(database.find(filter));
   }
 
   @RequestHandler(path = "/api/v3/database/{name}", method = HttpMethod.DELETE)
@@ -143,7 +142,7 @@ public final class V2HttpHandlerDatabase {
     }
 
     return ProblemDetail.builder()
-      .status(HttpResponseCode.OK) // TODO: is OK really okay here? BAD_REQUEST does not fit too?
+      .status(HttpResponseCode.OK)
       .type("database-delete-failed")
       .title("Database Delete Failed")
       .detail("The database had nothing to delete. The key was not associated with any data.");

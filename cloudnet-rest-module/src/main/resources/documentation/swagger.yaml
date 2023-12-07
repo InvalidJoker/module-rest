@@ -807,19 +807,14 @@ paths:
                 properties:
                   result:
                     type: object
-                    items:
-                      type: object
-                      examples:
-                        - Name: Peter
-                        - LastName: Parker
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                    examples:
+                      - Name: Peter
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
   /database/{name}/find:
-    post:
+    get:
       requestBody:
         required: true
         description: Defines the search filter to get the documents
@@ -854,23 +849,18 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      result:
-                        type: array
-                        items:
-                          type: string
-                          example:
-                            - Name: Peter
-                            - Lastname: Parker
+                type: array
+                items:
+                  type: object
+                  examples:
+                    - Name: Peter
+                    - LastName: Parker
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
   /group:
     post:
       requestBody:
