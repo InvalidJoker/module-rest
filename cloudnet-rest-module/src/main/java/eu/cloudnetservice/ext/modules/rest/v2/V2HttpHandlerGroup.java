@@ -31,7 +31,6 @@ import eu.cloudnetservice.ext.rest.validation.EnableValidation;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.validation.Valid;
-import java.util.Map;
 import lombok.NonNull;
 
 @Singleton
@@ -47,13 +46,7 @@ public final class V2HttpHandlerGroup {
   @RequestHandler(path = "/api/v3/group")
   @Authentication(providers = "jwt", scopes = {"cloudnet_cloudnet_rest:group_read", "cloudnet_rest:group_list"})
   public @NonNull IntoResponse<?> handleGroupListRequest() {
-    return JsonResponse.builder().body(Map.of("groups", this.groupProvider.groupConfigurations()));
-  }
-
-  @RequestHandler(path = "/api/v3/group/{name}/exists")
-  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:group_read", "cloudnet_rest:group_exists"})
-  public @NonNull IntoResponse<?> handleGroupExistsRequest(@NonNull @RequestPathParam("name") String name) {
-    return JsonResponse.builder().body(Map.of("result", this.groupProvider.groupConfiguration(name) != null));
+    return JsonResponse.builder().body(this.groupProvider.groupConfigurations());
   }
 
   @RequestHandler(path = "/api/v3/group/{name}")
@@ -68,7 +61,7 @@ public final class V2HttpHandlerGroup {
         .detail(String.format("The group configuration %s was not found.", name));
     }
 
-    return JsonResponse.builder().body(Map.of("group", group));
+    return JsonResponse.builder().body(group);
   }
 
   @EnableValidation

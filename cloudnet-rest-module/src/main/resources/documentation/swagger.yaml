@@ -576,9 +576,9 @@ paths:
                 type: array
                 items:
                   type: string
-                  examples:
-                    - 'Database A'
-                    - 'Database B'
+                example:
+                  - 'Database A'
+                  - 'Database B'
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -698,9 +698,9 @@ paths:
                 type: array
                 items:
                   type: string
-                  examples:
-                    - Key1
-                    - Key2
+                example:
+                  - Key1
+                  - Key2
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -882,7 +882,7 @@ paths:
           - `cloudnet_rest:group_create`
       responses:
         '201':
-          $ref: '#/components/responses/Success'
+          description: The group was created.
         '400':
           $ref: '#/components/responses/Problem'
         '401':
@@ -956,16 +956,14 @@ paths:
 
           - `cloudnet_rest:group_delete`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/Problem'
+        '204':
+          description: The group was deleted.
         '401':
           $ref: '#/components/responses/Problem'
         '403':
           $ref: '#/components/responses/Problem'
         '404':
-          description: There is no task with the provided name.
+          description: There is no group with the provided name.
           $ref: '#/components/responses/Problem'
   /player:
     post:
@@ -2496,7 +2494,7 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
   /module/reload:
-    get:
+    post:
       tags:
         - Modules
       summary: Unloads and loads all loaded modules
@@ -2506,12 +2504,81 @@ paths:
 
           - `cloudnet_rest:module_reload_all`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
+        '204':
+          description: All modules were reloaded.
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+  /module/loaded:
+    get:
+      tags:
+        - Modules
+      summary: Gets all loaded modules
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:module_read`
+
+          - `cloudnet_rest:module_list_loaded`
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ModuleInfo'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /module/present:
+    get:
+      tags:
+        - Modules
+      summary: Gets all present module jar names
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:module_read`
+        
+          - `cloudnet_rest:module_list_present`
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                example:
+                  - CloudNet-Bridge.jar
+                  - CloudNet-Signs.jar
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /module/available:
+    get:
+      tags:
+        - Modules
+      summary: Gets all available modules the node knows about
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:module_read`
+
+          - `cloudnet_rest:module_list_available`
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ModuleEntry'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
   /module/{name}:
     get:
       parameters:
@@ -2534,42 +2601,52 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - $ref: '#/components/schemas/ModuleInfo'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: '#/components/schemas/ModuleInfo'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
-  /module/{name}/reload:
-    get:
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /module/{name}/lifecycle:
+    patch:
       parameters:
         - name: name
           in: path
           required: true
           schema:
             type: string
+        - name: target
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - start
+              - reload
+              - stop
+              - unload
       tags:
         - Modules
-      summary: Unloads and loads a specific module
+      summary: Changes the lifecycle of a module
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:module_write`
 
-          - `cloudnet_rest:module_reload`
+          - `cloudnet_rest:module_lifecycle`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
+        '204':
+          description: Tried to change the lifecycle of the module.
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
-  /module/{name}/unload:
-    get:
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /module/{name}/uninstall:
+    post:
       parameters:
         - name: name
           in: path
@@ -2578,80 +2655,23 @@ paths:
             type: string
       tags:
         - Modules
-      summary: Unloads a specific module
+      summary: Unloads and fully uninstalls a module
       description: |
         One of the following scopes is needed to execute the request:
           - `cloudnet_rest:module_write`
 
-          - `cloudnet_rest:module_unreload`
+          - `cloudnet_rest:module_uninstall`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        '204':
+          description: The module was deleted successfully
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
-  /module/{name}/config:
-    get:
-      parameters:
-        - name: name
-          in: path
-          required: true
-          schema:
-            type: string
-      tags:
-        - Modules
-      summary: Get the configuration file of a module
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      config:
-                        type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-    put:
-      requestBody:
-        required: true
-        description: The updated configuration file of the module
-        content:
-          application/json:
-            schema:
-              type: object
-      parameters:
-        - name: name
-          in: path
-          required: true
-          schema:
-            type: string
-      tags:
-        - Modules
-      summary: Updates the configuration file of a module
-      description: |
-        One of the following scopes is needed to execute the request:
-          - `cloudnet_rest:module_write`
-
-          - `cloudnet_rest:module_config_update`
-      responses:
-        '200':
-          $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Forbidden'
-        '403':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '500':
+          $ref: '#/components/responses/Problem'
   /module/{name}/load:
     post:
       requestBody:
@@ -2675,21 +2695,130 @@ paths:
           - `cloudnet_rest:module_write`
 
           - `cloudnet_rest:module_load`
+        
+        If the module already is available and just needs to be loaded do not provide the jar in the request body.
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModuleInfo'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+        '500':
+          $ref: '#/components/responses/Problem'
+  /module/{name}/install:
+    post:
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: checksumValidation
+          in: query
+          required: false
+          description: Whether the checksum validation for official modules should be skipped
+          schema:
+            default: true
+            type: boolean
+        - name: start
+          in: query
+          required: false
+          description: Whether the module should be started after installing and loading it
+          schema:
+            default: true
+            type: boolean
+      tags:
+        - Modules
+      summary: Installs a module to the node that is published in the official module repository
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:module_write`
+
+          - `cloudnet_rest:module_install`
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModuleInfo'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /module/{name}/config:
+    get:
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - Modules
+      summary: Get the configuration file of a module
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - $ref: '#/components/schemas/ModuleInfo'
+                properties:
+                  config:
+                    type: object
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+    put:
+      requestBody:
+        required: true
+        description: The updated configuration file of the module
+        content:
+          application/json:
+            schema:
+              type: object
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - Modules
+      summary: Updates the configuration file of a module
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:module_write`
+
+          - `cloudnet_rest:module_config_update`
+      responses:
+        '204':
+          description: The module configuration was replaced
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
 components:
   securitySchemes:
     bearerAuth:
@@ -3631,6 +3760,48 @@ components:
             - UNUSEABLE
         configuration:
           $ref: '#/components/schemas/ModuleConfiguration'
+    ModuleEntry:
+      type: object
+      properties:
+        official:
+          type: boolean
+          example: true
+        name:
+          type: string
+          example: CloudNet-Bridge
+        website:
+          type: string
+          example: cloudnetservice.eu
+        version:
+          type: string
+          example: 4.0.0-RELEASE
+        sha3256:
+          type: string
+          example: 786cd19b0b74dbaccf10736822db1ae330e1d8643caa490d1a3c2af3e143c113
+        description:
+          type: string
+          example: A CloudNet module
+        url:
+          type: string
+          example: https://github.com/%updateRepo%/raw/%updateBranch%/modules/cloudnet-s3.jar
+        maintainers:
+          type: array
+          items:
+            type: string
+          example:
+            - Playo
+            - Klaro
+        releaseNotes:
+          type: array
+          items:
+            type: string
+        dependingModules:
+          type: array
+          items:
+            type: string
+          example:
+            - CloudNet-Bridge
+            - CloudNet-Signs
     CloudNetVersion:
       type: object
       properties:
