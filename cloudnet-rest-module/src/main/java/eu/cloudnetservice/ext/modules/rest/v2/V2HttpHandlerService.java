@@ -231,7 +231,6 @@ public final class V2HttpHandlerService {
     });
   }
 
-  // TODO docs: split
   @EnableValidation
   @RequestHandler(path = "/api/v3/service/create/serviceConfig", method = HttpMethod.POST)
   @Authentication(
