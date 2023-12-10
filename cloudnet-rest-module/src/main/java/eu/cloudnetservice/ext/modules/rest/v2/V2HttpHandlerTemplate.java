@@ -107,7 +107,7 @@ public final class V2HttpHandlerTemplate {
           .detail(String.format("The requested template %s does not contain the requested file %s", template, path));
       }
 
-      return JsonResponse.builder().body(Map.of("info", fileInfo));
+      return JsonResponse.builder().body(fileInfo);
     });
   }
 
@@ -140,10 +140,9 @@ public final class V2HttpHandlerTemplate {
       prefix,
       name,
       (template, storage) -> JsonResponse.builder()
-        .body(Map.of("files", storage.listFiles(template, directory, Boolean.parseBoolean(deep)))));
+        .body(storage.listFiles(template, directory, Boolean.parseBoolean(deep))));
   }
 
-  // TODO docs: request method changed
   @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/create", method = HttpMethod.POST)
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:template_write", "cloudnet_rest:template_create"})
   public @NonNull IntoResponse<?> handleTemplateCreateRequest(
@@ -167,7 +166,6 @@ public final class V2HttpHandlerTemplate {
     });
   }
 
-  // TODO docs: new route
   @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/exists")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:template_read", "cloudnet_rest:template_exists"})
   public @NonNull IntoResponse<?> handleTemplateExistsRequest(
@@ -272,6 +270,22 @@ public final class V2HttpHandlerTemplate {
     @NonNull @RequestBody InputStream body
   ) {
     return this.handleFileRequest(storageName, prefix, name, path, body, true);
+  }
+
+  @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/deploy", method = HttpMethod.POST)
+  @Authentication(
+    providers = "jwt",
+    scopes = {"cloudnet_rest:template_write", "cloudnet_rest:template_deploy"})
+  public @NonNull IntoResponse<?> handleTemplateDeployRequest(
+    @NonNull @RequestPathParam("storage") String storageName,
+    @NonNull @RequestPathParam("prefix") String prefix,
+    @NonNull @RequestPathParam("name") String name,
+    @NonNull @RequestBody InputStream body
+  ) {
+    return this.handleTemplateContext(storageName, prefix, name, (template, storage) -> {
+      storage.deploy(template, body);
+      return JsonResponse.builder().noContent();
+    });
   }
 
   private @NonNull IntoResponse<?> handleFileRequest(

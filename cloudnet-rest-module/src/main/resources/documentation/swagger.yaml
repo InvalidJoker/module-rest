@@ -1907,19 +1907,14 @@ paths:
             application/octet-stream:
               schema:
                 type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
         '404':
           description: |
             The path requested doesn't exist in the template or is a directory
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Problem'
   /template/{storage}/{prefix}/{name}/file/info:
     get:
       parameters:
@@ -1957,23 +1952,14 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      info:
-                        $ref: '#/components/schemas/FileInfo'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: '#/components/schemas/FileInfo'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
         '404':
           description: The path requested doesn't exist in the template
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          $ref: '#/components/responses/Problem'
   /template/{storage}/{prefix}/{name}/file/exists:
     get:
       parameters:
@@ -2011,18 +1997,16 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      exists:
-                        type: boolean
-                        example: true
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                exists:
+                  type: boolean
+                  example: true
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: The template does not exist
+          $ref: '#/components/responses/Problem'
   /template/{storage}/{prefix}/{name}/download:
     get:
       parameters:
@@ -2064,18 +2048,55 @@ paths:
             application/zip:
               schema:
                 type: object
-        '400':
-          $ref: '#/components/responses/BadRequest'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
         '404':
-          description: Not found
+          description: The template does not exist
+          $ref: '#/components/responses/Problem'
+  /template/{storage}/{prefix}/{name}/exists:
+    get:
+      parameters:
+        - name: storage
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: prefix
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      tags:
+        - Templates
+      summary: Checks whether a template exists in the specified storage
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:template_read`
+
+          - `cloudnet_rest:template_exists`
+      responses:
+        '200':
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                exists:
+                  type: boolean
+                  example: true
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: The template does not exist
+          $ref: '#/components/responses/Problem'
   /template/{storage}/{prefix}/{name}/directory/list:
     get:
       parameters:
@@ -2120,21 +2141,18 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      files:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/FileInfo'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                type: array
+                items:
+                  $ref: '#/components/schemas/FileInfo'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: The template does not exist
+          $ref: '#/components/responses/Problem'
   /template/{storage}/{prefix}/{name}/create:
-    put:
+    post:
       parameters:
         - name: storage
           in: path
@@ -2160,74 +2178,17 @@ paths:
 
           - `cloudnet_rest:template_create`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
+        '204':
+          description: The template was created
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
-  /template/{storage}/{prefix}/{name}/install:
-    post:
-      requestBody:
-        required: true
-        description: Information about the type and version to install
-        content:
-          application/json:
-            schema:
-              oneOf:
-                - properties:
-                    force:
-                      type: boolean
-                      default: false
-                    type:
-                      $ref: '#/components/schemas/ServiceVersionType'
-                    version:
-                      $ref: '#/components/schemas/ServiceVersion'
-                - properties:
-                    force:
-                      type: boolean
-                      default: false
-                    typeName:
-                      type: string
-                      example: paperspigot
-                    versionName:
-                      type: string
-                      example: latest
-      parameters:
-        - name: storage
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: prefix
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: name
-          in: path
-          required: true
-          schema:
-            type: string
-      tags:
-        - Templates
-      summary: Installs a service version in a template
-      description: |
-        One of the following scopes is needed to execute the request:
-          - `cloudnet_rest:template_write`
-
-          - `cloudnet_rest:template_install`
-      responses:
-        '200':
-          $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: The template does not exist
+          $ref: '#/components/responses/Problem'
   /template/{storage}/{prefix}/{name}/deploy:
     post:
       requestBody:
@@ -2262,14 +2223,15 @@ paths:
 
           - `cloudnet_rest:template_deploy`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+        '204':
+          description: The zip archive was deployed.
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: The template does not exist
+          $ref: '#/components/responses/Problem'
   /template/{storage}/{prefix}/{name}/file/create:
     post:
       requestBody:
@@ -2309,20 +2271,17 @@ paths:
 
           - `cloudnet_rest:template_file_create`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
+        '204':
+          description: The file was deployed into the template.
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
         '404':
-          description: File not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          description: The template does not exist
+          $ref: '#/components/responses/Problem'
   /template/{storage}/{prefix}/{name}/file/append:
     post:
       requestBody:
@@ -2362,20 +2321,17 @@ paths:
 
           - `cloudnet_rest:template_file_append`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
+        '204':
+          description: The content was appended to the file in the template.
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
         '404':
-          description: File not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+          description: The template does not exist
+          $ref: '#/components/responses/Problem'
   /template/{storage}/{prefix}/{name}/directory/create:
     post:
       parameters:
@@ -2408,14 +2364,17 @@ paths:
 
           - `cloudnet_rest:template_directory_create`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
+        '204':
+          description: The directory was created in the respective template.
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: The template does not exist
+          $ref: '#/components/responses/Problem'
   /template/{storage}/{prefix}/{name}:
     delete:
       parameters:
@@ -2443,14 +2402,17 @@ paths:
 
           - `cloudnet_rest:template_delete`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
+        '204':
+          description: The template was deleted.
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: The template does not exist
+          $ref: '#/components/responses/Problem'
   /template/{storage}/{prefix}/{name}/file:
     delete:
       parameters:
@@ -2483,15 +2445,18 @@ paths:
 
           - `cloudnet_rest:template_delete_file`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
+        '204':
+          description: The file was deleted from the template.
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
-  /serviceversion:
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: The template does not exist
+          $ref: '#/components/responses/Problem'
+  /serviceVersion:
     get:
       tags:
         - Service Versions
@@ -2538,7 +2503,7 @@ paths:
           $ref: '#/components/responses/Problem'
         '403':
           $ref: '#/components/responses/Problem'
-  /serviceversion/environment:
+  /serviceVersion/environment:
     get:
       tags:
         - Service Versions
@@ -2585,7 +2550,7 @@ paths:
           $ref: '#/components/responses/Problem'
         '403':
           $ref: '#/components/responses/Problem'
-  /serviceversion/{version}:
+  /serviceVersion/{version}:
     parameters:
       - name: version
         in: path
@@ -2614,8 +2579,8 @@ paths:
           $ref: '#/components/responses/Problem'
         '403':
           $ref: '#/components/responses/Problem'
-  /serviceversion/load:
-    get:
+  /serviceVersion/load:
+    post:
       parameters:
         - name: url
           in: query
@@ -2644,7 +2609,7 @@ paths:
           $ref: '#/components/responses/Problem'
         '403':
           $ref: '#/components/responses/Problem'
-  /serviceversion/install:
+  /serviceVersion/install:
     post:
       parameters:
         - name: force
@@ -2714,17 +2679,13 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      modules:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ModuleInfo'
+                type: array
+                items:
+                  $ref: '#/components/schemas/ModuleInfo'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
   /module/reload:
     post:
       tags:
