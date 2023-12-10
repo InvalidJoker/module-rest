@@ -31,7 +31,6 @@ import eu.cloudnetservice.ext.rest.validation.EnableValidation;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.validation.Valid;
-import java.util.Map;
 import lombok.NonNull;
 
 @Singleton
@@ -48,12 +47,6 @@ public final class V2HttpHandlerTask {
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:task_read", "cloudnet_rest:task_list"})
   public @NonNull IntoResponse<?> handleTaskListRequest() {
     return JsonResponse.builder().body(this.taskProvider.serviceTasks());
-  }
-
-  @RequestHandler(path = "/api/v3/task/{name}/exists")
-  @Authentication(providers = "jwt", scopes = {"cloudnet_rest:task_read", "cloudnet_rest:task_exists"})
-  public @NonNull IntoResponse<?> handleTaskExistsRequest(@NonNull @RequestPathParam("name") String name) {
-    return JsonResponse.builder().body(Map.of("result", this.taskProvider.serviceTask(name) != null));
   }
 
   @RequestHandler(path = "/api/v3/task/{name}")
@@ -80,7 +73,7 @@ public final class V2HttpHandlerTask {
     }
 
     this.taskProvider.addServiceTask(serviceTask.toEntity());
-    return HttpResponseCode.NO_CONTENT;
+    return JsonResponse.builder().noContent();
   }
 
   @RequestHandler(path = "/api/v3/task/{name}", method = HttpMethod.POST)
@@ -92,7 +85,7 @@ public final class V2HttpHandlerTask {
     }
 
     this.taskProvider.removeServiceTask(task);
-    return HttpResponseCode.NO_CONTENT;
+    return JsonResponse.builder().noContent();
   }
 
   private @NonNull ProblemDetail taskNotFound(@NonNull String name) {

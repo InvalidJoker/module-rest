@@ -2509,21 +2509,88 @@ paths:
           - `cloudnet_rest:service_version_list`
       responses:
         '200':
-          description: OK
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      versions:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ServiceVersionType'
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceVersionType'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+    post:
+      requestBody:
+        required: true
+        description: The service type to add to the service type provider
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceVersionType'
+      tags:
+        - Service Versions
+      summary: Adds a service version type to the service type provider
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_version_write`
+
+          - `cloudnet_rest:service_version_register`
+      responses:
+        '204':
+          description: The service type was registered.
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /serviceversion/environment:
+    get:
+      tags:
+        - Service Versions
+      summary: Lists all available service environments
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_version_read`
+
+          - `cloudnet_rest:service_version_list_environments`
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/ServiceEnvironmentType'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+    post:
+      tags:
+        - Service Versions
+      summary: Adds a new service environment type to the service type provider
+      description: |
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:service_version_write`
+
+          - `cloudnet_rest:service_version_environment`
+      requestBody:
+        required: true
+        description: The service environment type to add to the service type provider
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceEnvironmentType'
+      responses:
+        '204':
+          description: The service environment type was registered.
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
   /serviceversion/{version}:
     parameters:
       - name: version
@@ -2546,17 +2613,13 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      version:
-                        $ref: '#/components/schemas/ServiceVersionType'
+                $ref: '#/components/schemas/ServiceVersionType'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
   /serviceversion/load:
     get:
       parameters:
@@ -2579,40 +2642,68 @@ paths:
 
           - `cloudnet_rest:service_version_load`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
+        '204':
+          description: Loaded the service versions successfully
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
-  /serviceversion/add:
+          $ref: '#/components/responses/Problem'
+  /serviceversion/install:
     post:
+      parameters:
+        - name: force
+          description: Whether the install should be forced
+          in: query
+          schema:
+            type: boolean
+        - name: cache
+          description: Whether the download files should be cached
+          in: query
+          schema:
+            type: boolean
+      tags:
+        - Service Versions
+      summary: Installs a service version to a static service or a service template
       requestBody:
-        required: true
-        description: The service type to add to the service type provider
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ServiceVersionType'
-      tags:
-        - Service Versions
-      summary: Adds a service version type to the service type provider
-      description: |
-        One of the following scopes is needed to execute the request:
-          - `cloudnet_rest:service_version_write`
-
-          - `cloudnet_rest:service_version_add`
+              allOf:
+                - oneOf:
+                    - properties:
+                        staticService:
+                          type: string
+                          example: Lobby-1
+                    - properties:
+                        template:
+                          $ref: '#/components/schemas/ServiceTemplate'
+                - oneOf:
+                    - properties:
+                        serviceVersionType:
+                          type: string
+                          example: paper
+                    - properties:
+                        serviceVersionType:
+                          $ref: '#/components/schemas/ServiceVersionType'
+                - oneOf:
+                    - properties:
+                        serviceVersion:
+                          type: string
+                          example:
+                    - properties:
+                        serviceVersion:
+                          $ref: '#/components/schemas/ServiceVersion'
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
+        '204':
+          description: Installed the service version to the static service / template.
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
   /module:
     get:
       tags:

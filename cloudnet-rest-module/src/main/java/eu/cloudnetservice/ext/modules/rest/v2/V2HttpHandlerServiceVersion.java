@@ -42,11 +42,9 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.validation.Valid;
 import java.io.IOException;
-import java.util.Map;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
-// TODO docs: everything changed
 @Singleton
 public final class V2HttpHandlerServiceVersion {
 
@@ -67,7 +65,7 @@ public final class V2HttpHandlerServiceVersion {
     providers = "jwt",
     scopes = {"cloudnet_rest:service_version_read", "cloudnet_rest:service_version_list"})
   public @NonNull IntoResponse<?> handleServiceVersionListRequest() {
-    return JsonResponse.builder().body(Map.of("versions", this.versionProvider.serviceVersionTypes()));
+    return JsonResponse.builder().body(this.versionProvider.serviceVersionTypes());
   }
 
   @RequestHandler(path = "/api/v3/serviceversion", method = HttpMethod.POST)
@@ -104,7 +102,7 @@ public final class V2HttpHandlerServiceVersion {
     providers = "jwt",
     scopes = {"cloudnet_rest:service_version_read", "cloudnet_rest:service_version_list_environments"})
   public @NonNull IntoResponse<?> handleServiceEnvironmentListRequest() {
-    return JsonResponse.builder().body(Map.of("environments", this.versionProvider.knownEnvironments()));
+    return JsonResponse.builder().body(this.versionProvider.knownEnvironments());
   }
 
   @RequestHandler(path = "/api/v3/serviceversion/environment", method = HttpMethod.POST)
@@ -140,7 +138,7 @@ public final class V2HttpHandlerServiceVersion {
         .detail(String.format("The requested service version %s was not found.", version));
     }
 
-    return JsonResponse.builder().body(Map.of("version", versionType));
+    return JsonResponse.builder().body(versionType);
   }
 
   @RequestHandler(path = "/api/v3/serviceversion/load", method = HttpMethod.POST)
@@ -173,7 +171,6 @@ public final class V2HttpHandlerServiceVersion {
     return JsonResponse.builder().noContent();
   }
 
-  // TODO docs: new route
   @RequestHandler(path = "/api/v3/serviceversion/install", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
