@@ -1817,20 +1817,18 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      storages:
-                        type: array
-                        items:
-                          type: string
-                        example:
-                          - local
-                          - ftp
+                properties:
+                  storages:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - local
+                      - ftp
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
   /templateStorage/{storage}/templates:
     get:
       parameters:
@@ -1854,19 +1852,15 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      templates:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ServiceTemplate'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                properties:
+                  templates:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ServiceTemplate'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
   /template/{storage}/{prefix}/{name}/file/download:
     get:
       parameters:

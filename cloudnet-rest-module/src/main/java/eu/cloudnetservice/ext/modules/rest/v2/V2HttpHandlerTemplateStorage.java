@@ -26,7 +26,6 @@ import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import java.util.Map;
 import lombok.NonNull;
 
 @Singleton
@@ -44,7 +43,7 @@ public final class V2HttpHandlerTemplateStorage {
     providers = "jwt",
     scopes = {"cloudnet_rest:template_storage_read", "cloudnet_rest:template_storage_list"})
   public @NonNull IntoResponse<?> handleTemplateStorageListRequest() {
-    return JsonResponse.builder().body(Map.of("storages", this.storageProvider.availableTemplateStorages()));
+    return JsonResponse.builder().body(this.storageProvider.availableTemplateStorages());
   }
 
   @RequestHandler(path = "/api/v3/templateStorage/{storage}/templates")
@@ -63,6 +62,6 @@ public final class V2HttpHandlerTemplateStorage {
         .detail(String.format("The requested template storage %s was not found.", storage));
     }
 
-    return JsonResponse.builder().body(Map.of("templates", templateStorage.templates()));
+    return JsonResponse.builder().body(templateStorage.templates());
   }
 }
