@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.v2;
+package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.driver.database.DatabaseProvider;
 import eu.cloudnetservice.driver.document.Document;
@@ -35,12 +35,12 @@ import java.util.Map;
 import lombok.NonNull;
 
 @Singleton
-public final class V2HttpHandlerDatabase {
+public final class V3HttpHandlerDatabase {
 
   private final DatabaseProvider databaseProvider;
 
   @Inject
-  public V2HttpHandlerDatabase(@NonNull DatabaseProvider databaseProvider) {
+  public V3HttpHandlerDatabase(@NonNull DatabaseProvider databaseProvider) {
     this.databaseProvider = databaseProvider;
   }
 

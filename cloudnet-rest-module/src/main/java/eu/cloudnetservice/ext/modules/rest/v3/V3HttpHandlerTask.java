@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.v2;
+package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.driver.provider.ServiceTaskProvider;
 import eu.cloudnetservice.ext.modules.rest.dto.service.ServiceTaskDto;
@@ -34,12 +34,12 @@ import jakarta.validation.Valid;
 import lombok.NonNull;
 
 @Singleton
-public final class V2HttpHandlerTask {
+public final class V3HttpHandlerTask {
 
   private final ServiceTaskProvider taskProvider;
 
   @Inject
-  public V2HttpHandlerTask(@NonNull ServiceTaskProvider taskProvider) {
+  public V3HttpHandlerTask(@NonNull ServiceTaskProvider taskProvider) {
     this.taskProvider = taskProvider;
   }
 

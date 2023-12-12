@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.v2;
+package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.common.log.AbstractHandler;
 import eu.cloudnetservice.common.log.LogManager;
@@ -62,7 +62,7 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 @Singleton
-public final class V2HttpHandlerNode {
+public final class V3HttpHandlerNode {
 
   private final Configuration configuration;
   private final NetworkClient networkClient;
@@ -75,7 +75,7 @@ public final class V2HttpHandlerNode {
   private final GroupConfigurationProvider groupConfigurationProvider;
 
   @Inject
-  public V2HttpHandlerNode(
+  public V3HttpHandlerNode(
     @NonNull Configuration configuration,
     @NonNull NetworkClient networkClient,
     @NonNull ModuleProvider moduleProvider,
@@ -211,7 +211,7 @@ public final class V2HttpHandlerNode {
         if (this.user.hasScope("cloudnet_rest:node_send_commands")) {
           var commandLine = new String(bytes, StandardCharsets.UTF_8);
           var commandSource = new DriverCommandSource();
-          V2HttpHandlerNode.this.commandProvider.execute(commandSource, commandLine).getOrNull();
+          V3HttpHandlerNode.this.commandProvider.execute(commandSource, commandLine).getOrNull();
 
           for (var message : commandSource.messages()) {
             this.channel.sendWebSocketFrame(WebSocketFrameType.TEXT, message);

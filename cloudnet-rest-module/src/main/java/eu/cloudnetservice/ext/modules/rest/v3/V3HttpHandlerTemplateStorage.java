@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.v2;
+package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.driver.template.TemplateStorageProvider;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
@@ -29,12 +29,12 @@ import jakarta.inject.Singleton;
 import lombok.NonNull;
 
 @Singleton
-public final class V2HttpHandlerTemplateStorage {
+public final class V3HttpHandlerTemplateStorage {
 
   private final TemplateStorageProvider storageProvider;
 
   @Inject
-  public V2HttpHandlerTemplateStorage(@NonNull TemplateStorageProvider storageProvider) {
+  public V3HttpHandlerTemplateStorage(@NonNull TemplateStorageProvider storageProvider) {
     this.storageProvider = storageProvider;
   }
 

@@ -21,18 +21,18 @@ import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.driver.module.ModuleLifeCycle;
 import eu.cloudnetservice.driver.module.ModuleTask;
 import eu.cloudnetservice.driver.module.driver.DriverModule;
-import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerAuthorization;
-import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerCluster;
-import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerDatabase;
-import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerDocumentation;
-import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerGroup;
-import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerModule;
-import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerNode;
-import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerService;
-import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerServiceVersion;
-import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerTask;
-import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerTemplate;
-import eu.cloudnetservice.ext.modules.rest.v2.V2HttpHandlerTemplateStorage;
+import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerAuthorization;
+import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerCluster;
+import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerDatabase;
+import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerDocumentation;
+import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerGroup;
+import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerModule;
+import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerNode;
+import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerService;
+import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerServiceVersion;
+import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerTask;
+import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerTemplate;
+import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerTemplateStorage;
 import eu.cloudnetservice.ext.rest.api.HttpServer;
 import eu.cloudnetservice.ext.rest.api.config.ComponentConfig;
 import eu.cloudnetservice.ext.rest.api.config.CorsConfig;
@@ -71,18 +71,18 @@ public final class CloudNetRestModule extends DriverModule {
   @ModuleTask(order = 107, lifecycle = ModuleLifeCycle.STARTED)
   public void registerHttpHandlers(
     @NonNull HttpServer httpServer,
-    @NonNull V2HttpHandlerTask taskHandler,
-    @NonNull V2HttpHandlerNode nodeHandler,
-    @NonNull V2HttpHandlerGroup groupHandler,
-    @NonNull V2HttpHandlerModule moduleHandler,
-    @NonNull V2HttpHandlerCluster clusterHandler,
-    @NonNull V2HttpHandlerService serviceHandler,
-    @NonNull V2HttpHandlerDatabase databaseHandler,
-    @NonNull V2HttpHandlerTemplate templateHandler,
-    @NonNull V2HttpHandlerServiceVersion versionHandler,
-    @NonNull V2HttpHandlerTemplateStorage storageHandler,
-    @NonNull V2HttpHandlerAuthorization authorizationHandler,
-    @NonNull V2HttpHandlerDocumentation documentationHandler
+    @NonNull V3HttpHandlerTask taskHandler,
+    @NonNull V3HttpHandlerNode nodeHandler,
+    @NonNull V3HttpHandlerGroup groupHandler,
+    @NonNull V3HttpHandlerModule moduleHandler,
+    @NonNull V3HttpHandlerCluster clusterHandler,
+    @NonNull V3HttpHandlerService serviceHandler,
+    @NonNull V3HttpHandlerDatabase databaseHandler,
+    @NonNull V3HttpHandlerTemplate templateHandler,
+    @NonNull V3HttpHandlerServiceVersion versionHandler,
+    @NonNull V3HttpHandlerTemplateStorage storageHandler,
+    @NonNull V3HttpHandlerAuthorization authorizationHandler,
+    @NonNull V3HttpHandlerDocumentation documentationHandler
   ) {
     httpServer.annotationParser()
       .parseAndRegister(taskHandler)

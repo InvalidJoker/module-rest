@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.v2;
+package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.common.util.StringUtil;
 import eu.cloudnetservice.driver.provider.CloudServiceFactory;
@@ -63,14 +63,14 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 @Singleton
-public final class V2HttpHandlerService {
+public final class V3HttpHandlerService {
 
   private final CloudServiceFactory serviceFactory;
   private final CloudServiceManager serviceManager;
   private final ServiceTaskProvider serviceTaskProvider;
 
   @Inject
-  public V2HttpHandlerService(
+  public V3HttpHandlerService(
     @NonNull CloudServiceFactory serviceFactory,
     @NonNull CloudServiceManager serviceManager,
     @NonNull ServiceTaskProvider serviceTaskProvider

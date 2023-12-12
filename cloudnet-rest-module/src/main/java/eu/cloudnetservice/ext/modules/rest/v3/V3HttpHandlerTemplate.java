@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.v2;
+package eu.cloudnetservice.ext.modules.rest.v3;
 
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
@@ -42,9 +42,9 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 @Singleton
-public final class V2HttpHandlerTemplate {
+public final class V3HttpHandlerTemplate {
 
-  private static final Logger LOGGER = LogManager.logger(V2HttpHandlerTemplate.class);
+  private static final Logger LOGGER = LogManager.logger(V3HttpHandlerTemplate.class);
 
   @RequestHandler(path = "/api/v3/template/{storage}/{prefix}/{name}/download")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:template_read", "cloudnet_rest:template_download"})

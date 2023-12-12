@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.v2;
+package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.common.io.FileUtil;
 import eu.cloudnetservice.driver.document.Document;
@@ -46,13 +46,13 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 @Singleton
-public final class V2HttpHandlerServiceVersion {
+public final class V3HttpHandlerServiceVersion {
 
   private final CloudServiceManager serviceManager;
   private final ServiceVersionProvider versionProvider;
 
   @Inject
-  public V2HttpHandlerServiceVersion(
+  public V3HttpHandlerServiceVersion(
     @NonNull CloudServiceManager serviceManager,
     @NonNull ServiceVersionProvider versionProvider
   ) {

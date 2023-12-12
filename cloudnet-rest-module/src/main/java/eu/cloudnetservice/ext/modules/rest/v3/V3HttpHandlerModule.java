@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.v2;
+package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.common.io.FileUtil;
 import eu.cloudnetservice.common.log.LogManager;
@@ -54,15 +54,15 @@ import kong.unirest.core.Unirest;
 import lombok.NonNull;
 
 @Singleton
-public final class V2HttpHandlerModule {
+public final class V3HttpHandlerModule {
 
-  private static final Logger LOGGER = LogManager.logger(V2HttpHandlerModule.class);
+  private static final Logger LOGGER = LogManager.logger(V3HttpHandlerModule.class);
 
   private final ModulesHolder modulesHolder;
   private final ModuleProvider moduleProvider;
 
   @Inject
-  public V2HttpHandlerModule(@NonNull ModulesHolder modulesHolder, @NonNull ModuleProvider moduleProvider) {
+  public V3HttpHandlerModule(@NonNull ModulesHolder modulesHolder, @NonNull ModuleProvider moduleProvider) {
     this.modulesHolder = modulesHolder;
     this.moduleProvider = moduleProvider;
   }

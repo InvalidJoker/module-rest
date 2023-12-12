@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.v2;
+package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.driver.provider.GroupConfigurationProvider;
 import eu.cloudnetservice.ext.modules.rest.dto.GroupConfigurationDto;
@@ -34,12 +34,12 @@ import jakarta.validation.Valid;
 import lombok.NonNull;
 
 @Singleton
-public final class V2HttpHandlerGroup {
+public final class V3HttpHandlerGroup {
 
   private final GroupConfigurationProvider groupProvider;
 
   @Inject
-  public V2HttpHandlerGroup(@NonNull GroupConfigurationProvider groupProvider) {
+  public V3HttpHandlerGroup(@NonNull GroupConfigurationProvider groupProvider) {
     this.groupProvider = groupProvider;
   }
 

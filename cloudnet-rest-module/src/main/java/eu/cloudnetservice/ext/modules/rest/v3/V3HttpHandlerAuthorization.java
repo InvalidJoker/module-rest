@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.v2;
+package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpMethod;
@@ -42,12 +42,12 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 @Singleton
-public final class V2HttpHandlerAuthorization {
+public final class V3HttpHandlerAuthorization {
 
   private final AuthProvider<?> jwtAuthProvider;
   private final RestUserManagement userManagement;
 
-  public V2HttpHandlerAuthorization() {
+  public V3HttpHandlerAuthorization() {
     this.jwtAuthProvider = AuthProviderLoader.resolveAuthProvider("jwt");
     this.userManagement = RestUserManagementLoader.load();
   }

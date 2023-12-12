@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.v2;
+package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestHandler;
@@ -30,7 +30,7 @@ import lombok.NonNull;
 
 // TODO: this might be totally yek
 @Singleton
-public final class V2HttpHandlerDocumentation {
+public final class V3HttpHandlerDocumentation {
 
   @RequestHandler(path = "/api/v3/documentation")
   public @NonNull IntoResponse<?> handleDocumentationRequest() {
@@ -51,7 +51,7 @@ public final class V2HttpHandlerDocumentation {
     }
 
     // get the resource and the content type of it
-    var resource = V2HttpHandlerDocumentation.class.getClassLoader().getResource(filePath);
+    var resource = V3HttpHandlerDocumentation.class.getClassLoader().getResource(filePath);
     if (resource == null) {
       return ProblemDetail.builder()
         .type("documentation-not-found")

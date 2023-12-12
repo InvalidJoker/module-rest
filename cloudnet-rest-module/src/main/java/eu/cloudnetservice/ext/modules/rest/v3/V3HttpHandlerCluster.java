@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.v2;
+package eu.cloudnetservice.ext.modules.rest.v3;
 
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.ext.modules.rest.dto.NetworkClusterNodeDto;
@@ -39,7 +39,7 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 @Singleton
-public final class V2HttpHandlerCluster {
+public final class V3HttpHandlerCluster {
 
   private static final ProblemDetail MISSING_CLUSTER_NODE = ProblemDetail.builder()
     .type("missing-cluster-node")
@@ -52,7 +52,7 @@ public final class V2HttpHandlerCluster {
   private final NodeServerProvider nodeServerProvider;
 
   @Inject
-  public V2HttpHandlerCluster(@NonNull Configuration configuration, @NonNull NodeServerProvider nodeServerProvider) {
+  public V3HttpHandlerCluster(@NonNull Configuration configuration, @NonNull NodeServerProvider nodeServerProvider) {
     this.configuration = configuration;
     this.nodeServerProvider = nodeServerProvider;
   }
