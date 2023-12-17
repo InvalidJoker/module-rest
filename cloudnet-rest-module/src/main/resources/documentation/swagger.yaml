@@ -1,51 +1,17 @@
 openapi: 3.1.0
 info:
   description: >
-    CloudNet's rest API version 2 is the next generation in CloudNet's rest
-    history. It has
-
-    definitely more opportunities than the previous version of it and provides
-
-    a lot of methods to manage and control the CloudNet node and cluster
-    behaviour.
-
-
-    The API is based on http/https requests and mostly JSON responses. You need
-
-    to send your session bearer token when you make a request. The token can be
-
-    obtained by sending a request to the /auth route. Most of the routes require
-
-    an authentication and a permission which must be set to access the endpoint.
-
-
-    All the responses contain a `success` boolean (if they are JSON responses)
-    giving
-
-    information whether or not the request was handled successfully. If that
-    boolean is
-
-    `false` an extra `reason` field is appended to the JSON entity defining the
-    cause
-
-    of the failure.
-
-    WICHTIG:
-
-      Erwähnen, dass cloudnet alles case-sensitive macht -> namen etc müssen übereinstimmen
-
-
-    Every rest rout is fixed to a version number and every call must contain
-    one.
-
-    The latest one is 2. The latest stable endpoint base URL is
-
-    `http(s)://{host}:{port}/api/v2/`. Host and port is the one defined in your
-
-    CloudNet's node config.json `httpListeners` section. If you want to use
-    https
-
-    you have to configure the web SSL settings in the same file.
+    CloudNet's rest API version 3 is the next generation in CloudNet's rest
+    history.
+    
+    
+    In order to access rest API v3 you will have to authenticate yourself using basic auth.
+    To create a basic auth user use the `rest user create <id> <password>` command on your cloudnet node.
+    After authenticating with basic auth on `/auth` you will get a bearer jwt access token that must be used for further
+    requests to the api. For further information about the response take a look at the `/auth` endpoint.
+    
+    MENTION CONFIG HERE
+    MENTION CASE-SENS HERE
   version: '3'
   title: CloudNet
   contact:
@@ -78,40 +44,20 @@ tags:
     description: Access to some node functions the request is sent to
   - name: Cluster
     description: Management of the cluster the current node is part of
-    externalDocs:
-      url: https://cloudnetservice.eu/docs/3.3/setup/cluster
-      description: More information
   - name: Database
     description: Management of the cloudnet internal database
   - name: Groups
     description: Management of the cloudnet group system
-    externalDocs:
-      url: https://cloudnetservice.eu/docs/3.3/components/groups
-      description: More information
   - name: Player
     description: Management of cloudnet players
-    externalDocs:
-      url: https://cloudnetservice.eu/docs/3.3/commands/players
-      description: More information
   - name: Tasks
     description: Management of the cloudnet task system
-    externalDocs:
-      url: https://cloudnetservice.eu/docs/3.3/components/tasks
-      description: More information
   - name: Services
     description: Management of the services which are running in the cluster
-    externalDocs:
-      url: https://cloudnetservice.eu/docs/3.3/components/services
-      description: More information
   - name: Template Storage
     description: Management of the templates
-    externalDocs:
-      url: https://cloudnetservice.eu/docs/3.3/components/template-storages
   - name: Templates
     description: Management of the templates
-    externalDocs:
-      url: https://cloudnetservice.eu/docs/3.3/components/templates
-      description: More information
   - name: Service Versions
     description: Management of service versions
   - name: Modules
@@ -3300,11 +3246,17 @@ components:
       type: object
       properties:
         accessToken:
-          type: string
+          $ref: '#/components/schemas/JwtTokenHolder'
         refreshToken:
-          type: string
+          $ref: '#/components/schemas/JwtTokenHolder'
         creationTime:
           type: integer
+    JwtTokenHolder:
+      type: object
+      properties:
+        token: string
+        tokenType: string
+        expiresIn: long
     JsonDocPropertyable:
       type: object
       properties:

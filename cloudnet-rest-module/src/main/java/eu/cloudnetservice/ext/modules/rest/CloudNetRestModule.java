@@ -34,11 +34,14 @@ import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerTask;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerTemplate;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerTemplateStorage;
 import eu.cloudnetservice.ext.rest.api.HttpServer;
+import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
+import eu.cloudnetservice.ext.rest.api.auth.RestUserManagementLoader;
 import eu.cloudnetservice.ext.rest.api.config.ComponentConfig;
 import eu.cloudnetservice.ext.rest.api.config.CorsConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpProxyMode;
 import eu.cloudnetservice.ext.rest.api.factory.HttpComponentFactoryLoader;
 import eu.cloudnetservice.ext.rest.validation.ValidationHandlerMethodContextDecorator;
+import eu.cloudnetservice.node.command.CommandProvider;
 import jakarta.inject.Singleton;
 import lombok.NonNull;
 
@@ -66,6 +69,10 @@ public final class CloudNetRestModule extends DriverModule {
     // bind the server and register it for injection
     server.addListener(1870);
     injectionLayer.install(BindingBuilder.create().bind(HttpServer.class).toInstance(server));
+
+    // bind the rest user management for injection
+    var restUserManagement = RestUserManagementLoader.load();
+    injectionLayer.install(BindingBuilder.create().bind(RestUserManagement.class).toInstance(restUserManagement));
   }
 
   @ModuleTask(order = 107, lifecycle = ModuleLifeCycle.STARTED)
@@ -97,5 +104,10 @@ public final class CloudNetRestModule extends DriverModule {
       .parseAndRegister(storageHandler)
       .parseAndRegister(authorizationHandler)
       .parseAndRegister(documentationHandler);
+  }
+
+  @ModuleTask(lifecycle = ModuleLifeCycle.STARTED)
+  public void registerRestCommand(@NonNull CommandProvider commandProvider) {
+    commandProvider.register(RestCommand.class);
   }
 }
