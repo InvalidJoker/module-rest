@@ -17,10 +17,12 @@
 package eu.cloudnetservice.ext.modules.rest;
 
 import dev.derklaro.aerogel.binding.BindingBuilder;
+import eu.cloudnetservice.driver.document.DocumentFactory;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.driver.module.ModuleLifeCycle;
 import eu.cloudnetservice.driver.module.ModuleTask;
 import eu.cloudnetservice.driver.module.driver.DriverModule;
+import eu.cloudnetservice.ext.modules.rest.config.RestConfiguration;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerAuthorization;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerCluster;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerDatabase;
@@ -36,9 +38,6 @@ import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerTemplateStorage;
 import eu.cloudnetservice.ext.rest.api.HttpServer;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagementLoader;
-import eu.cloudnetservice.ext.rest.api.config.ComponentConfig;
-import eu.cloudnetservice.ext.rest.api.config.CorsConfig;
-import eu.cloudnetservice.ext.rest.api.config.HttpProxyMode;
 import eu.cloudnetservice.ext.rest.api.factory.HttpComponentFactoryLoader;
 import eu.cloudnetservice.ext.rest.validation.ValidationHandlerMethodContextDecorator;
 import eu.cloudnetservice.node.command.CommandProvider;
@@ -50,24 +49,18 @@ public final class CloudNetRestModule extends DriverModule {
 
   @ModuleTask(order = 127, lifecycle = ModuleLifeCycle.STARTED)
   public void initHttpServer(@NonNull InjectionLayer<?> injectionLayer) {
-    // todo: configuration
-    var config = ComponentConfig.builder()
-      .haProxyMode(HttpProxyMode.AUTO_DETECT)
-      .corsConfig(CorsConfig.builder()
-        .addAllowedOrigin("*")
-        .addAllowedHeader("*")
-        .build()).build();
+    var restConfig = this.readConfig(RestConfiguration.class, () -> RestConfiguration.DEFAULT, DocumentFactory.json());
 
     // construct the http server component
     var componentFactory = HttpComponentFactoryLoader.getFirstComponentFactory(HttpServer.class);
-    var server = componentFactory.construct(config);
+    var server = componentFactory.construct(restConfig.toComponentConfig());
 
     // registers the validation-enabling context decorator
     var validationDecorator = ValidationHandlerMethodContextDecorator.withDefaultValidator();
     server.annotationParser().registerHandlerContextDecorator(validationDecorator);
 
     // bind the server and register it for injection
-    server.addListener(1870);
+    restConfig.httpListeners().forEach(server::addListener);
     injectionLayer.install(BindingBuilder.create().bind(HttpServer.class).toInstance(server));
 
     // bind the rest user management for injection
