@@ -32,7 +32,7 @@ public final class CloudNetBasicAuthProvider extends BasicAuthProvider {
   }
 
   @Override
-  protected boolean validatePassword(@NonNull RestUser user, byte[] passwordBytes) {
+  public boolean validatePassword(@NonNull RestUser user, byte[] passwordBytes) {
     // get the password and salt info from the given rest user
     var storedPassword = user.properties().get(DefaultRestUser.PASSWORD_KEY);
     var storedSalt = user.properties().get(DefaultRestUser.PASSWORD_SALT_KEY);

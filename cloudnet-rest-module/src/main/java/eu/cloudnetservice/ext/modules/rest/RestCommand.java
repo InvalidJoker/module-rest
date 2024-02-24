@@ -23,13 +23,17 @@ import cloud.commandframework.annotations.parsers.Parser;
 import cloud.commandframework.context.CommandContext;
 import eu.cloudnetservice.common.language.I18n;
 import eu.cloudnetservice.ext.modules.rest.auth.DefaultRestUser;
+import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
+import eu.cloudnetservice.ext.rest.api.auth.AuthProviderLoader;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
+import eu.cloudnetservice.ext.rest.api.auth.basic.BasicAuthProvider;
 import eu.cloudnetservice.node.command.annotation.Description;
 import eu.cloudnetservice.node.command.exception.ArgumentNotAvailableException;
 import eu.cloudnetservice.node.command.source.CommandSource;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import java.nio.charset.StandardCharsets;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -40,11 +44,13 @@ import lombok.NonNull;
 @Description("module-rest-command-description")
 public final class RestCommand {
 
+  private final AuthProvider<?> authProvider;
   private final RestUserManagement restUserManagement;
 
   @Inject
   public RestCommand(@NonNull RestUserManagement restUserManagement) {
     this.restUserManagement = restUserManagement;
+    this.authProvider = AuthProviderLoader.resolveAuthProvider("basic");
   }
 
   @Parser
@@ -153,7 +159,12 @@ public final class RestCommand {
     @Argument("id") @NonNull DefaultRestUser restUser,
     @Argument("password") @NonNull String password
   ) {
-    // TODO: validate the password (can we reuse an basic auth provider here?)
+    if (this.authProvider instanceof BasicAuthProvider basicAuthProvider) {
+      var valid = basicAuthProvider.validatePassword(restUser, password.getBytes(StandardCharsets.UTF_8)) ? 1 : 0;
+      source.sendMessage(I18n.trans("module-rest-user-verify", valid));
+    } else {
+      source.sendMessage(I18n.trans("module-rest-user-verify-basic-auth-provider-missing"));
+    }
   }
 
   private void updateRestUser(@NonNull DefaultRestUser user, @NonNull Consumer<DefaultRestUser.Builder> consumer) {

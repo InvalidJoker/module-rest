@@ -113,7 +113,7 @@ public class BasicAuthProvider implements AuthProvider<Void> {
     return -1;
   }
 
-  protected boolean validatePassword(@NonNull RestUser user, byte[] passwordBytes) {
+  public boolean validatePassword(@NonNull RestUser user, byte[] passwordBytes) {
     return true;
   }
 }
