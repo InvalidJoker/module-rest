@@ -16,7 +16,6 @@
 
 package eu.cloudnetservice.ext.rest.api.annotation;
 
-import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -35,7 +34,7 @@ public @interface Authentication {
    * have at least one of the given scopes in order to successfully call this handler.
    * <p>
    * Note: All supplied scopes have to follow the scope pattern described in
-   * {@link RestUserManagement#SCOPE_NAMING_REGEX}.
+   * {@link eu.cloudnetservice.ext.rest.api.auth.RestUser#SCOPE_NAMING_PATTERN}.
    *
    * @return the scopes that are enforced on the http handler annotated with this annotation.
    */

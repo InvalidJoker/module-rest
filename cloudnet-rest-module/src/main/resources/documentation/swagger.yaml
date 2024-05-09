@@ -584,14 +584,13 @@ paths:
 
          - `cloudnet_rest:database_delete`
       responses:
-        '200':
-          $ref: '#/components/responses/Success'
+        '204':
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
   /database/{name}/clear:
     post:
       tags:
@@ -911,32 +910,6 @@ paths:
         '404':
           description: There is no group with the provided name.
           $ref: '#/components/responses/Problem'
-  /player:
-    post:
-      requestBody:
-        required: true
-        description: The player to create or update
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OfflinePlayer'
-      tags:
-        - Player
-      summary: Creates or updates an offline player
-      description: |
-        One of the following scopes is needed to execute the request:
-          - `bridge:player_write`
-
-          - `bridge:player_create`
-      responses:
-        '201':
-          $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
   /player/onlineCount:
     get:
       tags:
@@ -944,9 +917,9 @@ paths:
       summary: Get the number of online players
       description: |
         One of the following scopes is needed to execute the request:
-          - `bridge:player_read`
+          - `cloudnet_bridge:player_read`
 
-          - `bridge:player_online_count`
+          - `cloudnet_bridge:player_online_count`
       responses:
         '200':
           description: OK
@@ -954,7 +927,6 @@ paths:
             application/json:
               schema:
                 allOf:
-                  - $ref: '#/components/schemas/Success'
                   - properties:
                       onlineCount:
                         type: integer
@@ -965,35 +937,82 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-  /player/registeredCount:
+  /player/online:
+    parameters:
+      - name: limit
+        in: query
+        required: false
+        description: The maximum amount of players with which the API responds
+        examples:
+          limitTen:
+            summary: Limit the response to 10 players
+            value: 10
+        schema:
+          type: integer
+          minimum: 1
+          default: 10
+          maximum: 25
+      - name: offset
+        in: query
+        required: false
+        description: The amount of players to skip when responding
+        examples:
+          skipTen:
+            summary: Skip the first 10 players
+            value: 10
+        schema:
+          type: integer
+          minimum: 0
+          default: 0
+      - name: sort
+        in: query
+        required: false
+        description: Sorts the players by their name
+        examples:
+          sortAsc:
+            summary: The players will be sorted in ascending order by their name
+            value: asc
+          sortDesc:
+            summary: The players will be sorted in descending order by their name
+            value: desc
+        schema:
+          type: string
+          enum:
+            - asc
+            - desc
+          default: asc
     get:
       tags:
         - Player
-      summary: Get the number of registered players
+      summary: Get a list of online players based on the query parameters
       description: |
         One of the following scopes is needed to execute the request:
-          - `bridge:player_read`
-
-          - `bridge:player_registered_count`
+          - `cloudnet_bridge:player_read`
+        
+          - `cloudnet_bridge:player_get_bulk`
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      registeredCount:
-                        type: integer
-                        example: 10
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                type: array
+                items:
+                  $ref: '#/components/schemas/CloudPlayer'
+          headers:
+            X-Total-Count:
+              schema:
+                type: integer
+              description: The total count of players that are online
+            X-Result-Count:
+              schema:
+                type: integer
+              description: The count of results returned in this response
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
-  /player/{identifier}:
+          $ref: '#/components/responses/Problem'
+  /player/online/{identifier}:
     parameters:
       - name: identifier
         in: path
@@ -1008,9 +1027,9 @@ paths:
       summary: Get a player by his unique id or name
       description: |
         One of the following scopes is needed to execute the request:
-          - `bridge:player_read`
+          - `cloudnet_bridge:player_read`
 
-          - `bridge:player_get`
+          - `cloudnet_bridge:player_get`
       responses:
         '200':
           description: OK
@@ -1021,32 +1040,14 @@ paths:
                   - $ref: '#/components/schemas/Success'
                   - properties:
                       player:
-                        $ref: '#/components/schemas/OfflinePlayer'
+                        $ref: '#/components/schemas/CloudPlayer'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-    delete:
-      tags:
-        - Player
-      summary: Deletes a player by his unique id or name
-      description: |
-        One of the following scopes is needed to execute the request:
-          - `bridge:player_write`
-
-          - `bridge:player_delete`
-      responses:
-        '200':
-          $ref: '#/components/responses/Success'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-  /player/{identifier}/exists:
+  /player/online/{identifier}/exists:
     parameters:
       - name: identifier
         in: path
@@ -1061,27 +1062,136 @@ paths:
       summary: Checks if a specific player is registered
       description: |
         One of the following scopes is needed to execute the request:
-          - `bridge:player_read`
+          - `cloudnet_bridge:player_read`
 
-          - `bridge:player_exists`
+          - `cloudnet_bridge:player_exists`
       responses:
-        '200':
+        '204':
           description: OK
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      result:
-                        type: boolean
-                        example: true
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/Problem'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+  /player/online/{identifier}/connectService:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the player to check for
+        example: bcc582ed-494d-4b93-86cb-b58564651a26
+        schema:
+          type: string
+      - name: target
+        in: query
+        required: true
+        description: The name of the service to connect the player to.
+        schema:
+          type: string
+        examples:
+          serviceConnect:
+            summary: Example to connect the player to a service called `SkyWars-1`
+            value: SkyWars-1
+    post:
+      tags:
+        - Player
+      summary: Connect a specific player to a specific service.
+      description: |
+        Connects the given player to the specified service.
+        
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_bridge:player_write`
+        
+          - `cloudnet_bridge:player_connect_service`
+      responses:
+        '204':
+          description: The request to connect the player was sent.
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /player/online/{identifier}/connect:
+    parameters:
+    - name: identifier
+      in: path
+      required: true
+      description: The name or unique id of the player to check for
+      example: bcc582ed-494d-4b93-86cb-b58564651a26
+      schema:
+        type: string
+    - name: target
+      in: query
+      required: true
+      description: |
+        The name of the task / group to connect the player to.
+        Use `type` to determine whether the target is a group or a task.
+      schema:
+        type: string
+      examples:
+        taskConnect:
+          summary: Example to connect the player to a task called `SkyWars`
+          value: SkyWars
+        groupConnect:
+          summary: Example to connect the player to a group called `Fallbacks`
+          value: Fallbacks
+    - name: serverSelector
+      in: query
+      required: true
+      description: |
+        The server selector determines which service from the given task / group to connect to.
+      schema:
+        type: string
+        enum:
+          - LOWEST_PLAYERS
+          - HIGHEST_PLAYERS
+          - RANDOM
+      examples:
+        lowestPlayers:
+          summary: Exmaple to connect the player to the service of the task / group with the lowest players.
+          value: LOWEST_PLAYERS
+    - name: type
+      in: query
+      required: true
+      description: |
+        The type that determines whether the given target is a task or a group.
+      schema:
+        type: string
+        enum:
+          - TASK
+          - GROUP
+      examples:
+        groupConnect:
+          summary: The given target is a group.
+          value: GROUP
+    post:
+      tags:
+        - Player
+
+  /player/online/{identifier}/connectFallback:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the player to check for
+        example: bcc582ed-494d-4b93-86cb-b58564651a26
+        schema:
+          type: string
+    post:
+      tags:
+        - Player
+      summary: Connects a given player to a fallback service.
+      description: |
+        Connects the given player to any fallback service that matches the requirements.
+        
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_bridge:player_write`
+        
+          - `cloudnet_bridge:player_connect_fallback`
   /task:
     post:
       requestBody:
@@ -1181,7 +1291,6 @@ paths:
       responses:
         '204':
           description: The task was deleted successfully
-          content:
         '400':
           $ref: '#/components/responses/Problem'
         '401':
@@ -2809,8 +2918,6 @@ paths:
           $ref: '#/components/responses/Problem'
         '404':
           $ref: '#/components/responses/Problem'
-        '500':
-          $ref: '#/components/responses/Problem'
   /module/{name}/load:
     post:
       requestBody:
@@ -2850,8 +2957,6 @@ paths:
         '403':
           $ref: '#/components/responses/Problem'
         '404':
-          $ref: '#/components/responses/Problem'
-        '500':
           $ref: '#/components/responses/Problem'
   /module/{name}/install:
     post:
@@ -3334,7 +3439,18 @@ components:
                 type: string
               examples:
                 - [ MINECRAFT_SERVER, VELOCITY ]
-    OfflinePlayer:
+    CloudPlayer:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/CloudOfflinePlayer'
+        - properties:
+            networkPlayerProxyInfo:
+              $ref: '#/components/schemas/NetworkPlayerProxyInfo'
+            connectedService:
+              $ref: '#/components/schemas/NetworkServiceInfo'
+            networkPlayerServerInfo:
+              $ref: '#/components/schemas/NetworkPlayerServerInfo'
+    CloudOfflinePlayer:
       type: object
       allOf:
         - $ref: '#/components/schemas/JsonDocPropertyable'
@@ -3350,7 +3466,7 @@ components:
               example: 1642409856
             lastNetworkPlayerProxyInfo:
               $ref: '#/components/schemas/NetworkPlayerProxyInfo'
-    NetworkPlayerProxyInfo:
+    NetworkPlayerServerInfo:
       type: object
       properties:
         uniqueId:
@@ -3358,22 +3474,27 @@ components:
           example: 05bf52c6-7bb0-4f13-8951-0e1fd803df35
         name:
           type: string
-          example: TheMeinerLP
+          example: taginbert
         xBoxId:
           type: string
           example: null
-        version:
-          type: integer
-          example: 47
         address:
           $ref: '#/components/schemas/HostAndPort'
-        listener:
-          $ref: '#/components/schemas/HostAndPort'
-        onlineMode:
-          type: boolean
-          example: true
         networkService:
           $ref: '#/components/schemas/NetworkServiceInfo'
+    NetworkPlayerProxyInfo:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/NetworkPlayerServerInfo'
+        - properties:
+            version:
+              type: integer
+              example: 47
+            listener:
+              $ref: '#/components/schemas/HostAndPort'
+            onlineMode:
+              type: boolean
+              example: true
     NetworkServiceInfo:
       type: object
       properties:

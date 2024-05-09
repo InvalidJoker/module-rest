@@ -25,7 +25,9 @@ dependencies {
   implementation(projects.webImplNetty)
   implementation(projects.webCodecGson)
   implementation(projects.webParameterValidator)
-  compileOnlyApi("eu.cloudnetservice.cloudnet:node:4.0.0-RC9")
+
+  compileOnly("eu.cloudnetservice.cloudnet:bridge:4.0.0-RC10")
+  compileOnlyApi("eu.cloudnetservice.cloudnet:node:4.0.0-RC10")
 }
 
 moduleJson {
