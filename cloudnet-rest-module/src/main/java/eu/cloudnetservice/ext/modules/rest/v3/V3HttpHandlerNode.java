@@ -100,7 +100,7 @@ public final class V3HttpHandlerNode {
   @RequestHandler(path = "/api/v3/node/ping")
   @Authentication(providers = "basic", scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_ping"})
   public @NonNull IntoResponse<?> handleNodePingRequest() {
-    return JsonResponse.builder().noContent();
+    return HttpResponseCode.NO_CONTENT;
   }
 
   @RequestHandler(path = "/api/v3/node")
@@ -140,7 +140,7 @@ public final class V3HttpHandlerNode {
     config.save();
     this.configuration.reloadFrom(config);
 
-    return JsonResponse.builder().noContent();
+    return HttpResponseCode.NO_CONTENT;
   }
 
   @RequestHandler(path = "/api/v3/node/reload", method = HttpMethod.POST)
@@ -165,7 +165,7 @@ public final class V3HttpHandlerNode {
       }
     }
 
-    return JsonResponse.builder().noContent();
+    return HttpResponseCode.NO_CONTENT;
   }
 
   @RequestHandler(path = "/api/v3/node/liveConsole")

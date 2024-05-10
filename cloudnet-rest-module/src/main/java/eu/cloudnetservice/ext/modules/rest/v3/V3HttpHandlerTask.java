@@ -73,7 +73,7 @@ public final class V3HttpHandlerTask {
     }
 
     this.taskProvider.addServiceTask(serviceTask.toEntity());
-    return JsonResponse.builder().noContent();
+    return HttpResponseCode.NO_CONTENT;
   }
 
   @RequestHandler(path = "/api/v3/task/{name}", method = HttpMethod.POST)
@@ -85,7 +85,7 @@ public final class V3HttpHandlerTask {
     }
 
     this.taskProvider.removeServiceTask(task);
-    return JsonResponse.builder().noContent();
+    return HttpResponseCode.NO_CONTENT;
   }
 
   private @NonNull ProblemDetail taskNotFound(@NonNull String name) {

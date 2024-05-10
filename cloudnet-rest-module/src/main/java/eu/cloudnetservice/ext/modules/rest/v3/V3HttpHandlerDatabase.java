@@ -54,7 +54,7 @@ public final class V3HttpHandlerDatabase {
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_list"})
   public @NonNull IntoResponse<?> handleClearRequest(@NonNull @RequestPathParam("name") String name) {
     this.databaseProvider.database(name).clear();
-    return JsonResponse.builder().noContent();
+    return HttpResponseCode.NO_CONTENT;
   }
 
   @RequestHandler(path = "/api/v3/database/{name}/contains")
@@ -138,7 +138,7 @@ public final class V3HttpHandlerDatabase {
   ) {
     var database = this.databaseProvider.database(name);
     if (database.delete(key)) {
-      return JsonResponse.builder().noContent();
+      return HttpResponseCode.NO_CONTENT;
     }
 
     return ProblemDetail.builder()

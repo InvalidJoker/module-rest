@@ -127,7 +127,7 @@ public final class V3HttpHandlerService {
         }
       }
 
-      return JsonResponse.builder().noContent();
+      return HttpResponseCode.NO_CONTENT;
     });
   }
 
@@ -148,7 +148,7 @@ public final class V3HttpHandlerService {
       }
 
       service.runCommand(commandLine);
-      return JsonResponse.builder().noContent();
+      return HttpResponseCode.NO_CONTENT;
     });
   }
 
@@ -174,7 +174,7 @@ public final class V3HttpHandlerService {
         }
       }
 
-      return JsonResponse.builder().noContent();
+      return HttpResponseCode.NO_CONTENT;
     });
   }
 
@@ -324,7 +324,7 @@ public final class V3HttpHandlerService {
         provider.includeWaitingServiceTemplates();
       }
 
-      return JsonResponse.builder().noContent();
+      return HttpResponseCode.NO_CONTENT;
     });
   }
 
@@ -351,7 +351,7 @@ public final class V3HttpHandlerService {
         provider.deployResources(Boolean.parseBoolean(remove));
       }
 
-      return JsonResponse.builder().noContent();
+      return HttpResponseCode.NO_CONTENT;
     });
   }
 
@@ -377,7 +377,7 @@ public final class V3HttpHandlerService {
         provider.includeWaitingServiceInclusions();
       }
 
-      return JsonResponse.builder().noContent();
+      return HttpResponseCode.NO_CONTENT;
     });
   }
 
@@ -424,7 +424,7 @@ public final class V3HttpHandlerService {
   ) {
     return this.handleServiceProviderContext(id, service -> {
       mapper.accept(service);
-      return JsonResponse.builder().noContent();
+      return HttpResponseCode.NO_CONTENT;
     });
   }
 

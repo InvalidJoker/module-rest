@@ -93,7 +93,7 @@ public final class V3HttpHandlerGroup {
     }
 
     this.groupProvider.removeGroupConfiguration(group);
-    return JsonResponse.builder().noContent();
+    return HttpResponseCode.NO_CONTENT;
   }
 
 }

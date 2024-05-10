@@ -94,7 +94,7 @@ public final class V3HttpHandlerServiceVersion {
     }
 
     this.versionProvider.registerServiceVersionType(versionType);
-    return JsonResponse.builder().noContent();
+    return HttpResponseCode.NO_CONTENT;
   }
 
   @RequestHandler(path = "/api/v3/serviceVersion/environment")
@@ -121,7 +121,7 @@ public final class V3HttpHandlerServiceVersion {
     }
 
     this.versionProvider.registerServiceEnvironmentType(environmentTypeDto.toEntity());
-    return JsonResponse.builder().noContent();
+    return HttpResponseCode.NO_CONTENT;
   }
 
   @RequestHandler(path = "/api/v3/serviceVersion/{version}")
@@ -168,7 +168,7 @@ public final class V3HttpHandlerServiceVersion {
       }
     }
 
-    return JsonResponse.builder().noContent();
+    return HttpResponseCode.NO_CONTENT;
   }
 
   @RequestHandler(path = "/api/v3/serviceVersion/install", method = HttpMethod.POST)
@@ -244,7 +244,7 @@ public final class V3HttpHandlerServiceVersion {
       this.versionProvider.installServiceVersion(fileInstaller, forceInstall);
     }
 
-    return JsonResponse.builder().noContent();
+    return HttpResponseCode.NO_CONTENT;
   }
 
 

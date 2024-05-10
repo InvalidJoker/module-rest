@@ -472,6 +472,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NodeConfiguration'
+          description: The node configuration that was requested
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -585,6 +586,7 @@ paths:
          - `cloudnet_rest:database_delete`
       responses:
         '204':
+          description: Successful deletion of the entry from the database.
         '400':
           $ref: '#/components/responses/Problem'
         '401':
@@ -1117,60 +1119,79 @@ paths:
           $ref: '#/components/responses/Problem'
   /player/online/{identifier}/connect:
     parameters:
-    - name: identifier
-      in: path
-      required: true
-      description: The name or unique id of the player to check for
-      example: bcc582ed-494d-4b93-86cb-b58564651a26
-      schema:
-        type: string
-    - name: target
-      in: query
-      required: true
-      description: |
-        The name of the task / group to connect the player to.
-        Use `type` to determine whether the target is a group or a task.
-      schema:
-        type: string
-      examples:
-        taskConnect:
-          summary: Example to connect the player to a task called `SkyWars`
-          value: SkyWars
-        groupConnect:
-          summary: Example to connect the player to a group called `Fallbacks`
-          value: Fallbacks
-    - name: serverSelector
-      in: query
-      required: true
-      description: |
-        The server selector determines which service from the given task / group to connect to.
-      schema:
-        type: string
-        enum:
-          - LOWEST_PLAYERS
-          - HIGHEST_PLAYERS
-          - RANDOM
-      examples:
-        lowestPlayers:
-          summary: Exmaple to connect the player to the service of the task / group with the lowest players.
-          value: LOWEST_PLAYERS
-    - name: type
-      in: query
-      required: true
-      description: |
-        The type that determines whether the given target is a task or a group.
-      schema:
-        type: string
-        enum:
-          - TASK
-          - GROUP
-      examples:
-        groupConnect:
-          summary: The given target is a group.
-          value: GROUP
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the player to check for
+        example: bcc582ed-494d-4b93-86cb-b58564651a26
+        schema:
+          type: string
+      - name: target
+        in: query
+        required: true
+        description: |
+          The name of the task / group to connect the player to.
+          Use `type` to determine whether the target is a group or a task.
+        schema:
+          type: string
+        examples:
+          taskConnect:
+            summary: Example to connect the player to a task called `SkyWars`
+            value: SkyWars
+          groupConnect:
+            summary: Example to connect the player to a group called `Fallbacks`
+            value: Fallbacks
+      - name: serverSelector
+        in: query
+        required: true
+        description: |
+          The server selector determines which service from the given task / group to connect to.
+        schema:
+          type: string
+          enum:
+            - LOWEST_PLAYERS
+            - HIGHEST_PLAYERS
+            - RANDOM
+        examples:
+          lowestPlayers:
+            summary: Example to connect the player to the service of the task / group with the lowest players.
+            value: LOWEST_PLAYERS
+      - name: type
+        in: query
+        required: true
+        description: |
+          The type that determines whether the given target is a task or a group.
+        schema:
+          type: string
+          enum:
+            - TASK
+            - GROUP
+        examples:
+          groupConnect:
+            summary: The given target is a group.
+            value: GROUP
     post:
       tags:
         - Player
+      summary: Connects a player to a given task or group.
+      description: |
+        Connects the given player to the given task or group based on the given target & type.
+
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_bridge:player_write`
+        
+          - `cloudnet_bridge:player_connect_group_task`
+      responses:
+        '204':
+          description: The request to connect the player was sent.
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
 
   /player/online/{identifier}/connectFallback:
     parameters:
@@ -1192,6 +1213,146 @@ paths:
           - `cloudnet_bridge:player_write`
         
           - `cloudnet_bridge:player_connect_fallback`
+      responses:
+        '204':
+          description: The request to connect the player was sent.
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /player/online/{identifier}/kick:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the player to check for
+        example: bcc582ed-494d-4b93-86cb-b58564651a26
+        schema:
+          type: string
+    post:
+      tags:
+        - Player
+      summary: Kicks a given player from the network.
+      description: |
+        Kicks the given player from the whole network.
+
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_bridge:player_write`
+        
+          - `cloudnet_bridge:player_disconnect`
+      requestBody:
+        description: The body containg the message to kick the player with.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kickMessage:
+                  type: string
+      responses:
+        '204':
+          description: The request to kick the player was sent.
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /player/online/{identifier}/sendChat:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the player to check for
+        example: bcc582ed-494d-4b93-86cb-b58564651a26
+        schema:
+          type: string
+    post:
+      tags:
+        - Player
+      summary: Sends a chat message to a given player.
+      description: |
+        Sends the given chat message to the given player.
+
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_bridge:player_write`
+        
+          - `cloudnet_bridge:player_send_chat`
+      requestBody:
+        description: The body containg the chat message to send to the player.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                chatMessage:
+                  type: string
+      responses:
+        '204':
+          description: The chat message was sent to the player.
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+  /player/online/{identifier}/command:
+    parameters:
+      - name: identifier
+        in: path
+        required: true
+        description: The name or unique id of the player to check for
+        example: bcc582ed-494d-4b93-86cb-b58564651a26
+        schema:
+          type: string
+      - name: redirectToServer
+        in: query
+        required: false
+        description: Whether to redirect the command to the downstream service if the command is not available on the proxy.
+        schema:
+          type: boolean
+    post:
+      tags:
+        - Player
+      summary: Executes a given command for a player.
+      description: |
+        Executes the given command for the given player.
+
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_bridge:player_write`
+        
+          - `cloudnet_bridge:player_send_command`
+      requestBody:
+        description: The body containg the command to execute for the player. Its mandatory to **not** have a slash at the start of the command.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                command:
+                  type: string
+      responses:
+        '204':
+          description: The command was executed by the player
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
   /task:
     post:
       requestBody:
@@ -1318,6 +1479,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ServiceInfoSnapshot'
+          description: Successful listing of services.
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -1711,7 +1873,8 @@ paths:
         description: The template to add to the service
         content:
           application/json:
-            $ref: '#/components/schemas/ServiceTemplate'
+            schema:
+              $ref: '#/components/schemas/ServiceTemplate'
       tags:
         - Services
       summary: Adds a template to a service
@@ -1754,7 +1917,8 @@ paths:
         description: The deployment to add to the service
         content:
           application/json:
-            $ref: '#/components/schemas/ServiceDeployment'
+            schema:
+              $ref: '#/components/schemas/ServiceDeployment'
       tags:
         - Services
       summary: Adds a deployment to a service
@@ -1797,7 +1961,8 @@ paths:
         description: The inclusion to add to the service
         content:
           application/json:
-            $ref: '#/components/schemas/ServiceRemoteInclusion'
+            schema:
+              $ref: '#/components/schemas/ServiceRemoteInclusion'
       tags:
         - Services
       summary: Adds an inclusion to a service
@@ -2529,6 +2694,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ServiceVersionType'
+          description: Successful listing of available service version types
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -2576,6 +2742,7 @@ paths:
                 type: object
                 additionalProperties:
                   $ref: '#/components/schemas/ServiceEnvironmentType'
+          description: Successful listing of available service environments
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -2776,6 +2943,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ModuleInfo'
+          description: Successfully listed all loaded modules
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -2798,9 +2966,11 @@ paths:
                 type: array
                 items:
                   type: string
-                example:
-                  - CloudNet-Bridge.jar
-                  - CloudNet-Signs.jar
+                examples:
+                  - bridgeSigns:
+                      summary: The cloudnet bridge & signs jar
+                      value: ["CloudNet-Bridge.jar", "CloudNet-Signs.jar"]
+          description: Successfull listing of all module jar names
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -2823,6 +2993,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ModuleEntry'
+          description: Successful listing of all available modules
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -2994,6 +3165,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ModuleInfo'
+          description: The module was installed successfully
         '400':
           $ref: '#/components/responses/Problem'
         '401':
@@ -3359,9 +3531,12 @@ components:
     JwtTokenHolder:
       type: object
       properties:
-        token: string
-        tokenType: string
-        expiresIn: long
+        token:
+          type: string
+        tokenType:
+          type: string
+        expiresIn:
+          type: number
     JsonDocPropertyable:
       type: object
       properties:

@@ -152,7 +152,7 @@ public final class V3HttpHandlerTemplate {
   ) {
     return this.handleTemplateContext(storageName, prefix, name, (template, storage) -> {
       if (storage.create(template)) {
-        return JsonResponse.builder().noContent();
+        return HttpResponseCode.NO_CONTENT;
       }
 
       return ProblemDetail.builder()
@@ -190,7 +190,7 @@ public final class V3HttpHandlerTemplate {
   ) {
     return this.handleTemplateContext(storageName, prefix, name, (template, storage) -> {
       if (storage.deleteFile(template, path)) {
-        return JsonResponse.builder().noContent();
+        return HttpResponseCode.NO_CONTENT;
       }
 
       return ProblemDetail.builder()
@@ -210,7 +210,7 @@ public final class V3HttpHandlerTemplate {
   ) {
     return this.handleTemplateContext(storageName, prefix, name, (template, storage) -> {
       if (storage.delete(template)) {
-        return JsonResponse.builder().noContent();
+        return HttpResponseCode.NO_CONTENT;
       }
 
       return ProblemDetail.builder()
@@ -233,7 +233,7 @@ public final class V3HttpHandlerTemplate {
   ) {
     return this.handleTemplateContext(storageName, prefix, name, (template, storage) -> {
       if (storage.createDirectory(template, path)) {
-        return JsonResponse.builder().noContent();
+        return HttpResponseCode.NO_CONTENT;
       }
 
       return ProblemDetail.builder()
@@ -284,7 +284,7 @@ public final class V3HttpHandlerTemplate {
   ) {
     return this.handleTemplateContext(storageName, prefix, name, (template, storage) -> {
       storage.deploy(template, body);
-      return JsonResponse.builder().noContent();
+      return HttpResponseCode.NO_CONTENT;
     });
   }
 
@@ -309,7 +309,7 @@ public final class V3HttpHandlerTemplate {
 
       body.transferTo(stream);
       stream.close();
-      return JsonResponse.builder().noContent();
+      return HttpResponseCode.NO_CONTENT;
     });
   }
 

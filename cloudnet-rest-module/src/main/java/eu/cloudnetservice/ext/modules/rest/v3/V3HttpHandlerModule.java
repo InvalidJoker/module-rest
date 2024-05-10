@@ -71,7 +71,7 @@ public final class V3HttpHandlerModule {
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_write", "cloudnet_rest:module_reload_all"})
   public @NonNull IntoResponse<?> handleModuleReloadRequest() {
     this.moduleProvider.reloadAll();
-    return JsonResponse.builder().noContent();
+    return HttpResponseCode.NO_CONTENT;
   }
 
   @RequestHandler(path = "/api/v3/module/loaded")
@@ -133,7 +133,7 @@ public final class V3HttpHandlerModule {
         }
       }
 
-      return JsonResponse.builder().noContent();
+      return HttpResponseCode.NO_CONTENT;
     });
   }
 
@@ -154,7 +154,7 @@ public final class V3HttpHandlerModule {
           .detail(String.format("Uninstalling module %s failed due to an internal I/O error.", name));
       }
 
-      return JsonResponse.builder().noContent();
+      return HttpResponseCode.NO_CONTENT;
     });
   }
 
@@ -295,7 +295,7 @@ public final class V3HttpHandlerModule {
     return this.handleModuleContext(name, module -> {
       if (module.module() instanceof DriverModule driverModule) {
         driverModule.writeConfig(DocumentFactory.json().parse(body));
-        return JsonResponse.builder().noContent();
+        return HttpResponseCode.NO_CONTENT;
       } else {
         return ProblemDetail.builder()
           .status(HttpResponseCode.BAD_REQUEST)
