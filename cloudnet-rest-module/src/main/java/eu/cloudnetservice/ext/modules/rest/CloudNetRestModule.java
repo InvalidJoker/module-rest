@@ -18,11 +18,13 @@ package eu.cloudnetservice.ext.modules.rest;
 
 import dev.derklaro.aerogel.binding.BindingBuilder;
 import eu.cloudnetservice.driver.document.DocumentFactory;
+import eu.cloudnetservice.driver.event.EventManager;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.driver.module.ModuleLifeCycle;
 import eu.cloudnetservice.driver.module.ModuleTask;
 import eu.cloudnetservice.driver.module.driver.DriverModule;
 import eu.cloudnetservice.ext.modules.rest.config.RestConfiguration;
+import eu.cloudnetservice.ext.modules.rest.listener.CloudNetBridgeInitializer;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerAuthorization;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerCluster;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerDatabase;
@@ -102,5 +104,10 @@ public final class CloudNetRestModule extends DriverModule {
   @ModuleTask(lifecycle = ModuleLifeCycle.STARTED)
   public void registerRestCommand(@NonNull CommandProvider commandProvider) {
     commandProvider.register(RestCommand.class);
+  }
+
+  @ModuleTask(lifecycle = ModuleLifeCycle.STARTED)
+  public void registerBridgeInitializer(@NonNull EventManager eventManager) {
+    eventManager.registerListener(CloudNetBridgeInitializer.class);
   }
 }

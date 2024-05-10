@@ -31,12 +31,13 @@ import io.netty5.channel.kqueue.KQueueServerSocketChannel;
 import io.netty5.channel.nio.NioHandler;
 import io.netty5.channel.socket.nio.NioServerSocketChannel;
 import io.netty5.channel.uring.IOUring;
+import io.netty5.channel.uring.IOUringHandler;
 import io.netty5.channel.uring.IOUringServerSocketChannel;
 import java.util.function.Supplier;
 import lombok.NonNull;
 
 /**
- * A collection of transport types that are supported an can be used.
+ * A collection of transport types that are supported and can be used.
  *
  * @since 1.0
  */
@@ -46,7 +47,7 @@ enum NettyTransportType {
     "io_uring",
     IOUring.isAvailable(),
     true,
-    IOUring::newFactory,
+    IOUringHandler::newFactory,
     IOUringServerSocketChannel::new
   ),
   EPOLL(

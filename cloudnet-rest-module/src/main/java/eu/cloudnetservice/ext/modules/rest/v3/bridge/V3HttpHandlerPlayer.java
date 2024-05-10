@@ -19,10 +19,11 @@ package eu.cloudnetservice.ext.modules.rest.v3.bridge;
 import com.google.common.base.Enums;
 import com.google.common.primitives.Ints;
 import eu.cloudnetservice.common.util.StringUtil;
-import eu.cloudnetservice.driver.registry.injection.Service;
+import eu.cloudnetservice.driver.registry.ServiceRegistry;
 import eu.cloudnetservice.ext.component.ComponentFormats;
 import eu.cloudnetservice.ext.modules.rest.page.PageSortingMode;
 import eu.cloudnetservice.ext.modules.rest.page.Paging;
+import eu.cloudnetservice.ext.rest.api.HttpMethod;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.Authentication;
 import eu.cloudnetservice.ext.rest.api.annotation.FirstRequestQueryParam;
@@ -56,8 +57,8 @@ public class V3HttpHandlerPlayer {
   private final PlayerManager playerManager;
 
   @Inject
-  public V3HttpHandlerPlayer(@Service PlayerManager playerManager) {
-    this.playerManager = playerManager;
+  public V3HttpHandlerPlayer(ServiceRegistry serviceRegistry) {
+    this.playerManager = serviceRegistry.firstProvider(PlayerManager.class);
   }
 
   @RequestHandler(path = "/api/v3/player/onlineCount")
@@ -128,7 +129,7 @@ public class V3HttpHandlerPlayer {
     return this.handleCloudPlayerContext(identifier, $ -> HttpResponseCode.NO_CONTENT);
   }
 
-  @RequestHandler(path = "/api/v3/player/online/{identifier}/connectService")
+  @RequestHandler(path = "/api/v3/player/online/{identifier}/connectService", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_bridge:player_write", "cloudnet_bridge:player_connect_service"})
@@ -139,7 +140,7 @@ public class V3HttpHandlerPlayer {
     return this.handlePlayerExecutorContext(identifier, playerExecutor -> playerExecutor.connect(target));
   }
 
-  @RequestHandler(path = "/api/v3/player/online/{identifier}/connect")
+  @RequestHandler(path = "/api/v3/player/online/{identifier}/connect", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_bridge:player_write", "cloudnet_bridge:player_connect_group_task"})
@@ -175,7 +176,7 @@ public class V3HttpHandlerPlayer {
     });
   }
 
-  @RequestHandler(path = "/api/v3/player/online/{identifier}/connectFallback")
+  @RequestHandler(path = "/api/v3/player/online/{identifier}/connectFallback", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_bridge:player_write", "cloudnet_bridge:player_connect_fallback"})
@@ -185,7 +186,7 @@ public class V3HttpHandlerPlayer {
     return this.handlePlayerExecutorContext(identifier, PlayerExecutor::connectToFallback);
   }
 
-  @RequestHandler(path = "/api/v3/player/online/{identifier}/kick")
+  @RequestHandler(path = "/api/v3/player/online/{identifier}/kick", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_bridge:player_write", "cloudnet_bridge:player_disconnect"})
@@ -207,7 +208,7 @@ public class V3HttpHandlerPlayer {
       playerExecutor -> playerExecutor.kick(ComponentFormats.BUNGEE_TO_ADVENTURE.convert(kickMessage)));
   }
 
-  @RequestHandler(path = "/api/v3/player/online/{identifier}/sendChat")
+  @RequestHandler(path = "/api/v3/player/online/{identifier}/sendChat", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_bridge:player_write", "cloudnet_bridge:player_send_chat"})
@@ -229,7 +230,7 @@ public class V3HttpHandlerPlayer {
       playerExecutor -> playerExecutor.sendChatMessage(ComponentFormats.BUNGEE_TO_ADVENTURE.convert(chatMessage)));
   }
 
-  @RequestHandler(path = "/api/v3/player/online/{identifier}/command")
+  @RequestHandler(path = "/api/v3/player/online/{identifier}/command", method = HttpMethod.POST)
   @Authentication(
     providers = "jwt",
     scopes = {"cloudnet_bridge:player_write", "cloudnet_bridge:player_send_command"})

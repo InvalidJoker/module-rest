@@ -187,8 +187,8 @@ public final class DefaultCorsRequestProcessor implements CorsRequestProcessor {
 
       // add info about the max time the preflight response can be cached, if provided
       var maxAge = corsConfig.maxAge();
-      if (maxAge != null) {
-        httpResponse.headers().add(HttpHeaders.ACCESS_CONTROL_MAX_AGE, Long.toString(maxAge.getSeconds()));
+      if (maxAge != -1) {
+        httpResponse.headers().add(HttpHeaders.ACCESS_CONTROL_MAX_AGE, Long.toString(maxAge));
       }
 
       // indicates to the browser is requests from public networks to private networks are allowed
