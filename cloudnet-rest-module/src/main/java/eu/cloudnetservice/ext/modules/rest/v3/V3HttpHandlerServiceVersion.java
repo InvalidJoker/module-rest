@@ -32,6 +32,7 @@ import eu.cloudnetservice.ext.rest.api.annotation.RequestTypedBody;
 import eu.cloudnetservice.ext.rest.api.problem.ProblemDetail;
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
+import eu.cloudnetservice.ext.rest.validation.EnableValidation;
 import eu.cloudnetservice.node.service.CloudServiceManager;
 import eu.cloudnetservice.node.version.ServiceVersion;
 import eu.cloudnetservice.node.version.ServiceVersionProvider;
@@ -46,6 +47,7 @@ import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 @Singleton
+@EnableValidation
 public final class V3HttpHandlerServiceVersion {
 
   private final CloudServiceManager serviceManager;
@@ -84,7 +86,7 @@ public final class V3HttpHandlerServiceVersion {
     }
 
     var versionType = versionTypeDto.toEntity();
-    var environmentType = this.versionProvider.getEnvironmentType(versionType.environmentType());
+    var environmentType = this.versionProvider.environmentType(versionType.environmentType());
     if (environmentType == null) {
       return ProblemDetail.builder()
         .status(HttpResponseCode.NOT_FOUND)
@@ -129,7 +131,7 @@ public final class V3HttpHandlerServiceVersion {
     providers = "jwt",
     scopes = {"cloudnet_rest:service_version_read", "cloudnet_rest:service_version_get"})
   public @NonNull IntoResponse<?> handleServiceVersionRequest(@NonNull @RequestPathParam("version") String version) {
-    var versionType = this.versionProvider.getServiceVersionType(version);
+    var versionType = this.versionProvider.serviceVersionType(version);
     if (versionType == null) {
       return ProblemDetail.builder()
         .type("service-version-not-found")
@@ -251,7 +253,7 @@ public final class V3HttpHandlerServiceVersion {
   private @Nullable ServiceVersionType extractServiceVersionType(@NonNull Document body) {
     var versionName = body.getString("serviceVersionType");
     if (versionName != null) {
-      return this.versionProvider.getServiceVersionType(versionName);
+      return this.versionProvider.serviceVersionType(versionName);
     }
 
     // try to read the object from the body
