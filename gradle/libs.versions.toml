@@ -4,12 +4,12 @@
 juppiter = "0.4.0"
 spotless = "6.20.0"
 nexusPublish = "2.0.0-rc-1"
-checkstyleTools = "10.12.3"
+checkstyleTools = "10.16.0"
 
 # testing
 junit = "5.10.0"
-mockito = "5.4.0"
-testcontainers = "1.18.3"
+mockito = "5.11.0"
+testcontainers = "1.19.8"
 
 # compile time processing
 lombok = "1.18.28"
@@ -19,7 +19,7 @@ gson = "2.10.1"
 jjwt = "0.12.2"
 slf4j = "2.0.7"
 guava = "32.1.2-jre"
-annotations = "24.0.1"
+annotations = "24.1.0"
 
 # validation
 expressly = "5.0.0"

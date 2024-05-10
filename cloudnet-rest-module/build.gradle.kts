@@ -15,7 +15,7 @@
  */
 
 plugins {
-  id("eu.cloudnetservice.juppiter") version "0.2.0"
+  id("eu.cloudnetservice.juppiter") version "0.4.0"
   id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
