@@ -16,7 +16,6 @@
 
 package eu.cloudnetservice.ext.modules.rest.v3;
 
-import com.google.common.net.MediaType;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestHandler;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestPath;
@@ -27,6 +26,8 @@ import eu.cloudnetservice.ext.rest.api.response.type.PlainTextResponse;
 import jakarta.inject.Singleton;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLConnection;
+import java.util.Objects;
 import lombok.NonNull;
 
 @Singleton
@@ -60,7 +61,10 @@ public final class V3HttpHandlerDocumentation {
         .detail("The requested documentation file was not found.");
     }
 
-    return InputStreamResponse.builder().body(resource.openStream()).contentType(MediaType.HTML_UTF_8.type());
+    var contentType = Objects.requireNonNullElse(
+      URLConnection.guessContentTypeFromName(filePath),
+      "application/octet-stream");
+    return InputStreamResponse.builder().body(resource.openStream()).contentType(contentType);
   }
 
 }
