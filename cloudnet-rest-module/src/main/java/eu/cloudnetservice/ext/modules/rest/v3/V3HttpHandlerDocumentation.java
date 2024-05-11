@@ -16,6 +16,7 @@
 
 package eu.cloudnetservice.ext.modules.rest.v3;
 
+import com.google.common.net.MediaType;
 import eu.cloudnetservice.ext.rest.api.HttpResponseCode;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestHandler;
 import eu.cloudnetservice.ext.rest.api.annotation.RequestPath;
@@ -28,7 +29,6 @@ import java.io.IOException;
 import java.net.URI;
 import lombok.NonNull;
 
-// TODO: this might be totally yek
 @Singleton
 public final class V3HttpHandlerDocumentation {
 
@@ -60,7 +60,7 @@ public final class V3HttpHandlerDocumentation {
         .detail("The requested documentation file was not found.");
     }
 
-    return InputStreamResponse.builder().body(resource.openStream());
+    return InputStreamResponse.builder().body(resource.openStream()).contentType(MediaType.HTML_UTF_8.type());
   }
 
 }

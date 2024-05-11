@@ -61,46 +61,43 @@ public final class V3HttpHandlerAuthorization {
 
   @RequestHandler(path = "/api/v3/auth/refresh", method = HttpMethod.POST)
   public @NonNull IntoResponse<?> handleRefreshRequest(@NonNull HttpContext context) {
-    // TODO: use switch over the auth result with Java21
     var authenticationResult = this.jwtAuthProvider.tryAuthenticate(context, this.userManagement);
-    if (authenticationResult instanceof AuthenticationResult.Success) {
-      return ProblemDetail.builder()
+    return switch (authenticationResult) {
+      case AuthenticationResult.Success ignored -> ProblemDetail.builder()
         .type("access-token-used")
         .title("Access Token Used")
         .status(HttpResponseCode.BAD_REQUEST)
         .detail("This route can only be called with an refresh token, not with an access token");
-    }
+      case AuthenticationResult.InvalidTokenType refreshResult -> {
+        // remove the token was used to access (and now refresh)
+        // the client must now use the new token returned by the call
+        var user = refreshResult.restUser();
+        var validTokens = JwtTokenPropertyParser.parseTokens(user.properties().get(JwtAuthProvider.JWT_TOKEN_PAIR_KEY))
+          .stream()
+          .filter(holder -> !holder.tokenId().equals(refreshResult.tokenId()))
+          .toList();
 
-    if (authenticationResult instanceof AuthenticationResult.InvalidTokenType refreshResult) {
-      // remove the token was used to access (and now refresh)
-      // the client must now use the new token returned by the call
-      var user = refreshResult.restUser();
-      var validTokens = JwtTokenPropertyParser.parseTokens(user.properties().get(JwtAuthProvider.JWT_TOKEN_PAIR_KEY))
-        .stream()
-        .filter(holder -> !holder.tokenId().equals(refreshResult.tokenId()))
-        .toList();
+        // re-compact the valid tokens & write the properties back to the user object
+        var compactTokens = JwtTokenPropertyParser.compactTokens(validTokens);
+        user = this.userManagement.builder(user).modifyProperties(properties -> {
+          if (compactTokens == null) {
+            // no tokens left, just remove the property
+            properties.remove(JwtAuthProvider.JWT_TOKEN_PAIR_KEY);
+          } else {
+            // update the property
+            properties.put(JwtAuthProvider.JWT_TOKEN_PAIR_KEY, compactTokens);
+          }
+        }).build();
 
-      // re-compact the valid tokens & write the properties back to the user object
-      var compactTokens = JwtTokenPropertyParser.compactTokens(validTokens);
-      user = this.userManagement.builder(user).modifyProperties(properties -> {
-        if (compactTokens == null) {
-          // no tokens left, just remove the property
-          properties.remove(JwtAuthProvider.JWT_TOKEN_PAIR_KEY);
-        } else {
-          // update the property
-          properties.put(JwtAuthProvider.JWT_TOKEN_PAIR_KEY, compactTokens);
-        }
-      }).build();
-
-      // generate a new auth token for the user - this will also save the user with the new valid tokens
-      return this.jwtAuthProvider.generateAuthToken(this.userManagement, user);
-    } else {
-      return ProblemDetail.builder()
+        // generate a new auth token for the user - this will also save the user with the new valid tokens
+        yield this.jwtAuthProvider.generateAuthToken(this.userManagement, user);
+      }
+      default -> ProblemDetail.builder()
         .type("invalid-refresh-token")
         .title("Invalid Refresh Token")
         .status(HttpResponseCode.UNAUTHORIZED)
         .detail("The provided refresh token is invalid");
-    }
+    };
   }
 
   @RequestHandler(path = "/api/v3/auth/verify", method = HttpMethod.POST)
@@ -168,13 +165,12 @@ public final class V3HttpHandlerAuthorization {
 
   // do not expose, returning Tuple3 here is awful :)
   private @Nullable Tuple3<RestUser, String, String> convertAuthResult(@NonNull AuthenticationResult result) {
-    // TODO: use switch in Java21
-    if (result instanceof AuthenticationResult.Success success) {
-      return Tuple.of(success.restUser(), JwtTokenHolder.ACCESS_TOKEN_TYPE, success.tokenId());
-    } else if (result instanceof AuthenticationResult.InvalidTokenType invalidTokenType) {
-      return Tuple.of(invalidTokenType.restUser(), JwtTokenHolder.REFRESH_TOKEN_TYPE, invalidTokenType.tokenId());
-    } else {
-      return null;
-    }
+    return switch (result) {
+      case AuthenticationResult.Success success ->
+        Tuple.of(success.restUser(), JwtTokenHolder.ACCESS_TOKEN_TYPE, success.tokenId());
+      case AuthenticationResult.InvalidTokenType invalidTokenType ->
+        Tuple.of(invalidTokenType.restUser(), JwtTokenHolder.REFRESH_TOKEN_TYPE, invalidTokenType.tokenId());
+      default -> null;
+    };
   }
 }
