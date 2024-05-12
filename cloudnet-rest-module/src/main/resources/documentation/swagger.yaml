@@ -9,9 +9,6 @@ info:
     To create a basic auth user use the `rest user create <id> <password>` command on your cloudnet node.
     After authenticating with basic auth on `/auth` you will get a bearer jwt access token that must be used for further
     requests to the api. For further information about the response take a look at the `/auth` endpoint.
-    
-    MENTION CONFIG HERE
-    MENTION CASE-SENS HERE
   version: '3'
   title: CloudNet
   contact:
@@ -549,11 +546,12 @@ paths:
               properties:
                 key:
                   type: string
-                  example: Signs 0utplayyyy
+                  examples:
+                    - Signs 0utplayyyy
                 document:
                   type: object
-                  example:
-                    Name: Peter
+                  examples:
+                    - Name: Peter
       tags:
         - Database
       summary: Creates a new document in a database
@@ -678,7 +676,8 @@ paths:
                 properties:
                   count:
                     type: integer
-                    example: 5
+                    examples:
+                      - 5
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -715,7 +714,8 @@ paths:
                 properties:
                   result:
                     type: boolean
-                    example: true
+                    examples:
+                      - true
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -770,8 +770,8 @@ paths:
             schema:
               oneOf:
                 - type: object
-                  example:
-                    Signs: 0utplayyyy
+                  examples:
+                    - Signs: 0utplayyyy
       tags:
         - Database
       parameters:
@@ -934,13 +934,12 @@ paths:
                   - properties:
                       onlineCount:
                         type: integer
-                        example: 10
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                        examples:
+                          - 10
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
   /player/online:
     parameters:
       - name: limit
@@ -1024,7 +1023,11 @@ paths:
         in: path
         required: true
         description: The name or unique id of the player to get
-        example: bcc582ed-494d-4b93-86cb-b58564651a26
+        examples:
+          playerId:
+           value: bcc582ed-494d-4b93-86cb-b58564651a26
+          playerName:
+            value: 0utplayyyy
         schema:
           type: string
     get:
@@ -1042,24 +1045,25 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/Success'
-                  - properties:
-                      player:
-                        $ref: '#/components/schemas/CloudPlayer'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: '#/components/schemas/CloudPlayer'
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          $ref: '#/components/responses/Problem'
         '403':
-          $ref: '#/components/responses/Forbidden'
+          $ref: '#/components/responses/Problem'
+        '404':
+          description: There is no player with the provided identifier.
+          $ref: '#/components/responses/Problem'
   /player/online/{identifier}/exists:
     parameters:
       - name: identifier
         in: path
         required: true
         description: The name or unique id of the player to check for
-        example: bcc582ed-494d-4b93-86cb-b58564651a26
+        examples:
+          playerId:
+            value: bcc582ed-494d-4b93-86cb-b58564651a26
+          playerName:
+            value: 0utplayyyy
         schema:
           type: string
     get:
@@ -1086,7 +1090,11 @@ paths:
         in: path
         required: true
         description: The name or unique id of the player to check for
-        example: bcc582ed-494d-4b93-86cb-b58564651a26
+        examples:
+          playerId:
+            value: bcc582ed-494d-4b93-86cb-b58564651a26
+          playerName:
+            value: 0utplayyyy
         schema:
           type: string
       - name: target
@@ -1127,7 +1135,11 @@ paths:
         in: path
         required: true
         description: The name or unique id of the player to check for
-        example: bcc582ed-494d-4b93-86cb-b58564651a26
+        examples:
+          playerId:
+            value: bcc582ed-494d-4b93-86cb-b58564651a26
+          playerName:
+            value: 0utplayyyy
         schema:
           type: string
       - name: target
@@ -1203,7 +1215,11 @@ paths:
         in: path
         required: true
         description: The name or unique id of the player to check for
-        example: bcc582ed-494d-4b93-86cb-b58564651a26
+        examples:
+          playerId:
+            value: bcc582ed-494d-4b93-86cb-b58564651a26
+          playerName:
+            value: 0utplayyyy
         schema:
           type: string
     post:
@@ -1234,7 +1250,11 @@ paths:
         in: path
         required: true
         description: The name or unique id of the player to check for
-        example: bcc582ed-494d-4b93-86cb-b58564651a26
+        examples:
+          playerId:
+            value: bcc582ed-494d-4b93-86cb-b58564651a26
+          playerName:
+            value: 0utplayyyy
         schema:
           type: string
     post:
@@ -1275,7 +1295,11 @@ paths:
         in: path
         required: true
         description: The name or unique id of the player to check for
-        example: bcc582ed-494d-4b93-86cb-b58564651a26
+        examples:
+          playerId:
+            value: bcc582ed-494d-4b93-86cb-b58564651a26
+          playerName:
+            value: 0utplayyyy
         schema:
           type: string
     post:
@@ -1316,7 +1340,11 @@ paths:
         in: path
         required: true
         description: The name or unique id of the player to check for
-        example: bcc582ed-494d-4b93-86cb-b58564651a26
+        examples:
+          playerId:
+            value: bcc582ed-494d-4b93-86cb-b58564651a26
+          playerName:
+            value: 0utplayyyy
         schema:
           type: string
       - name: redirectToServer
@@ -1503,6 +1531,13 @@ paths:
         description: The name or unique id of the service
         schema:
           type: string
+        examples:
+          serviceName:
+            value: Lobby-1
+            summary: Request with a service name
+          serviceId:
+            value: 62b37d32-3305-475a-bf26-9abee4b0b90f
+            summary: Request with a service id
     get:
       tags:
         - Services
@@ -1553,6 +1588,13 @@ paths:
         description: The name or unique id of the service
         schema:
           type: string
+        examples:
+          serviceName:
+            value: Lobby-1
+            summary: Request with a service name
+          serviceId:
+            value: 62b37d32-3305-475a-bf26-9abee4b0b90f
+            summary: Request with a service id
     delete:
       tags:
         - Services
@@ -1582,6 +1624,13 @@ paths:
         description: The name or unique id of the service
         schema:
           type: string
+        examples:
+          serviceName:
+            value: Lobby-1
+            summary: Request with a service name
+          serviceId:
+            value: 62b37d32-3305-475a-bf26-9abee4b0b90f
+            summary: Request with a service id
       - name: target
         in: query
         required: true
@@ -1842,9 +1891,11 @@ paths:
         content:
           application/json:
             schema:
-              taskName:
-                type: string
-                example: Lobby
+              properties:
+                taskName:
+                  type: string
+                  examples:
+                    - Lobby
       responses:
         '200':
           description: OK
@@ -2009,7 +2060,8 @@ paths:
               properties:
                 command:
                   type: string
-                  example: whitelist on
+                  examples:
+                    - whitelist on
       tags:
         - Services
       summary: Executes the specified command on a service
@@ -2049,7 +2101,7 @@ paths:
                     type: array
                     items:
                       type: string
-                    example:
+                    examples:
                       - local
                       - ftp
         '401':
@@ -2224,9 +2276,11 @@ paths:
           content:
             application/json:
               schema:
-                exists:
-                  type: boolean
-                  example: true
+                properties:
+                  exists:
+                    type: boolean
+                    examples:
+                      - true
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -2314,9 +2368,11 @@ paths:
           content:
             application/json:
               schema:
-                exists:
-                  type: boolean
-                  example: true
+                properties:
+                  exists:
+                    type: boolean
+                    examples:
+                      - true
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -2867,7 +2923,8 @@ paths:
                     - properties:
                         staticService:
                           type: string
-                          example: Lobby-1
+                          examples:
+                            - Lobby-1
                     - properties:
                         template:
                           $ref: '#/components/schemas/ServiceTemplate'
@@ -2875,7 +2932,8 @@ paths:
                     - properties:
                         serviceVersionType:
                           type: string
-                          example: paper
+                          examples:
+                            - paper
                     - properties:
                         serviceVersionType:
                           $ref: '#/components/schemas/ServiceVersionType'
@@ -2883,7 +2941,8 @@ paths:
                     - properties:
                         serviceVersion:
                           type: string
-                          example:
+                          examples:
+                            - paper
                     - properties:
                         serviceVersion:
                           $ref: '#/components/schemas/ServiceVersion'
@@ -3264,43 +3323,6 @@ components:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/Problem'
-    Success:
-      description: The action was executed
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Success'
-    NotFound:
-      description: The specified resource was not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-        text/plain:
-          example: Resource not found!
-    Unauthorized:
-      description: The the credentials for a successful login are missing
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    Forbidden:
-      description: |
-        The user has not the required permissions to execute that action
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-    BadRequest:
-      description: >
-        The request sent to the server does not contain all necessary
-        information
-
-        or a specific information provided is invalid.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
   schemas:
     Problem:
       description: >-
@@ -3320,7 +3342,8 @@ components:
             A short summary of the problem type. Written in English and readable
             for engineers (usually not suited for non technical stakeholders and
             not localized).
-          example: Service Unavailable
+          examples:
+            - Service Unavailable
         status:
           type: integer
           format: int32
@@ -3329,7 +3352,8 @@ components:
             occurrence of the problem.
           minimum: 400
           exclusiveMaximum: 600
-          example: 503
+          examples:
+            - 503
         detail:
           type: string
           description: >-
@@ -3349,7 +3373,8 @@ components:
         - properties:
             uniqueId:
               type: string
-              example: Node-1
+              examples:
+                - Node-1
             listeners:
               type: array
               items:
@@ -3366,7 +3391,8 @@ components:
               properties:
                 clusterId:
                   type: string
-                  example: a0e8765e-7853-455b-bb2b-7a022a607be2
+                  examples:
+                    - a0e8765e-7853-455b-bb2b-7a022a607be2
                 nodes:
                   type: array
                   items:
@@ -3375,39 +3401,49 @@ components:
               type: array
               items:
                 type: string
-              example:
+              examples:
                 - 192.168.56.1
                 - 127.0.0.1
             maxCPUUsageToStartServices:
               type: number
-              example: 90
+              examples:
+                - 90
             maxMemory:
               type: number
-              example: 2048
+              examples:
+                - 2048
             maxServiceConsoleLogCacheSize:
               type: integer
-              example: 128
+              examples:
+                - 128
             processTerminationTimeoutSeconds:
               type: integer
-              example: 5
+              examples:
+                - 5
             forceInitialClusterDataSync:
               type: boolean
-              example: true
+              examples:
+                - true
             printErrorStreamLinesFromServices:
               type: boolean
-              example: true
+              examples:
+                - true
             runBlockedServiceStartTryLaterAutomatic:
               type: boolean
-              example: true
+              examples:
+                - true
             jvmCommand:
               type: string
-              example: java
+              examples:
+                - java
             hostAddress:
               type: string
-              example: 127.0.0.1
+              examples:
+                - 127.0.0.1
             connectHostAddress:
               type: string
-              example: 127.0.0.1
+              examples:
+                - 127.0.0.1
             httpListeners:
               type: array
               items:
@@ -3423,19 +3459,24 @@ components:
       properties:
         enabled:
           type: boolean
-          example: false
+          examples:
+            - false
         clientAuth:
           type: boolean
-          example: true
+          examples:
+            - true
         trustCertificatePath:
           type: string
-          example: null
+          examples:
+            - null
         certificatePath:
           type: string
-          example: local/certificate.pem
+          examples:
+            - local/certificate.pem
         privateKeyPath:
           type: string
-          example: local/privateKey.key
+          examples:
+            - local/privateKey.key
     NodeServer:
       type: object
       properties:
@@ -3471,13 +3512,16 @@ components:
                 - SYNCING
                 - READY
                 - DISCONNECTED
-              example: READY
+              examples:
+                - READY
             head:
               type: boolean
-              example: false
+              examples:
+                - false
             local:
               type: boolean
-              example: true
+              examples:
+                - true
             nodeInfoSnapshot:
               $ref: '#/components/schemas/NodeInfoSnapshot'
     NodeInfoSnapshot:
@@ -3518,6 +3562,8 @@ components:
             drain:
               type: boolean
               description: Indicates if the node is draining (stopping after all running services were stopped)
+              examples:
+                - true
             node:
               $ref: '#/components/schemas/NetworkClusterNode'
             version:
@@ -3548,6 +3594,8 @@ components:
           type: string
         tokenType:
           type: string
+          examples:
+            - access
         expiresIn:
           type: number
     JsonDocPropertyable:
@@ -3608,8 +3656,7 @@ components:
             name:
               type: string
               examples:
-                lobbyExample:
-                  value: Lobby
+                - Lobby
             jvmOptions:
               type: array
               items:
@@ -3646,13 +3693,16 @@ components:
         - properties:
             name:
               type: string
-              example: derklaro
+              examples:
+                - derklaro
             firstLoginTimeMillis:
               type: number
-              example: 1642409856
+              examples:
+                - 1642409856
             lastLoginTimeMillis:
               type: number
-              example: 1642409856
+              examples:
+                - 1642409856
             lastNetworkPlayerProxyInfo:
               $ref: '#/components/schemas/NetworkPlayerProxyInfo'
     NetworkPlayerServerInfo:
@@ -3660,13 +3710,16 @@ components:
       properties:
         uniqueId:
           type: string
-          example: 05bf52c6-7bb0-4f13-8951-0e1fd803df35
+          examples:
+            - 05bf52c6-7bb0-4f13-8951-0e1fd803df35
         name:
           type: string
-          example: taginbert
+          examples:
+            - taginbert
         xBoxId:
           type: string
-          example: null
+          examples:
+            - null
         address:
           $ref: '#/components/schemas/HostAndPort'
         networkService:
@@ -3678,12 +3731,14 @@ components:
         - properties:
             version:
               type: integer
-              example: 47
+              examples:
+                - 47
             listener:
               $ref: '#/components/schemas/HostAndPort'
             onlineMode:
               type: boolean
-              example: true
+              examples:
+                - true
     NetworkServiceInfo:
       type: object
       properties:
@@ -3727,7 +3782,8 @@ components:
           $ref: '#/components/schemas/NetworkClusterNodeInfoSnapshot'
         serviceCount:
           type: integer
-          example: 0
+          examples:
+            - 0
         clientConnections:
           type: array
           items:
@@ -3740,31 +3796,40 @@ components:
       properties:
         pid:
           type: integer
-          example: 8168
+          examples:
+            - 8168
         cpuUsage:
           type: number
-          example: 0.7781862806132257
+          examples:
+            - 0.7781862806132257
         systemCpuUsage:
           type: number
-          example: 0.7781862806132257
+          examples:
+            - 0.7781862806132257
         maxHeapMemory:
           type: number
-          example: 2111832064
+          examples:
+            - 2111832064
         heapUsageMemory:
           type: number
-          example: 230091112
+          examples:
+            - 230091112
         noHeapUsageMemory:
           type: number
-          example: 46906136
+          examples:
+            - 46906136
         unloadedClassCount:
           type: number
-          example: 21
+          examples:
+            - 21
         totalLoadedClassCount:
           type: number
-          example: 5940
+          examples:
+            - 5940
         currentLoadedClassCount:
           type: number
-          example: 5919
+          examples:
+            - 5919
         threads:
           type: array
           items:
@@ -3774,16 +3839,20 @@ components:
       properties:
         id:
           type: number
-          example: 5
+          examples:
+            - 5
         priority:
           type: integer
-          example: 1
+          examples:
+            - 1
         daemon:
           type: boolean
-          example: true
+          examples:
+            - true
         name:
           type: string
-          example: WindowsStreamPump
+          examples:
+            - WindowsStreamPump
         threadState:
           type: string
           enum:
@@ -3793,40 +3862,51 @@ components:
             - WAITING
             - TIMED_WAITING
             - TERMINATED
-          example: RUNNABLE
+          examples:
+            - RUNNABLE
     ModuleConfiguration:
       type: object
       properties:
         runtimeModule:
           type: boolean
-          example: false
+          examples:
+            - false
         storesSensitiveData:
           type: boolean
-          example: true
+          examples:
+            - true
         group:
           type: string
-          example: eu.cloudnetservice.modules
+          examples:
+            - eu.cloudnetservice.modules
         name:
           type: string
-          example: CloudNet-CloudFlare
+          examples:
+            - CloudNet-CloudFlare
         version:
           type: string
-          example: '1.1'
+          examples:
+            - '1.1'
         main:
           type: string
-          example: eu.cloudnetservice.modules.cloudflare.CloudNetCloudflareModule
+          examples:
+            - eu.cloudnetservice.modules.cloudflare.CloudNetCloudflareModule
         description:
           type: string
-          example: Node extension for the https://cloudflare.com REST-API
+          examples:
+            - Node extension for the https://cloudflare.com REST-API
         author:
           type: string
-          example: CloudNetService
+          examples:
+            - CloudNetService
         website:
           type: string
-          example: https://cloudnetservice.eu
+          examples:
+            - https://cloudnetservice.eu
         dataFolder:
           type: string
-          example: null
+          examples:
+            - null
         repositories:
           type: array
           items:
@@ -3834,10 +3914,12 @@ components:
             properties:
               name:
                 type: string
-                example: CloudNet
+                examples:
+                  - CloudNet
               url:
                 type: string
-                example: https://repo.cloudnetservice.eu/
+                examples:
+                  - https://repo.cloudnetservice.eu/
         dependencies:
           type: array
           items:
@@ -3845,25 +3927,32 @@ components:
             properties:
               repo:
                 type: string
-                example: CloudNet
+                examples:
+                  - CloudNet
               url:
                 type: string
-                example: https://repo.cloudnetservice.eu/
+                examples:
+                  - https://repo.cloudnetservice.eu/
               group:
                 type: string
-                example: eu.cloudnetservice.cloudnet
+                examples:
+                  - eu.cloudnetservice.cloudnet
               name:
                 type: string
-                example: CloudNet-Bridge
+                examples:
+                  - CloudNet-Bridge
               version:
                 type: string
-                example: '1.1'
+                examples:
+                  - '1.1'
         minJavaVersionId:
           type: integer
-          example: 11
+          examples:
+            - 11
         properties:
           type: object
-          example: { }
+          examples:
+            - { }
     ProcessConfiguration:
       type: object
       properties:
@@ -3965,29 +4054,36 @@ components:
       properties:
         taskName:
           type: string
-          example: Lobby
+          examples:
+            - Lobby
         nameSplitter:
           type: string
-          example: '-'
+          examples:
+            - '-'
+            - '-service-'
         environmentName:
           type: string
-          example: MINECRAFT_SERVER
+          examples:
+            - MINECRAFT_SERVER
         allowedNodes:
           type: array
           items:
             type: string
-          example:
+          examples:
             - Node-1
             - Node-2
         uniqueId:
           type: string
-          example: 43a9e824-cc3c-459b-b574-4f41e6509bda
+          examples:
+            - 43a9e824-cc3c-459b-b574-4f41e6509bda
         taskServiceId:
           type: integer
-          example: 2
+          examples:
+            - 2
         nodeUniqueId:
           type: string
-          example: Node-2
+          examples:
+            - Node-2
         environment:
           $ref: '#/components/schemas/ServiceEnvironmentType'
     ServiceConfiguration:
@@ -4003,28 +4099,32 @@ components:
               $ref: '#/components/schemas/ProcessConfiguration'
             runtime:
               type: string
-              example: jvm
+              examples:
+                - jvm
             javaCommand:
               type: string
-              example: java
+              examples:
+                - java
             autoDeleteOnStop:
               type: boolean
-              example: true
+              examples:
+                - true
             staticService:
               type: boolean
-              example: true
+              examples:
+                - true
             groups:
               type: array
               items:
                 type: string
-              example:
+              examples:
                 - Lobby
                 - Lobby-Global
             deletedFilesAfterStop:
               type: array
               items:
                 type: string
-              example:
+              examples:
                 - server.properties
                 - plugins/cool/config.json
             templates:
@@ -4041,7 +4141,8 @@ components:
                 $ref: '#/components/schemas/ServiceRemoteInclusion'
             port:
               type: integer
-              example: 25565
+              examples:
+                - 25565
     ServiceInfoSnapshot:
       type: object
       allOf:
@@ -4049,7 +4150,8 @@ components:
         - properties:
             creationTime:
               type: number
-              example: 1620824797570
+              examples:
+                - 1620824797570
             address:
               $ref: '#/components/schemas/HostAndPort'
             connectAddress:
@@ -4060,7 +4162,8 @@ components:
               $ref: '#/components/schemas/ServiceConfiguration'
             connectedTime:
               type: number
-              example: 1620824797599
+              examples:
+                - 1620824797599
             lifeCycle:
               type: string
               enum:
@@ -4068,18 +4171,20 @@ components:
                 - RUNNING
                 - STOPPED
                 - DELETED
-              example: PREPARED
+              examples:
+                - PREPARED
     ServiceCreateRetryConfiguration:
       type: object
       properties:
         maxRetries:
           type: integer
-          example: 5
+          examples:
+            - 5
         backoffStrategy:
           type: array
           items:
             type: integer
-            example:
+            examples:
               - 500
               - 1500
         eventReceivers:
@@ -4095,7 +4200,8 @@ components:
             - FAILED
         creationId:
           type: string
-          example: 43a9e824-cc3c-459b-b574-4f41e6509bda
+          examples:
+            - 43a9e824-cc3c-459b-b574-4f41e6509bda
         serviceInfo:
           $ref: '#/components/schemas/ServiceInfoSnapshot'
     HostAndPort:
@@ -4103,62 +4209,78 @@ components:
       properties:
         host:
           type: string
-          example: 127.0.0.1
+          examples:
+            - 127.0.0.1
         port:
           type: integer
-          example: 1410
+          examples:
+            - 1410
     FileInfo:
       type: object
       properties:
         path:
           type: string
-          example: plugins/cool.jar
+          examples:
+            - plugins/cool.jar
         name:
           type: string
-          example: cool.jar
+          examples:
+            - cool.jar
         directory:
           type: boolean
-          example: false
+          examples:
+            - false
         hidden:
           type: boolean
-          example: false
+          examples:
+            - false
         creationTime:
           type: number
-          example: 1619200785568
+          examples:
+            - 1619200785568
         lastModified:
           type: number
-          example: 1619200785568
+          examples:
+            - 1619200785568
         lastAccess:
           type: number
-          example: 1620804114355
+          examples:
+            - 1620804114355
         size:
           type: number
-          example: 13785007
+          examples:
+            - 13785007
     ServiceVersion:
       type: object
       properties:
         name:
           type: string
-          example: latest
+          examples:
+            - latest
         url:
           type: string
-          example: >-
-            https://api.papermc.io/v2/projects/paper/versions/1.14.4/builds/243/downloads/paper-1.14.4-243.jar
+          examples:
+            - https://api.papermc.io/v2/projects/paper/versions/1.14.4/builds/243/downloads/paper-1.14.4-243.jar
         minJavaVersion:
           type: integer
-          example: 8
+          examples:
+            - 8
         maxJavaVersion:
           type: integer
-          example: 11
+          examples:
+            - 11
         deprecated:
           type: boolean
-          example: false
+          examples:
+            - false
         cacheFiles:
           type: boolean
-          example: false
+          examples:
+            - false
         properties:
           type: object
-          example: { }
+          examples:
+            - { }
         additionalDownloads:
           type: object
           additionalProperties:
@@ -4168,15 +4290,17 @@ components:
       properties:
         name:
           type: string
-          example: paperspigot
+          examples:
+            - paperspigot
         environmentType:
           type: string
-          example: MINECRAFT_SERVER
+          examples:
+            - MINECRAFT_SERVER
         installSteps:
           type: array
           items:
             type: string
-          example:
+          examples:
             - DOWNLOAD
             - BUILD
             - UNZIP
@@ -4192,14 +4316,18 @@ components:
         - properties:
             name:
               type: string
-              example: MINECRAFT_SERVER
+              examples:
+                - MINECRAFT_SERVER
             defaultServiceStartPort:
               type: integer
-              example: 25565
+              examples:
+                - 25565
             defaultProcessArguments:
               type: array
               items:
                 type: string
+              examples:
+                - nogui
     ModuleInfo:
       type: object
       properties:
@@ -4220,30 +4348,37 @@ components:
       properties:
         official:
           type: boolean
-          example: true
+          examples:
+            - true
         name:
           type: string
-          example: CloudNet-Bridge
+          examples:
+            - CloudNet-Bridge
         website:
           type: string
-          example: cloudnetservice.eu
+          examples:
+            - cloudnetservice.eu
         version:
           type: string
-          example: 4.0.0-RELEASE
+          examples:
+            - 4.0.0-RELEASE
         sha3256:
           type: string
-          example: 786cd19b0b74dbaccf10736822db1ae330e1d8643caa490d1a3c2af3e143c113
+          examples:
+            - 786cd19b0b74dbaccf10736822db1ae330e1d8643caa490d1a3c2af3e143c113
         description:
           type: string
-          example: A CloudNet module
+          examples:
+            - A CloudNet module
         url:
           type: string
-          example: https://github.com/%updateRepo%/raw/%updateBranch%/modules/cloudnet-s3.jar
+          examples:
+            - https://github.com/%updateRepo%/raw/%updateBranch%/modules/cloudnet-s3.jar
         maintainers:
           type: array
           items:
             type: string
-          example:
+          examples:
             - Playo
             - Klaro
         releaseNotes:
@@ -4254,7 +4389,7 @@ components:
           type: array
           items:
             type: string
-          example:
+          examples:
             - CloudNet-Bridge
             - CloudNet-Signs
     CloudNetVersion:
@@ -4262,36 +4397,25 @@ components:
       properties:
         major:
           type: integer
-          example: 4
+          examples:
+            - 4
         minor:
           type: integer
-          example: 0
+          examples:
+            - 0
         patch:
           type: integer
-          example: 1
+          examples:
+            - 1
         revision:
           type: string
-          example: 5dd7f63
+          examples:
+            - 5dd7f63
         versionType:
           type: string
-          example: RELEASE
+          examples:
+            - RELEASE
         versionTitle:
           type: string
-          example: Blizzard
-    Success:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: true
-    Error:
-      type: object
-      properties:
-        success:
-          type: boolean
-          default: false
-          description: This boolean will always be false when an error occurred
-        reason:
-          type: string
-          example: Error message
-          description: The error that occurred during the processing of the request
+          examples:
+            - Blizzard
