@@ -78,7 +78,7 @@ public final class V3HttpHandlerModule {
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_read", "cloudnet_rest:module_list_loaded"})
   public @NonNull IntoResponse<?> handleModuleLoadedListRequest() {
     var modules = this.moduleProvider.modules().stream().map(this::constructModuleInformation).toList();
-    return JsonResponse.builder().body(modules);
+    return JsonResponse.builder().body(Map.of("modules", modules));
   }
 
   @RequestHandler(path = "/api/v3/module/present")
@@ -90,15 +90,14 @@ public final class V3HttpHandlerModule {
       (__, current) -> fileNames.add(current.getFileName().toString()),
       false,
       "*.{jar,war}");
-
-    return JsonResponse.builder().body(fileNames);
+    return JsonResponse.builder().body(Map.of("modules", fileNames));
   }
   
   @RequestHandler(path = "/api/v3/module/available")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:module_read", "cloudnet_rest:module_list_available"})
   public @NonNull IntoResponse<?> handleModuleInstalledListRequest() {
     var modules = this.modulesHolder.entries().stream().peek(ModuleEntry::url).toList();
-    return JsonResponse.builder().body(modules);
+    return JsonResponse.builder().body(Map.of("modules", modules));
   }
 
   @RequestHandler(path = "/api/v3/module/{name}")

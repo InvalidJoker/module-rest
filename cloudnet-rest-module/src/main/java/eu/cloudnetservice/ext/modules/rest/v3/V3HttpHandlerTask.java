@@ -31,6 +31,7 @@ import eu.cloudnetservice.ext.rest.validation.EnableValidation;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.validation.Valid;
+import java.util.Map;
 import lombok.NonNull;
 
 @Singleton
@@ -46,7 +47,7 @@ public final class V3HttpHandlerTask {
   @RequestHandler(path = "/api/v3/task")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:task_read", "cloudnet_rest:task_list"})
   public @NonNull IntoResponse<?> handleTaskListRequest() {
-    return JsonResponse.builder().body(this.taskProvider.serviceTasks());
+    return JsonResponse.builder().body(Map.of("tasks", this.taskProvider.serviceTasks()));
   }
 
   @RequestHandler(path = "/api/v3/task/{name}")

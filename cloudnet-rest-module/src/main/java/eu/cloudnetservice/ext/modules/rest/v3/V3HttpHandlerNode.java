@@ -181,7 +181,7 @@ public final class V3HttpHandlerNode {
       LogManager.rootLogger().addHandler(handler);
     });
 
-    return JsonResponse.builder().responseCode(HttpResponseCode.SWITCHING_PROTOCOLS);
+    return HttpResponseCode.SWITCHING_PROTOCOLS;
   }
 
   private void reloadConfig() {

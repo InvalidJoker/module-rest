@@ -47,7 +47,7 @@ public final class V3HttpHandlerDatabase {
   @RequestHandler(path = "/api/v3/database")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_list"})
   public @NonNull IntoResponse<?> handleNamesRequest() {
-    return JsonResponse.builder().body(this.databaseProvider.databaseNames());
+    return JsonResponse.builder().body(Map.of("databaseNames", this.databaseProvider.databaseNames()));
   }
 
   @RequestHandler(path = "/api/v3/database/{name}/clear", method = HttpMethod.POST)
@@ -71,7 +71,7 @@ public final class V3HttpHandlerDatabase {
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:database_read", "cloudnet_rest:database_keys"})
   public @NonNull IntoResponse<?> handleKeysRequest(@NonNull @RequestPathParam("name") String name) {
     var database = this.databaseProvider.database(name);
-    return JsonResponse.builder().body(database.keys());
+    return JsonResponse.builder().body(Map.of("keys", database.keys()));
   }
 
   @RequestHandler(path = "/api/v3/database/{name}/count")
@@ -100,7 +100,7 @@ public final class V3HttpHandlerDatabase {
     }
 
     if (database.insert(key, data)) {
-      return JsonResponse.builder().responseCode(HttpResponseCode.CREATED);
+      return HttpResponseCode.CREATED;
     } else {
       return ProblemDetail.builder()
         .type("database-insert-failed")

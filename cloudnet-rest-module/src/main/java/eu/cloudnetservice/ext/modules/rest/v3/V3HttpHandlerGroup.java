@@ -31,6 +31,7 @@ import eu.cloudnetservice.ext.rest.validation.EnableValidation;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.validation.Valid;
+import java.util.Map;
 import lombok.NonNull;
 
 @Singleton
@@ -46,7 +47,7 @@ public final class V3HttpHandlerGroup {
   @RequestHandler(path = "/api/v3/group")
   @Authentication(providers = "jwt", scopes = {"cloudnet_cloudnet_rest:group_read", "cloudnet_rest:group_list"})
   public @NonNull IntoResponse<?> handleGroupListRequest() {
-    return JsonResponse.builder().body(this.groupProvider.groupConfigurations());
+    return JsonResponse.builder().body(Map.of("groups", this.groupProvider.groupConfigurations()));
   }
 
   @RequestHandler(path = "/api/v3/group/{name}")
@@ -77,7 +78,7 @@ public final class V3HttpHandlerGroup {
     }
 
     this.groupProvider.addGroupConfiguration(group.toEntity());
-    return JsonResponse.builder().responseCode(HttpResponseCode.CREATED);
+    return HttpResponseCode.CREATED;
   }
 
   @RequestHandler(path = "/api/v3/group/{name}", method = HttpMethod.DELETE)

@@ -43,6 +43,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.validation.Valid;
 import java.io.IOException;
+import java.util.Map;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,7 +68,7 @@ public final class V3HttpHandlerServiceVersion {
     providers = "jwt",
     scopes = {"cloudnet_rest:service_version_read", "cloudnet_rest:service_version_list"})
   public @NonNull IntoResponse<?> handleServiceVersionListRequest() {
-    return JsonResponse.builder().body(this.versionProvider.serviceVersionTypes());
+    return JsonResponse.builder().body(Map.of("serviceVersionTypes", this.versionProvider.serviceVersionTypes()));
   }
 
   @RequestHandler(path = "/api/v3/serviceVersion", method = HttpMethod.POST)
@@ -104,7 +105,7 @@ public final class V3HttpHandlerServiceVersion {
     providers = "jwt",
     scopes = {"cloudnet_rest:service_version_read", "cloudnet_rest:service_version_list_environments"})
   public @NonNull IntoResponse<?> handleServiceEnvironmentListRequest() {
-    return JsonResponse.builder().body(this.versionProvider.knownEnvironments());
+    return JsonResponse.builder().body(Map.of("environments", this.versionProvider.knownEnvironments()));
   }
 
   @RequestHandler(path = "/api/v3/serviceVersion/environment", method = HttpMethod.POST)

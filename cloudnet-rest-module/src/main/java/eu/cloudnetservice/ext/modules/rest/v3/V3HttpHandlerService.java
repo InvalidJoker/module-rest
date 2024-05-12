@@ -83,7 +83,7 @@ public final class V3HttpHandlerService {
   @RequestHandler(path = "/api/v3/service")
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:service_read", "cloudnet_rest:service_list"})
   public @NonNull IntoResponse<?> handleServiceListRequest() {
-    return JsonResponse.builder().body(this.serviceManager.services());
+    return JsonResponse.builder().body(Map.of("services", this.serviceManager.services()));
   }
 
   @RequestHandler(path = "/api/v3/service/{id}")
@@ -192,7 +192,7 @@ public final class V3HttpHandlerService {
   public @NonNull IntoResponse<?> handleServiceLogRequest(@NonNull @RequestPathParam("id") String id) {
     return this.handleServiceProviderContext(
       id,
-      service -> JsonResponse.builder().body(service.cachedLogMessages()));
+      service -> JsonResponse.builder().body(Map.of("lines", service.cachedLogMessages())));
   }
 
   @RequestHandler(path = "/api/v3/service/{id}/liveLog")
@@ -227,7 +227,7 @@ public final class V3HttpHandlerService {
           handler));
       });
 
-      return JsonResponse.builder().responseCode(HttpResponseCode.SWITCHING_PROTOCOLS);
+      return HttpResponseCode.SWITCHING_PROTOCOLS;
     });
   }
 

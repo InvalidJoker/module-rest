@@ -63,7 +63,7 @@ public final class V3HttpHandlerCluster {
   @Authentication(providers = "jwt", scopes = {"cloudnet_rest:cluster_read", "cloudnet_rest:cluster_node_list"})
   public @NonNull IntoResponse<?> handleNodeList() {
     var nodes = this.nodeServerProvider.nodeServers().stream().map(this::createNodeInfoDocument).toList();
-    return JsonResponse.builder().body(nodes);
+    return JsonResponse.builder().body(Map.of("nodes", nodes));
   }
 
   @RequestHandler(path = "/api/v3/cluster/{node}")
@@ -97,7 +97,7 @@ public final class V3HttpHandlerCluster {
         .detail("The request body has no 'command' field.");
     }
 
-    return JsonResponse.builder().body(server.sendCommandLine(command));
+    return JsonResponse.builder().body(Map.of("lines", server.sendCommandLine(command)));
   }
 
   @RequestHandler(path = "/api/v3/cluster", method = HttpMethod.POST)

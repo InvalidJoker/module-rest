@@ -18,6 +18,7 @@ package eu.cloudnetservice.ext.modules.rest.page;
 
 import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
 import java.util.Collection;
+import java.util.Map;
 import java.util.function.Function;
 import lombok.NonNull;
 
@@ -27,6 +28,7 @@ public class Paging {
   public static final String RESULT_COUNT_HEADER = "X-Result-Count";
 
   public static <T, K extends Comparable<K>> JsonResponse.@NonNull Builder<?> pagedJsonResponse(
+    @NonNull String mapKey,
     @NonNull Collection<T> data,
     @NonNull Function<T, K> extractor,
     @NonNull PageSortingMode sortingMode,
@@ -38,7 +40,7 @@ public class Paging {
     var resultCount = pagedData.size();
 
     return JsonResponse.builder()
-      .body(pagedData)
+      .body(Map.of(mapKey, pagedData))
       .header(TOTAL_COUNT_HEADER, Integer.toString(totalCount))
       .header(RESULT_COUNT_HEADER, Integer.toString(resultCount));
   }

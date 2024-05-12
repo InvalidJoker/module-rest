@@ -110,6 +110,7 @@ public class V3HttpHandlerPlayer {
 
     // create the correct slice for our data based on the input
     return Paging.pagedJsonResponse(
+      "onlinePlayers",
       this.playerManager.onlinePlayers().players(),
       CloudOfflinePlayer::name,
       sortingMode,
