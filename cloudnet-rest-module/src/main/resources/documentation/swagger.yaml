@@ -176,9 +176,11 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/NodeServer'
+                properties:
+                  nodes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/NodeServer'
         '400':
           $ref: '#/components/responses/Problem'
         '401':
@@ -340,11 +342,11 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
-                  examples:
-                    - 'Command Response Line 1'
+                properties:
+                  lines:
+                    type: array
+                    items:
+                      type: string
         '400':
           $ref: '#/components/responses/Problem'
         '401':
@@ -520,12 +522,11 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
-                example:
-                  - 'Database A'
-                  - 'Database B'
+                properties:
+                  databaseNames:
+                    type: array
+                    items:
+                      type: string
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -642,12 +643,11 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
-                example:
-                  - Key1
-                  - Key2
+                properties:
+                  keys:
+                    type: array
+                    items:
+                      type: string
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -851,9 +851,11 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/GroupConfiguration'
+                properties:
+                  groups:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GroupConfiguration'
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -998,9 +1000,11 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CloudPlayer'
+                properties:
+                  onlinePlayers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CloudPlayer'
           headers:
             X-Total-Count:
               schema:
@@ -1396,9 +1400,11 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ServiceTask'
+                properties:
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ServiceTask'
         '400':
           $ref: '#/components/responses/Problem'
         '401':
@@ -1476,9 +1482,11 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ServiceInfoSnapshot'
+                properties:
+                  services:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ServiceInfoSnapshot'
           description: Successful listing of services.
         '401':
           $ref: '#/components/responses/Problem'
@@ -1696,12 +1704,11 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
-                example:
-                  - Line1
-                  - Line2
+                properties:
+                  lines:
+                    type: array
+                    items:
+                      type: string
         '401':
           $ref: '#/components/responses/Problem'
         '403':
@@ -2691,9 +2698,11 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ServiceVersionType'
+                properties:
+                  serviceVersionTypes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ServiceVersionType'
           description: Successful listing of available service version types
         '401':
           $ref: '#/components/responses/Problem'
@@ -2739,9 +2748,11 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties:
-                  $ref: '#/components/schemas/ServiceEnvironmentType'
+                properties:
+                  environments:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ServiceEnvironmentType'
           description: Successful listing of available service environments
         '401':
           $ref: '#/components/responses/Problem'
@@ -2940,9 +2951,11 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ModuleInfo'
+                properties:
+                  modules:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ModuleInfo'
           description: Successfully listed all loaded modules
         '401':
           $ref: '#/components/responses/Problem'
@@ -2963,13 +2976,11 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: string
-                examples:
-                  - bridgeSigns:
-                      summary: The cloudnet bridge & signs jar
-                      value: ["CloudNet-Bridge.jar", "CloudNet-Signs.jar"]
+                properties:
+                  modules:
+                    type: array
+                    items:
+                      type: string
           description: Successfull listing of all module jar names
         '401':
           $ref: '#/components/responses/Problem'
@@ -2990,9 +3001,11 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ModuleEntry'
+                properties:
+                  modules:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ModuleEntry'
           description: Successful listing of all available modules
         '401':
           $ref: '#/components/responses/Problem'
@@ -3595,7 +3608,8 @@ components:
             name:
               type: string
               examples:
-                - Lobby
+                lobbyExample:
+                  value: Lobby
             jvmOptions:
               type: array
               items:
