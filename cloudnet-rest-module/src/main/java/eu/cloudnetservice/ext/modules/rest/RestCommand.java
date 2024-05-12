@@ -160,8 +160,12 @@ public final class RestCommand {
     @Argument("password") @NonNull String password
   ) {
     if (this.authProvider instanceof BasicAuthProvider basicAuthProvider) {
-      var valid = basicAuthProvider.validatePassword(restUser, password.getBytes(StandardCharsets.UTF_8)) ? 1 : 0;
-      source.sendMessage(I18n.trans("module-rest-user-verify", valid));
+      var valid = basicAuthProvider.validatePassword(restUser, password.getBytes(StandardCharsets.UTF_8));
+      if (valid) {
+        source.sendMessage(I18n.trans("module-rest-user-password-match", restUser.id()));
+      } else {
+        source.sendMessage(I18n.trans("module-rest-user-password-mismatch", restUser.id()));
+      }
     } else {
       source.sendMessage(I18n.trans("module-rest-user-verify-basic-auth-provider-missing"));
     }

@@ -37,7 +37,7 @@ public record RestConfiguration(
     false,
     CorsConfig.builder().build(),
     HttpProxyMode.DISABLED,
-    List.of(new HostAndPort("0.0.0.0", 2812)),
+    List.of(new HostAndPort("127.0.0.1", 2812)),
     null);
 
   public @NonNull ComponentConfig toComponentConfig() {
