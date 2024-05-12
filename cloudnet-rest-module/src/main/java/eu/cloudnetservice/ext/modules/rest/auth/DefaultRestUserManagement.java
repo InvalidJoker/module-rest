@@ -16,27 +16,44 @@
 
 package eu.cloudnetservice.ext.modules.rest.auth;
 
-import eu.cloudnetservice.driver.document.Document;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.github.benmanes.caffeine.cache.Scheduler;
+import eu.cloudnetservice.driver.document.DocumentFactory;
+import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.node.database.LocalDatabase;
 import eu.cloudnetservice.node.database.NodeDatabaseProvider;
+import java.time.Duration;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class DefaultUserManagement implements RestUserManagement {
+public final class DefaultRestUserManagement implements RestUserManagement {
 
   private static final String REST_USER_DB_NAME = "cloudnet_rest_users";
 
   private final LocalDatabase localDatabase;
+  private final LoadingCache<String, RestUser> restUserCache;
+
+  public DefaultRestUserManagement() {
+    this(InjectionLayer.ext().instance(NodeDatabaseProvider.class));
+  }
 
   /**
    * Creates the default user management and initializes the used database.
    *
    * @param databaseProvider the node database provider to use to create the user database.
    */
-  public DefaultUserManagement(@NonNull NodeDatabaseProvider databaseProvider) {
+  public DefaultRestUserManagement(@NonNull NodeDatabaseProvider databaseProvider) {
     this.localDatabase = databaseProvider.database(REST_USER_DB_NAME);
+    this.restUserCache = Caffeine.newBuilder()
+      .scheduler(Scheduler.systemScheduler())
+      .expireAfterWrite(Duration.ofMinutes(5))
+      .build(key -> {
+        var userDocument = this.localDatabase.get(key);
+        return userDocument == null ? null : userDocument.toInstanceOf(DefaultRestUser.class);
+      });
   }
 
   /**
@@ -44,12 +61,7 @@ public final class DefaultUserManagement implements RestUserManagement {
    */
   @Override
   public @Nullable RestUser restUser(@NonNull String id) {
-    var user = this.localDatabase.get(id);
-    if (user == null) {
-      return null;
-    }
-
-    return user.toInstanceOf(DefaultRestUser.class);
+    return this.restUserCache.get(id);
   }
 
   /**
@@ -57,7 +69,8 @@ public final class DefaultUserManagement implements RestUserManagement {
    */
   @Override
   public void saveRestUser(@NonNull RestUser user) {
-    this.localDatabase.insert(user.id(), Document.newJsonDocument().appendTree(user));
+    this.restUserCache.invalidate(user.id());
+    this.localDatabase.insert(user.id(), DocumentFactory.json().newDocument(user));
   }
 
   /**
@@ -65,6 +78,7 @@ public final class DefaultUserManagement implements RestUserManagement {
    */
   @Override
   public boolean deleteRestUser(@NonNull RestUser user) {
+    this.restUserCache.invalidate(user.id());
     return this.localDatabase.delete(user.id());
   }
 

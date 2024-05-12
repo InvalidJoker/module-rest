@@ -43,7 +43,7 @@ public @interface FirstRequestQueryParam {
   @NonNull String value();
 
   /**
-   * Getss the default value to inject if no query parameter with the specified key is given and the parameter marked as
+   * Gets the default value to inject if no query parameter with the specified key is given and the parameter marked as
    * optional. This defaults to {@code __NULL__} which will inject null for the parameter.
    *
    * @return the default value to inject if this query parameter is not present.

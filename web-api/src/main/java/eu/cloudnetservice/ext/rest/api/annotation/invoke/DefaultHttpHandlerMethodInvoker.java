@@ -85,7 +85,7 @@ record DefaultHttpHandlerMethodInvoker(@NonNull MethodHandle targetMethodHandle)
 
     // returns ClassName.MethodName(MethodParameterTypes)
     var declaringClass = method.getDeclaringClass().getSimpleName();
-    return String.join("%s.%s(%s)", declaringClass, method.getName(), joiner.toString());
+    return String.format("%s.%s(%s)", declaringClass, method.getName(), joiner);
   }
 
   @Override

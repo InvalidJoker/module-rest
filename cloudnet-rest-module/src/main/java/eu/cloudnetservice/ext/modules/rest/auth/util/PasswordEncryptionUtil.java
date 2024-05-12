@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.auth;
+package eu.cloudnetservice.ext.modules.rest.auth.util;
 
 import eu.cloudnetservice.common.tuple.Tuple2;
 import java.security.NoSuchAlgorithmException;
@@ -25,10 +25,10 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import lombok.NonNull;
 
-final class PasswordEncryptionUtil {
+public final class PasswordEncryptionUtil {
 
   private static final int KEY_LENGTH = 512;
-  private static final int ITERATION_COUNT = 1_000_000;
+  private static final int ITERATION_COUNT = 500_000;
 
   private static final SecureRandom SALT_GENERATION_RANDOM = new SecureRandom();
 
@@ -56,7 +56,7 @@ final class PasswordEncryptionUtil {
     try {
       // hashes the password using the PBKDF2 with SHA256 as PRF
       var keySpec = new PBEKeySpec(password.toCharArray(), salt, ITERATION_COUNT, KEY_LENGTH);
-      var factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+      var factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
       var hash = factory.generateSecret(keySpec).getEncoded();
 
       // return the generated password as hex
@@ -69,7 +69,8 @@ final class PasswordEncryptionUtil {
   }
 
   private static byte[] newRandomSalt() {
-    var bytes = new byte[16];
+    // see https://datatracker.ietf.org/doc/html/rfc8018#section-4.1
+    var bytes = new byte[64];
     SALT_GENERATION_RANDOM.nextBytes(bytes);
     return bytes;
   }

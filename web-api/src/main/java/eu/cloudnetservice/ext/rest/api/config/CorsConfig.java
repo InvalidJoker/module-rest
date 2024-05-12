@@ -34,7 +34,7 @@ public record CorsConfig(
   @NonNull List<String> exposedHeaders,
   @Nullable Boolean allowCredentials,
   @Nullable Boolean allowPrivateNetworks,
-  @Nullable Duration maxAge
+  long maxAge
 ) {
 
   private static final Pattern ALLOW_ALL = Pattern.compile(".*");
@@ -50,7 +50,7 @@ public record CorsConfig(
       .exposedHeaders(config.exposedHeaders())
       .allowCredentials(config.allowCredentials())
       .allowPrivateNetworks(config.allowPrivateNetworks())
-      .maxAge(config.maxAge());
+      .maxAge(Duration.ofSeconds(config.maxAge()));
   }
 
   private static <T> @NonNull List<T> combine(@NonNull List<T> left, @NonNull List<T> right, T permitAll) {
@@ -83,7 +83,7 @@ public record CorsConfig(
       .exposedHeaders(combine(this.exposedHeaders, other.exposedHeaders(), "*"))
       .allowCredentials(combine(this.allowCredentials, other.allowCredentials()))
       .allowPrivateNetworks(combine(this.allowPrivateNetworks, other.allowPrivateNetworks()))
-      .maxAge(combine(this.maxAge(), other.maxAge()))
+      .maxAge(Duration.ofSeconds(this.maxAge))
       .build();
   }
 
@@ -141,7 +141,7 @@ public record CorsConfig(
     private List<String> exposedHeaders = new ArrayList<>();
     private Boolean allowCredentials;
     private Boolean allowPrivateNetworks;
-    private Duration maxAge;
+    private Duration maxAge = Duration.ofSeconds(-1);
 
     public @NonNull Builder addAllowedOrigin(@NonNull String allowedOrigin) {
       Pattern originPattern;
@@ -224,7 +224,7 @@ public record CorsConfig(
         List.copyOf(this.exposedHeaders),
         this.allowCredentials,
         this.allowPrivateNetworks,
-        this.maxAge);
+        this.maxAge.toSeconds());
     }
   }
 

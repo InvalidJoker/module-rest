@@ -17,6 +17,9 @@
 package eu.cloudnetservice.ext.rest.api;
 
 import com.google.common.collect.ImmutableMap;
+import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
+import eu.cloudnetservice.ext.rest.api.response.Response;
+import eu.cloudnetservice.ext.rest.api.response.type.RawResponse;
 import java.util.Map;
 import lombok.NonNull;
 
@@ -26,7 +29,7 @@ import lombok.NonNull;
  *
  * @since 1.0
  */
-public enum HttpResponseCode {
+public enum HttpResponseCode implements IntoResponse<Void> {
 
   /**
    * The server has received the request headers and the client should proceed to send the request body (in the case of
@@ -462,5 +465,13 @@ public enum HttpResponseCode {
    */
   public int code() {
     return this.code;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public @NonNull Response.Builder<Void, ?> intoResponseBuilder() {
+    return RawResponse.builder().responseCode(this);
   }
 }

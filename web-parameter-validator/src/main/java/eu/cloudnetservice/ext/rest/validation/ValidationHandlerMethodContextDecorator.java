@@ -23,8 +23,10 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import java.lang.reflect.Method;
+import java.util.Locale;
 import java.util.function.Supplier;
 import lombok.NonNull;
+import org.hibernate.validator.HibernateValidator;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,8 +44,11 @@ public final class ValidationHandlerMethodContextDecorator implements HttpHandle
   }
 
   public static @NonNull ValidationHandlerMethodContextDecorator withDefaultValidator() {
-    var validator = Validation.buildDefaultValidatorFactory().getValidator();
-    return ofValidator(validator);
+    var factory = Validation.byProvider(HibernateValidator.class)
+      .configure()
+      .defaultLocale(Locale.ENGLISH)
+      .buildValidatorFactory();
+    return ofValidatorFactory(factory);
   }
 
   public static @NonNull ValidationHandlerMethodContextDecorator ofValidator(@NonNull Validator validator) {

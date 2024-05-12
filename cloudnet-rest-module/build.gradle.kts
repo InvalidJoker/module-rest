@@ -16,17 +16,22 @@
 
 plugins {
   id("eu.cloudnetservice.juppiter") version "0.4.0"
+  id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 dependencies {
   api(projects.webApi)
+  implementation(projects.webJwtAuth)
   implementation(projects.webImplNetty)
   implementation(projects.webCodecGson)
-  compileOnlyApi("eu.cloudnetservice.cloudnet:node:4.0.0-RC9")
+  implementation(projects.webParameterValidator)
+
+  compileOnly("eu.cloudnetservice.cloudnet:bridge:4.0.0-RC10")
+  compileOnly("eu.cloudnetservice.cloudnet:node:4.0.0-RC10")
 }
 
 moduleJson {
-  main = "eu.cloudnetservice.ext.rest.CloudNetRestModule"
+  main = "eu.cloudnetservice.ext.modules.rest.CloudNetRestModule"
   name = "CloudNet-Rest2"
   version = "1.0"
   author = "CloudNetService"

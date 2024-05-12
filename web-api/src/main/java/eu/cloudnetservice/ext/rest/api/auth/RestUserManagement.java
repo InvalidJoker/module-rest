@@ -16,18 +16,10 @@
 
 package eu.cloudnetservice.ext.rest.api.auth;
 
-import java.util.regex.Pattern;
 import lombok.NonNull;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-@ApiStatus.Experimental
 public interface RestUserManagement {
-
-  String SCOPE_NAMING_REGEX = "(^[a-z][a-z0-9_]{4,39}):([a-z0-9.\\-_]+)";
-
-  // https://regex101.com/r/3nG0Nu/1
-  Pattern SCOPE_NAMING_PATTERN = Pattern.compile(SCOPE_NAMING_REGEX);
 
   /**
    * Gets the rest user associated with the given id. The rest user must have been created previously using
