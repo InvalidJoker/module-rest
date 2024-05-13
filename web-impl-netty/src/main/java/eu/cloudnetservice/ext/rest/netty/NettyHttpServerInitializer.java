@@ -49,6 +49,7 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
    * @param serverSslContext the ssl context to use for the http server, null if ssl is disabled.
    * @param nettyHttpServer  the http server the initializer belongs to.
    * @param listenerAddress  the host and port of the listener which was bound.
+   * @param executorService  the executor service to use when handling requests.
    * @throws NullPointerException if either the http server or host and port is null.
    */
   public NettyHttpServerInitializer(

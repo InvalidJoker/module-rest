@@ -75,6 +75,7 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
    *
    * @param nettyHttpServer  the http server associated with this handler.
    * @param connectedAddress the listener host and port associated with this handler.
+   * @param executorService  the executor service to use when handling requests.
    * @throws NullPointerException if the given server or host and port are null.
    */
   public NettyHttpServerHandler(

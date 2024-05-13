@@ -16,6 +16,8 @@
 
 package eu.cloudnetservice.ext.rest.api.config;
 
+import static eu.cloudnetservice.ext.rest.api.config.HttpProxyMode.DISABLED;
+
 import com.google.common.base.Preconditions;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpHandler;
@@ -64,7 +66,7 @@ public record ComponentConfig(
     private HttpHandler fallbackHttpHandler = DEFAULT_FALLBACK_HANDLER;
     private ExecutorService executorService;
     private SslConfiguration sslConfiguration;
-    private HttpProxyMode haProxyMode = eu.cloudnetservice.ext.rest.api.config.HttpProxyMode.DISABLED;
+    private HttpProxyMode haProxyMode = DISABLED;
     private CorsConfig.Builder corsConfigBuilder = CorsConfig.builder();
     private HttpConnectionInfoResolver connectionInfoResolver = EmptyConnectionInfoResolver.INSTANCE;
 
