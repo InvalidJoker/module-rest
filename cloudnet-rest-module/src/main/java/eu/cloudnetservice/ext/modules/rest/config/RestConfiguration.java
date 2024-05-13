@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2024 CloudNetService team & contributors
+ * Copyright 2019-2023 CloudNetService team & contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import eu.cloudnetservice.ext.rest.api.config.HttpProxyMode;
 import eu.cloudnetservice.ext.rest.api.config.SslConfiguration;
 import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
 import java.util.List;
+import java.util.concurrent.Executors;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +47,7 @@ public record RestConfiguration(
       .haProxyMode(this.proxyMode)
       .sslConfiguration(this.sslConfiguration)
       .disableNativeTransport(this.disableNativeTransport)
+      .executorService(Executors.newVirtualThreadPerTaskExecutor())
       .build();
   }
 }

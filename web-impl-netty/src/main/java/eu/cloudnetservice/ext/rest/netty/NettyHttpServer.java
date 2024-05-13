@@ -147,7 +147,11 @@ final class NettyHttpServer implements HttpServer {
     new ServerBootstrap()
       .group(this.bossEventLoopGroup, this.workerEventLoopGroup)
       .channelFactory(this.transportType.serverChannelFactory())
-      .childHandler(new NettyHttpServerInitializer(this.sslContext, hostAndPort, this))
+      .childHandler(new NettyHttpServerInitializer(
+        this.sslContext,
+        hostAndPort,
+        this,
+        this.componentConfig.executorService()))
 
       .childOption(ChannelOption.AUTO_READ, true)
       .childOption(ChannelOption.TCP_NODELAY, true)

@@ -16,12 +16,14 @@
 
 package eu.cloudnetservice.ext.rest.api.config;
 
+import com.google.common.base.Preconditions;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.HttpHandler;
 import eu.cloudnetservice.ext.rest.api.connection.EmptyConnectionInfoResolver;
 import eu.cloudnetservice.ext.rest.api.connection.HttpConnectionInfoResolver;
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import eu.cloudnetservice.ext.rest.api.response.type.PlainTextResponse;
+import java.util.concurrent.ExecutorService;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,6 +32,7 @@ public record ComponentConfig(
   @NonNull CorsConfig corsConfig,
   @NonNull HttpProxyMode haProxyMode,
   @NonNull HttpHandler fallbackHttpHandler,
+  @NonNull ExecutorService executorService,
   @Nullable SslConfiguration sslConfiguration,
   @NonNull HttpConnectionInfoResolver connectionInfoResolver
 ) {
@@ -59,8 +62,9 @@ public record ComponentConfig(
 
     private boolean disableNativeTransport;
     private HttpHandler fallbackHttpHandler = DEFAULT_FALLBACK_HANDLER;
+    private ExecutorService executorService;
     private SslConfiguration sslConfiguration;
-    private HttpProxyMode haProxyMode = HttpProxyMode.DISABLED;
+    private HttpProxyMode haProxyMode = eu.cloudnetservice.ext.rest.api.config.HttpProxyMode.DISABLED;
     private CorsConfig.Builder corsConfigBuilder = CorsConfig.builder();
     private HttpConnectionInfoResolver connectionInfoResolver = EmptyConnectionInfoResolver.INSTANCE;
 
@@ -104,12 +108,20 @@ public record ComponentConfig(
       return this;
     }
 
+    public @NonNull Builder executorService(@NonNull ExecutorService executorService) {
+      this.executorService = executorService;
+      return this;
+    }
+
     public @NonNull ComponentConfig build() {
+      Preconditions.checkNotNull(this.executorService, "Missing executor service");
+
       return new ComponentConfig(
         this.disableNativeTransport,
         this.corsConfigBuilder.build(),
         this.haProxyMode,
         this.fallbackHttpHandler,
+        this.executorService,
         this.sslConfiguration,
         this.connectionInfoResolver);
     }

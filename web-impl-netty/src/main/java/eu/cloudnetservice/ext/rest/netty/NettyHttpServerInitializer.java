@@ -26,6 +26,7 @@ import io.netty5.handler.codec.http.HttpRequestDecoder;
 import io.netty5.handler.codec.http.HttpResponseEncoder;
 import io.netty5.handler.ssl.SslContext;
 import io.netty5.handler.stream.ChunkedWriteHandler;
+import java.util.concurrent.ExecutorService;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,6 +41,8 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
   private final HostAndPort listenerAddress;
   private final NettyHttpServer nettyHttpServer;
 
+  private final ExecutorService executorService;
+
   /**
    * Constructs a new netty http server initializer instance.
    *
@@ -51,11 +54,13 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
   public NettyHttpServerInitializer(
     @Nullable SslContext serverSslContext,
     @NonNull HostAndPort listenerAddress,
-    @NonNull NettyHttpServer nettyHttpServer
+    @NonNull NettyHttpServer nettyHttpServer,
+    @NonNull ExecutorService executorService
   ) {
     this.serverSslContext = serverSslContext;
     this.listenerAddress = listenerAddress;
     this.nettyHttpServer = nettyHttpServer;
+    this.executorService = executorService;
   }
 
   /**
@@ -83,6 +88,9 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
       .addLast("http-response-encoder", new HttpResponseEncoder())
       .addLast("http-response-compressor", new HttpContentCompressor())
       .addLast("http-chunk-handler", new ChunkedWriteHandler())
-      .addLast("http-server-handler", new NettyHttpServerHandler(this.nettyHttpServer, this.listenerAddress));
+      .addLast("http-server-handler", new NettyHttpServerHandler(
+        this.nettyHttpServer,
+        this.listenerAddress,
+        this.executorService));
   }
 }

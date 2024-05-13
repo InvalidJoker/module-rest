@@ -17,6 +17,8 @@
 package eu.cloudnetservice.ext.modules.rest;
 
 import dev.derklaro.aerogel.binding.BindingBuilder;
+import eu.cloudnetservice.common.log.LogManager;
+import eu.cloudnetservice.common.log.Logger;
 import eu.cloudnetservice.driver.document.DocumentFactory;
 import eu.cloudnetservice.driver.event.EventManager;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
@@ -48,6 +50,8 @@ import lombok.NonNull;
 
 @Singleton
 public final class CloudNetRestModule extends DriverModule {
+
+  private static final Logger LOGGER = LogManager.logger(CloudNetRestModule.class);
 
   @ModuleTask(order = 127, lifecycle = ModuleLifeCycle.STARTED)
   public void initHttpServer(@NonNull InjectionLayer<?> injectionLayer) {
@@ -109,5 +113,14 @@ public final class CloudNetRestModule extends DriverModule {
   @ModuleTask(lifecycle = ModuleLifeCycle.STARTED)
   public void registerBridgeInitializer(@NonNull EventManager eventManager) {
     eventManager.registerListener(CloudNetBridgeInitializer.class);
+  }
+
+  @ModuleTask(lifecycle = ModuleLifeCycle.STOPPED)
+  public void unregisterModule(@NonNull HttpServer httpServer) {
+    try {
+      httpServer.close();
+    } catch (Exception exception) {
+      LOGGER.severe("Unable to close http server while disabling cloudnet rest module.", exception);
+    }
   }
 }

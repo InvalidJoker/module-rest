@@ -43,6 +43,7 @@ import io.netty5.util.concurrent.Future;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -65,6 +66,8 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
   private final NettyHttpServer nettyHttpServer;
   private final HostAndPort connectedAddress;
 
+  private final ExecutorService executorService;
+
   private NettyHttpChannel channel;
 
   /**
@@ -74,10 +77,15 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
    * @param connectedAddress the listener host and port associated with this handler.
    * @throws NullPointerException if the given server or host and port are null.
    */
-  public NettyHttpServerHandler(@NonNull NettyHttpServer nettyHttpServer, @NonNull HostAndPort connectedAddress) {
+  public NettyHttpServerHandler(
+    @NonNull NettyHttpServer nettyHttpServer,
+    @NonNull HostAndPort connectedAddress,
+    @NonNull ExecutorService executorService
+  ) {
     this.corsRequestProcessor = new DefaultCorsRequestProcessor();
     this.nettyHttpServer = nettyHttpServer;
     this.connectedAddress = connectedAddress;
+    this.executorService = executorService;
   }
 
   /**
@@ -119,7 +127,8 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
       return;
     }
 
-    this.handleMessage(ctx.channel(), msg);
+    // handle the message inside the executor from here on
+    this.executorService.submit(() -> this.handleMessage(ctx.channel(), msg));
   }
 
   /**
