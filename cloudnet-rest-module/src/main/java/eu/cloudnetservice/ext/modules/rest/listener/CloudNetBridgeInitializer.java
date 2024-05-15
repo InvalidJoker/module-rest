@@ -17,6 +17,7 @@
 package eu.cloudnetservice.ext.modules.rest.listener;
 
 import eu.cloudnetservice.driver.event.EventListener;
+import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.driver.module.ModuleLifeCycle;
 import eu.cloudnetservice.driver.module.ModuleProvider;
 import eu.cloudnetservice.ext.modules.rest.v3.bridge.V3HttpHandlerPlayer;
@@ -33,7 +34,6 @@ public class CloudNetBridgeInitializer {
   @EventListener
   public void handleNodePostInit(
     @NonNull CloudNetNodePostInitializationEvent event,
-    @NonNull V3HttpHandlerPlayer playerHttpHandler,
     @NonNull ModuleProvider moduleProvider,
     @NonNull HttpServer server
   ) {
@@ -42,6 +42,7 @@ public class CloudNetBridgeInitializer {
       return;
     }
 
-    server.annotationParser().parseAndRegister(playerHttpHandler);
+    var layer = InjectionLayer.findLayerOf(this.getClass());
+    server.annotationParser().parseAndRegister(layer.instance(V3HttpHandlerPlayer.class));
   }
 }
