@@ -26,11 +26,13 @@ import eu.cloudnetservice.ext.rest.api.HttpResponse;
 import eu.cloudnetservice.ext.rest.api.HttpServer;
 import eu.cloudnetservice.ext.rest.api.connection.BasicHttpConnectionInfo;
 import eu.cloudnetservice.ext.rest.api.websocket.WebSocketChannel;
+import io.netty5.buffer.Buffer;
 import io.netty5.buffer.DefaultBufferAllocators;
 import io.netty5.channel.Channel;
 import io.netty5.handler.codec.http.DefaultFullHttpResponse;
 import io.netty5.handler.codec.http.HttpResponseStatus;
 import io.netty5.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
+import io.netty5.util.Send;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Map;
@@ -69,6 +71,7 @@ final class NettyHttpServerContext implements HttpContext {
    * @param uri             the uri of the request.
    * @param pathParameters  the path parameters pre-parsed, by default an empty map.
    * @param httpRequest     the http request which was received originally.
+   * @param buffer          the buffer wrapped in a send which contains the request body.
    * @throws NullPointerException if one of the constructor parameters is null.
    */
   public NettyHttpServerContext(
@@ -76,14 +79,15 @@ final class NettyHttpServerContext implements HttpContext {
     @NonNull NettyHttpChannel channel,
     @NonNull URI uri,
     @NonNull Map<String, String> pathParameters,
-    @NonNull io.netty5.handler.codec.http.HttpRequest httpRequest
+    @NonNull io.netty5.handler.codec.http.HttpRequest httpRequest,
+    @Nullable Send<Buffer> buffer
   ) {
     this.nettyHttpServer = nettyHttpServer;
     this.channel = channel;
     this.httpRequest = httpRequest;
     this.nettyChannel = channel.channel();
 
-    this.httpServerRequest = new NettyHttpServerRequest(this, httpRequest, pathParameters, uri);
+    this.httpServerRequest = new NettyHttpServerRequest(this, httpRequest, pathParameters, uri, buffer);
     this.httpServerResponse = new NettyHttpServerResponse(this, httpRequest);
 
     // extract the requesting connection info

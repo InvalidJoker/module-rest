@@ -22,11 +22,13 @@ import eu.cloudnetservice.ext.rest.api.HttpCookie;
 import eu.cloudnetservice.ext.rest.api.HttpRequest;
 import eu.cloudnetservice.ext.rest.api.HttpVersion;
 import eu.cloudnetservice.ext.rest.api.header.HttpHeaderMap;
+import io.netty5.buffer.Buffer;
 import io.netty5.buffer.BufferInputStream;
 import io.netty5.handler.codec.http.FullHttpRequest;
 import io.netty5.handler.codec.http.QueryStringDecoder;
 import io.netty5.handler.codec.http.headers.DefaultHttpCookiePair;
 import io.netty5.handler.codec.http.headers.HttpCookiePair;
+import io.netty5.util.Send;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -53,6 +55,8 @@ final class NettyHttpServerRequest extends NettyHttpMessage implements HttpReque
   private final Map<String, String> pathParameters;
   private final Map<String, List<String>> queryParameters;
 
+  private Buffer buffer;
+
   private byte[] body;
 
   /**
@@ -68,7 +72,8 @@ final class NettyHttpServerRequest extends NettyHttpMessage implements HttpReque
     @NonNull NettyHttpServerContext context,
     @NonNull io.netty5.handler.codec.http.HttpRequest httpRequest,
     @NonNull Map<String, String> pathParameters,
-    @NonNull URI uri
+    @NonNull URI uri,
+    @Nullable Send<Buffer> bufferSend
   ) {
     this.context = context;
     this.httpRequest = httpRequest;
@@ -76,6 +81,10 @@ final class NettyHttpServerRequest extends NettyHttpMessage implements HttpReque
     this.pathParameters = pathParameters;
     this.httpHeaderMap = new NettyHttpHeaderMap(httpRequest.headers());
     this.queryParameters = new QueryStringDecoder(httpRequest.uri()).parameters();
+
+    if (bufferSend != null) {
+      this.buffer = bufferSend.receive();
+    }
   }
 
   /**
@@ -156,14 +165,14 @@ final class NettyHttpServerRequest extends NettyHttpMessage implements HttpReque
    */
   @Override
   public byte[] body() {
-    if (this.httpRequest instanceof FullHttpRequest request) {
+    if (this.buffer != null) {
       if (this.body == null) {
         // initialize the body
-        var length = request.payload().readableBytes();
+        var length = this.buffer.readableBytes();
         this.body = new byte[length];
 
         // copy out the bytes of the buffer
-        request.payload().copyInto(request.payload().readerOffset(), this.body, 0, length);
+        this.buffer.copyInto(this.buffer.readerOffset(), this.body, 0, length);
       }
 
       return this.body;
@@ -201,8 +210,8 @@ final class NettyHttpServerRequest extends NettyHttpMessage implements HttpReque
    */
   @Override
   public @Nullable InputStream bodyStream() {
-    if (this.httpRequest instanceof FullHttpRequest fullHttpRequest) {
-      return new BufferInputStream(fullHttpRequest.payload().send());
+    if (this.buffer != null) {
+      return new BufferInputStream(this.buffer.send());
     } else {
       return null;
     }

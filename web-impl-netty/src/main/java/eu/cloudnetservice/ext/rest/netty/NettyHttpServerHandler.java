@@ -25,12 +25,14 @@ import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import eu.cloudnetservice.ext.rest.api.response.Response;
 import eu.cloudnetservice.ext.rest.api.tree.HttpHandlerConfigPair;
 import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
+import io.netty5.buffer.Buffer;
 import io.netty5.channel.Channel;
 import io.netty5.channel.ChannelFutureListeners;
 import io.netty5.channel.ChannelHandlerContext;
 import io.netty5.channel.SimpleChannelInboundHandler;
 import io.netty5.handler.codec.http.DefaultHttpResponse;
 import io.netty5.handler.codec.http.EmptyLastHttpContent;
+import io.netty5.handler.codec.http.FullHttpRequest;
 import io.netty5.handler.codec.http.HttpChunkedInput;
 import io.netty5.handler.codec.http.HttpHeaderValues;
 import io.netty5.handler.codec.http.HttpRequest;
@@ -39,6 +41,7 @@ import io.netty5.handler.codec.http.HttpUtil;
 import io.netty5.handler.stream.ChunkedStream;
 import io.netty5.handler.timeout.ReadTimeoutException;
 import io.netty5.util.AttributeKey;
+import io.netty5.util.Send;
 import io.netty5.util.concurrent.Future;
 import java.io.IOException;
 import java.net.URI;
@@ -127,9 +130,15 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
       ctx.channel().close();
       return;
     }
-
     // handle the message inside the executor from here on
-    this.executorService.submit(() -> this.handleMessage(ctx.channel(), msg));
+    Send<Buffer> buffer;
+    if (msg instanceof FullHttpRequest request) {
+      buffer = request.payload().send();
+    } else {
+      buffer = null;
+    }
+
+    this.executorService.submit(() -> this.handleMessage(ctx.channel(), msg, buffer));
   }
 
   /**
@@ -137,9 +146,14 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
    *
    * @param channel     the channel from which the request came.
    * @param httpRequest the decoded request to handle.
+   * @param buffer      the buffer of the incoming request containing the request body.
    * @throws NullPointerException if the given channel or request is null.
    */
-  private void handleMessage(@NonNull Channel channel, @NonNull HttpRequest httpRequest) {
+  private void handleMessage(
+    @NonNull Channel channel,
+    @NonNull HttpRequest httpRequest,
+    @Nullable Send<Buffer> buffer
+  ) {
     // if an opaque uri is sent to the server we reject the request immediately as it does
     // not contain the required information to properly process the request (especially due
     // to the lack of path information which is the base of our internal handling)
@@ -165,7 +179,13 @@ final class NettyHttpServerHandler extends SimpleChannelInboundHandler<HttpReque
     }
 
     // build the handling context
-    var context = new NettyHttpServerContext(this.nettyHttpServer, this.channel, uri, new HashMap<>(), httpRequest);
+    var context = new NettyHttpServerContext(
+      this.nettyHttpServer,
+      this.channel,
+      uri,
+      new HashMap<>(),
+      httpRequest,
+      buffer);
 
     // find the node that is responsible to handle the request
     var fullPath = uri.getPath();
