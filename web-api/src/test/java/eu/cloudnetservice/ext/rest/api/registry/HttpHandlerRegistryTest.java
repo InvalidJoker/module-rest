@@ -29,6 +29,7 @@ import eu.cloudnetservice.ext.rest.api.tree.StaticHttpPathNode;
 import eu.cloudnetservice.ext.rest.api.tree.WildcardPathNode;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.regex.PatternSyntaxException;
 import org.junit.jupiter.api.Assertions;
@@ -43,7 +44,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public final class HttpHandlerRegistryTest {
 
   private static final HttpHandler EMPTY_HTTP_HANDLER = context -> PlainTextResponse.builder();
-  private static final ComponentConfig EMPTY_COMPONENT_CONFIG = ComponentConfig.builder().build();
+  private static final ComponentConfig EMPTY_COMPONENT_CONFIG = ComponentConfig.builder()
+    .executorService(Executors.newVirtualThreadPerTaskExecutor())
+    .build();
 
   @Mock
   private HttpContext httpContext;
