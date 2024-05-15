@@ -51,6 +51,10 @@ dependencies {
   compileOnly("eu.cloudnetservice.cloudnet:bridge:4.0.0-RC10")
 }
 
+tasks.withType<Jar> {
+  archiveFileName.set("cloudnet-rest.jar")
+}
+
 tasks.withType<ShadowJar> {
   dependencies {
     include {
@@ -61,7 +65,7 @@ tasks.withType<ShadowJar> {
 
 moduleJson {
   main = "eu.cloudnetservice.ext.modules.rest.CloudNetRestModule"
-  name = "CloudNet-Rest2"
+  name = "CloudNet-Rest"
   version = "1.0"
   author = "CloudNetService"
 }
