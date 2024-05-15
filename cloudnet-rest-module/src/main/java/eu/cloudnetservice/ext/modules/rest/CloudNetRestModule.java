@@ -27,6 +27,7 @@ import eu.cloudnetservice.driver.module.ModuleTask;
 import eu.cloudnetservice.driver.module.driver.DriverModule;
 import eu.cloudnetservice.ext.modules.rest.config.RestConfiguration;
 import eu.cloudnetservice.ext.modules.rest.listener.CloudNetBridgeInitializer;
+import eu.cloudnetservice.ext.modules.rest.processor.CloudNetLoggerInterceptor;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerAuthorization;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerCluster;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerDatabase;
@@ -68,6 +69,9 @@ public final class CloudNetRestModule extends DriverModule {
     // bind the server and register it for injection
     restConfig.httpListeners().forEach(server::addListener);
     injectionLayer.install(BindingBuilder.create().bind(HttpServer.class).toInstance(server));
+
+    // add the cloudnet logger interceptor
+    server.annotationParser().registerAnnotationProcessor(new CloudNetLoggerInterceptor());
 
     // bind the rest user management for injection
     var restUserManagement = RestUserManagementLoader.load();

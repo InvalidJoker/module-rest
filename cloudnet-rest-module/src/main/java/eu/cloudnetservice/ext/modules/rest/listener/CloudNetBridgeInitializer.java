@@ -16,6 +16,8 @@
 
 package eu.cloudnetservice.ext.modules.rest.listener;
 
+import eu.cloudnetservice.common.log.LogManager;
+import eu.cloudnetservice.common.log.Logger;
 import eu.cloudnetservice.driver.event.EventListener;
 import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.driver.module.ModuleLifeCycle;
@@ -31,6 +33,8 @@ public class CloudNetBridgeInitializer {
 
   private static final String BRIDGE_MODULE_NAME = "CloudNet-Bridge";
 
+  private static final Logger LOGGER = LogManager.logger(CloudNetBridgeInitializer.class);
+
   @EventListener
   public void handleNodePostInit(
     @NonNull CloudNetNodePostInitializationEvent event,
@@ -39,10 +43,12 @@ public class CloudNetBridgeInitializer {
   ) {
     var bridgeModule = moduleProvider.module(BRIDGE_MODULE_NAME);
     if (bridgeModule == null || bridgeModule.moduleLifeCycle() != ModuleLifeCycle.STARTED) {
+      LOGGER.fine("Could not detect started {} module. Aborting http player initialization.", null, BRIDGE_MODULE_NAME);
       return;
     }
 
     var layer = InjectionLayer.findLayerOf(this.getClass());
     server.annotationParser().parseAndRegister(layer.instance(V3HttpHandlerPlayer.class));
+    LOGGER.fine("Successfully registered V3HttpHandlerPlayer as {} is present", null, BRIDGE_MODULE_NAME);
   }
 }
