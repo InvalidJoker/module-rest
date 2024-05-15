@@ -30,9 +30,6 @@ import io.netty5.channel.kqueue.KQueueHandler;
 import io.netty5.channel.kqueue.KQueueServerSocketChannel;
 import io.netty5.channel.nio.NioHandler;
 import io.netty5.channel.socket.nio.NioServerSocketChannel;
-import io.netty5.channel.uring.IOUring;
-import io.netty5.channel.uring.IOUringHandler;
-import io.netty5.channel.uring.IOUringServerSocketChannel;
 import java.util.function.Supplier;
 import lombok.NonNull;
 
@@ -43,13 +40,6 @@ import lombok.NonNull;
  */
 enum NettyTransportType {
 
-  IO_URING(
-    "io_uring",
-    IOUring.isAvailable(),
-    true,
-    IOUringHandler::newFactory,
-    IOUringServerSocketChannel::new
-  ),
   EPOLL(
     "epoll",
     Epoll.isAvailable(),

@@ -1,6 +1,7 @@
 [versions]
 
 # plugins
+shadow = "8.1.1"
 juppiter = "0.4.0"
 spotless = "6.25.0"
 nexusPublish = "2.0.0"
@@ -27,7 +28,7 @@ jakartaValidationApi = "3.0.2"
 hibernateValidator = "8.0.1.Final"
 
 # netty stuff
-netty = "5.0.0.Alpha6-SNAPSHOT"
+netty = "5.0.0.Alpha5"
 nettyContribHaProxy = "5.0.0.Alpha2"
 
 
@@ -41,7 +42,6 @@ nettyHandler = { group = "io.netty", name = "netty5-handler", version.ref = "net
 nettyCodecHttp = { group = "io.netty", name = "netty5-codec-http", version.ref = "netty" }
 nettyNativeEpoll = { group = "io.netty", name = "netty5-transport-native-epoll", version.ref = "netty" }
 nettyNativeKqueue = { group = "io.netty", name = "netty5-transport-native-kqueue", version.ref = "netty" }
-nettyNativeIoUring = { group = "io.netty", name = "netty5-transport-native-io_uring", version.ref = "netty" }
 nettyContribHaProxy = { group = "io.netty.contrib", name = "netty-codec-haproxy", version.ref = "nettyContribHaProxy" }
 
 # runtime dependencies
@@ -81,5 +81,6 @@ checkstyleTools = { group = "com.puppycrawl.tools", name = "checkstyle", version
 [plugins]
 
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow"}
 juppiter = { id = "eu.cloudnetservice.juppiter", version.ref = "juppiter" }
 nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexusPublish" }

@@ -24,5 +24,4 @@ dependencies {
   // transports
   implementation(libs.nettyNativeEpoll)
   implementation(libs.nettyNativeKqueue)
-  implementation(libs.nettyNativeIoUring)
 }
