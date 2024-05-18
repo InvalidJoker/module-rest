@@ -26,8 +26,12 @@ import java.lang.invoke.WrongMethodTypeException;
 import java.util.Objects;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class HttpHandlerMethodContext implements HttpHandler {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(HttpHandlerMethodContext.class);
 
   private final int targetMethodParamCount;
   private final String methodDebugRepresentation;
@@ -102,6 +106,8 @@ public final class HttpHandlerMethodContext implements HttpHandler {
       // that is wrapped in the exception (f. ex. a response status code or body)
       throw exception;
     } catch (Throwable throwable) {
+      LOGGER.warn("Caught exception while invoking http handler method {}", this.methodDebugRepresentation, throwable);
+
       // something went wrong while invoking the method
       throw AnnotationHandleExceptionBuilder.forIssueDuringRequest(StandardProblemDetail.INTERNAL_SERVER_ERROR)
         .handlerMethod(this.targetMethod.wrappedMethod())

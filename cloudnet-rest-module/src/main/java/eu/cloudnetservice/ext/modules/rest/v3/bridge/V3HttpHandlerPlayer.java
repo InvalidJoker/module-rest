@@ -258,16 +258,10 @@ public class V3HttpHandlerPlayer {
     @NonNull String identifier,
     @NonNull Consumer<PlayerExecutor> executor
   ) {
-    try {
-      executor.accept(this.playerManager.playerExecutor(UUID.fromString(identifier)));
+    return this.handleCloudPlayerContext(identifier, cloudPlayer -> {
+      executor.accept(this.playerManager.playerExecutor(cloudPlayer.uniqueId()));
       return HttpResponseCode.NO_CONTENT;
-    } catch (IllegalArgumentException exception) {
-      return ProblemDetail.builder()
-        .type("malformed-player-identifier")
-        .status(HttpResponseCode.BAD_REQUEST)
-        .title("Malformed Player Identifier")
-        .detail("Malformed player identifier. Could not parse uuid for %s identifier".formatted(identifier));
-    }
+    });
   }
 
   private @NonNull IntoResponse<?> handleCloudPlayerContext(

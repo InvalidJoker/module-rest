@@ -98,7 +98,7 @@ public final class V3HttpHandlerNode {
   }
 
   @RequestHandler(path = "/api/v3/node/ping")
-  @Authentication(providers = "basic", scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_ping"})
+  @Authentication(providers = {"basic", "jwt"}, scopes = {"cloudnet_rest:node_read", "cloudnet_rest:node_ping"})
   public @NonNull IntoResponse<?> handleNodePingRequest() {
     return HttpResponseCode.NO_CONTENT;
   }

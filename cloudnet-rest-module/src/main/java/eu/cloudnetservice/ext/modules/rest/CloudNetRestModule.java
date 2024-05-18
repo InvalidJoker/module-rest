@@ -67,7 +67,7 @@ public final class CloudNetRestModule extends DriverModule {
     server.annotationParser().registerHandlerContextDecorator(validationDecorator);
 
     // bind the server and register it for injection
-    restConfig.httpListeners().forEach(server::addListener);
+    restConfig.httpListeners().forEach(listener -> server.addListener(listener).join());
     injectionLayer.install(BindingBuilder.create().bind(HttpServer.class).toInstance(server));
 
     // add the cloudnet logger interceptor

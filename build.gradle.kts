@@ -25,7 +25,7 @@ allprojects {
   version = "1.0-SNAPSHOT"
   group = "eu.cloudnetservice.ext"
 
-  defaultTasks("build")
+  defaultTasks("build", "shadowJar")
 
   apply(plugin = "signing")
   apply(plugin = "checkstyle")
