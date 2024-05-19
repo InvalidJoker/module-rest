@@ -36,7 +36,11 @@ public record RestConfiguration(
 
   public static final RestConfiguration DEFAULT = new RestConfiguration(
     false,
-    CorsConfig.builder().build(),
+    CorsConfig.builder()
+      .addAllowedOrigin("*")
+      .addAllowedHeader("*")
+      .allowCredentials(true)
+      .build(),
     HttpProxyMode.DISABLED,
     List.of(new HostAndPort("127.0.0.1", 2812)),
     null);
