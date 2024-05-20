@@ -201,7 +201,7 @@ public class JwtAuthProvider implements AuthProvider<Map<String, Object>> {
     management.saveRestUser(updatedUser);
 
     // return the generated token pair
-    return new JwtAuthToken(currentTime, accessToken, refreshToken);
+    return new JwtAuthToken(updatedUser.scopes(), currentTime, accessToken, refreshToken);
   }
 
   private @NonNull String newRandomTokenId() {

@@ -18,10 +18,14 @@ package eu.cloudnetservice.ext.rest.api.auth;
 
 import eu.cloudnetservice.ext.rest.api.response.IntoResponse;
 import java.time.Instant;
+import java.util.Set;
 import lombok.NonNull;
 
-// TODO: consider exposing the allowed scopes
 public interface AuthToken<T> extends IntoResponse<T> {
 
-  @NonNull Instant creationTime();
+  @NonNull
+  Instant creationTime();
+
+  @NonNull
+  Set<String> scopes();
 }

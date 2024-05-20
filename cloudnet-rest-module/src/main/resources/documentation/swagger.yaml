@@ -37,6 +37,8 @@ externalDocs:
 tags:
   - name: Session Management
     description: Management of the user's rest api authentication and session
+  - name: Rest Management
+    description: Management for rest user creation and modification
   - name: Node
     description: Access to some node functions the request is sent to
   - name: Cluster
@@ -151,7 +153,145 @@ paths:
         '401':
           $ref: '#/components/responses/Problem'
           description: The provided auth token is no longer valid
+  /user:
+    post:
+      tags:
+        - Rest Management
+      summary: Create a new rest user
+      description: |
+        Creates a new rest user based on the supplied request body. While creating a user is possible without
+        the `global:admin` scope, it is not possible to add scopes to the user.
+        
+        One of the following scopes is needed to execute the request:
+                 - `cloudnet_rest:user_write`
+                 - `cloudnet_rest:user_create`
+      operationId: user
+      requestBody:
+        required: true
+        description: The rest user to create
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/RestUser'
+                - properties:
+                    password:
+                      type: string
+                      examples:
+                        - SuperSecurePassword
+      responses:
+        '201':
+          description: User was created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestUser'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+  /user/{uniqueId}/:
+    parameters:
+      - name: uniqueId
+        in: path
+        required: true
+        description: The id of the rest user
+        schema:
+          type: string
+    get:
+      tags:
+        - Rest Management
+      summary: Get information about a rest user
+      description: |
+        Gets information about an already existing rest user.
 
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:user_read`
+          - `cloudnet_rest:user_get`
+      responses:
+        '200':
+          description: The requested user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestUser'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+    put:
+      tags:
+        - Rest Management
+      summary: Updates an existing rest user.
+      description: |
+        Updates the given rest user. At least one of the properties have to be updated.
+        
+        The following scope is required:
+          - `global:admin`
+      responses:
+        '200':
+          description: The updated user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RestUser'
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
+        '404':
+          $ref: '#/components/responses/Problem'
+      requestBody:
+        required: true
+        description: The properties of the rest user to update. At least one is required.
+        content:
+          application/json:
+            schema:
+              anyOf:
+                - properties:
+                    password:
+                      type: string
+                      examples:
+                        - SuperSecurePassword
+                - properties:
+                    id:
+                      type: string
+                      examples:
+                        - playo
+                - properties:
+                    scopes:
+                      type: array
+                      items:
+                        type: string
+                      examples:
+                        - [ "global:admin", "cloudnet_rest:cluster_read" ]
+    delete:
+      tags:
+        - Rest Management
+      summary: Delete a rest user
+      description: |
+        Deletes an existing rest user by its unique id.
+
+        One of the following scopes is needed to execute the request:
+          - `cloudnet_rest:user_write`
+          - `cloudnet_rest:user_delete`
+      responses:
+        '204':
+          description: The requested user was deleted
+        '400':
+          $ref: '#/components/responses/Problem'
+        '401':
+          $ref: '#/components/responses/Problem'
+        '403':
+          $ref: '#/components/responses/Problem'
   /cluster:
     get:
       tags:
@@ -1024,7 +1164,7 @@ paths:
         description: The name or unique id of the player to get
         examples:
           playerId:
-           value: bcc582ed-494d-4b93-86cb-b58564651a26
+            value: bcc582ed-494d-4b93-86cb-b58564651a26
           playerName:
             value: 0utplayyyy
         schema:
@@ -3430,6 +3570,19 @@ components:
               $ref: '#/components/schemas/ConfigurationOptionSSL'
             webSslConfig:
               $ref: '#/components/schemas/ConfigurationOptionSSL'
+    RestUser:
+      type: object
+      properties:
+        id:
+          type: string
+          examples:
+            - playo
+        scopes:
+          type: array
+          items:
+            type: string
+          examples:
+            - [ "cloudnet_rest:cluster_read", "cloudnet_rest:cluster_write" ]
     ConfigurationOptionSSL:
       type: object
       properties:

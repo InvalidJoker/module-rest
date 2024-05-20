@@ -31,7 +31,8 @@ public interface RestUserManagement {
    * @return the rest user with the given id or null if there is no rest user.
    * @throws NullPointerException if the given id is null.
    */
-  @Nullable RestUser restUser(@NonNull String id);
+  @Nullable
+  RestUser restUser(@NonNull String id);
 
   /**
    * Creates and updates the given rest user. If the given user does not exist the user is created and saved otherwise
@@ -45,18 +46,19 @@ public interface RestUserManagement {
   /**
    * Deletes the given rest user from the database with immediate effect.
    *
-   * @param user the user to delete from the database.
+   * @param id the id of the user to deleted from the database.
    * @return true if the user was deleted, false otherwise.
    * @throws NullPointerException if the given user is null.
    */
-  boolean deleteRestUser(@NonNull RestUser user);
+  boolean deleteRestUser(@NonNull String id);
 
   /**
    * Gets a new rest user builder.
    *
    * @return a new rest user builder.
    */
-  @NonNull RestUser.Builder builder();
+  @NonNull
+  RestUser.Builder builder();
 
   /**
    * Gets a new rest user builder copying all properties from the given rest user into the new builder.
@@ -65,5 +67,6 @@ public interface RestUserManagement {
    * @return a new rest user builder copying everything from the given user.
    * @throws NullPointerException if the given rest user is null.
    */
-  @NonNull RestUser.Builder builder(@NonNull RestUser restUser);
+  @NonNull
+  RestUser.Builder builder(@NonNull RestUser restUser);
 }

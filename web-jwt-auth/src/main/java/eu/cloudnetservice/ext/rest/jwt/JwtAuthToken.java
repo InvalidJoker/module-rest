@@ -21,9 +21,11 @@ import eu.cloudnetservice.ext.rest.api.response.Response;
 import eu.cloudnetservice.ext.rest.api.response.type.JsonResponse;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 import lombok.NonNull;
 
 public record JwtAuthToken(
+  @NonNull Set<String> scopes,
   @NonNull Instant creationTime,
   @NonNull JwtTokenHolder accessToken,
   @NonNull JwtTokenHolder refreshToken
@@ -33,6 +35,7 @@ public record JwtAuthToken(
   public @NonNull Response.Builder<Map<String, Object>, ?> intoResponseBuilder() {
     return JsonResponse.<Map<String, Object>>builder()
       .body(Map.of(
+        "scopes", this.scopes,
         "accessToken", this.accessToken.serialize(),
         "refreshToken", this.refreshToken.serialize(),
         "creationTime", this.creationTime.toEpochMilli()));

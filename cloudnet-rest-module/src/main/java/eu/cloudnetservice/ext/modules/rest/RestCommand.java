@@ -104,7 +104,7 @@ public final class RestCommand {
 
   @CommandMethod("rest user delete <id>")
   public void deleteRestUser(@NonNull CommandSource source, @Argument("id") @NonNull DefaultRestUser restUser) {
-    this.restUserManagement.deleteRestUser(restUser);
+    this.restUserManagement.deleteRestUser(restUser.id());
     source.sendMessage(I18n.trans("module-rest-user-delete-successful", restUser.id()));
   }
 

@@ -77,9 +77,9 @@ public final class DefaultRestUserManagement implements RestUserManagement {
    * {@inheritDoc}
    */
   @Override
-  public boolean deleteRestUser(@NonNull RestUser user) {
-    this.restUserCache.invalidate(user.id());
-    return this.localDatabase.delete(user.id());
+  public boolean deleteRestUser(@NonNull String id) {
+    this.restUserCache.invalidate(id);
+    return this.localDatabase.delete(id);
   }
 
   @Override

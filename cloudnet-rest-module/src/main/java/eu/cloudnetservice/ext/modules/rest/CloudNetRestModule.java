@@ -40,6 +40,7 @@ import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerServiceVersion;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerTask;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerTemplate;
 import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerTemplateStorage;
+import eu.cloudnetservice.ext.modules.rest.v3.V3HttpHandlerUser;
 import eu.cloudnetservice.ext.rest.api.HttpServer;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagementLoader;
@@ -81,6 +82,7 @@ public final class CloudNetRestModule extends DriverModule {
   @ModuleTask(order = 107, lifecycle = ModuleLifeCycle.STARTED)
   public void registerHttpHandlers(
     @NonNull HttpServer httpServer,
+    @NonNull V3HttpHandlerUser userHandler,
     @NonNull V3HttpHandlerTask taskHandler,
     @NonNull V3HttpHandlerNode nodeHandler,
     @NonNull V3HttpHandlerGroup groupHandler,
@@ -95,6 +97,7 @@ public final class CloudNetRestModule extends DriverModule {
     @NonNull V3HttpHandlerDocumentation documentationHandler
   ) {
     httpServer.annotationParser()
+      .parseAndRegister(userHandler)
       .parseAndRegister(taskHandler)
       .parseAndRegister(nodeHandler)
       .parseAndRegister(groupHandler)
