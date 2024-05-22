@@ -127,8 +127,11 @@ public final class V3HttpHandlerUser {
   }
 
   @RequestHandler(path = "/api/v3/user/{uniqueId}", method = HttpMethod.PUT)
-  @Authentication(providers = "jwt", scopes = "global:admin")
+
   public @NonNull IntoResponse<?> handleUpdateUser(
+    @NonNull @Authentication(
+      providers = "jwt",
+      scopes = {"cloudnet_rest:user_write", "cloudnet_rest:user_update"}) RestUser requestSender,
     @NonNull @RequestPathParam("uniqueId") String id,
     @NonNull @RequestTypedBody Document body
   ) {
@@ -143,6 +146,18 @@ public final class V3HttpHandlerUser {
         .title("Missing Rest User Update")
         .status(HttpResponseCode.BAD_REQUEST)
         .detail("The request body does not contain any information to update.");
+    }
+
+    // these modification will require extra permissions if the user is not editing himself
+    var ownUser = id.equals(requestSender.id());
+    if (!ownUser && (updateId != null || password != null)) {
+      if (!requestSender.hasScope(RestUser.GLOBAL_ADMIN_SCOPE)) {
+        return ProblemDetail.builder()
+          .type("missing-rest-user-update-scopes")
+          .title("Missing Rest User Update Scopes")
+          .status(HttpResponseCode.FORBIDDEN)
+          .detail("The requested action needs further access rights (%s)".formatted(RestUser.GLOBAL_ADMIN_SCOPE));
+      }
     }
 
     var restUser = this.restUserManagement.restUser(id);
@@ -172,6 +187,14 @@ public final class V3HttpHandlerUser {
     }
 
     if (scopes != null) {
+      if (!requestSender.hasScope(RestUser.GLOBAL_ADMIN_SCOPE)) {
+        return ProblemDetail.builder()
+          .type("missing-permission-rest-user-scopes")
+          .title("Missing Permission Rest User Scopes")
+          .status(HttpResponseCode.FORBIDDEN)
+          .detail("Creating a rest user with scopes requires the scope: %s".formatted(RestUser.GLOBAL_ADMIN_SCOPE));
+      }
+
       for (var scope : scopes) {
         if (!this.checkScopeValidity(scope)) {
           return ProblemDetail.builder()

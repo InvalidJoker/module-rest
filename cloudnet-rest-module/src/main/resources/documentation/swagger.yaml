@@ -232,8 +232,13 @@ paths:
       description: |
         Updates the given rest user. At least one of the properties have to be updated.
         
+        If the user is not updating himself the scope `global:admin` is needed too.
+        Furthermore if scopes are to be modified using the request `global:admin` is needed, regardless whether the user
+        is editing himself or somebody else.
+        
         The following scope is required:
-          - `global:admin`
+          - `cloudnet_rest:user_write`
+          - `cloudnet_rest:user_update`
       responses:
         '200':
           description: The updated user.

@@ -68,4 +68,6 @@ moduleJson {
   name = "CloudNet-Rest"
   version = "1.0"
   author = "CloudNetService"
+  description = "The REST module offers a CRUD REST API for cloudnet"
+  runtimeModule = true
 }
