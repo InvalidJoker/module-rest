@@ -24,7 +24,7 @@ annotations = "24.1.0"
 
 # validation
 expressly = "5.0.0"
-jakartaValidationApi = "3.0.2"
+jakartaValidationApi = "3.1.0"
 hibernateValidator = "8.0.1.Final"
 
 # netty stuff
