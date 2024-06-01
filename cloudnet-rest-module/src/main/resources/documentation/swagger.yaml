@@ -99,7 +99,10 @@ paths:
         the route and issues new ones to be used afterwards.
       responses:
         '200':
-          $ref: '#/components/schemas/JwtToken'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JwtToken'
           description: The auth token was refreshed successfully.
         '400':
           $ref: '#/components/responses/Problem'
