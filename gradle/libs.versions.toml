@@ -5,7 +5,7 @@ shadow = "8.1.1"
 juppiter = "0.4.0"
 spotless = "6.25.0"
 nexusPublish = "2.0.0"
-checkstyleTools = "10.16.0"
+checkstyleTools = "10.17.0"
 
 # testing
 junit = "5.10.2"
