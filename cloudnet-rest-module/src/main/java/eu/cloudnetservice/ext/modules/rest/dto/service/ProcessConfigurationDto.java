@@ -18,6 +18,7 @@ package eu.cloudnetservice.ext.modules.rest.dto.service;
 
 import eu.cloudnetservice.driver.service.ProcessConfiguration;
 import eu.cloudnetservice.ext.modules.rest.dto.Dto;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import java.util.List;
@@ -26,7 +27,7 @@ import lombok.NonNull;
 
 public final class ProcessConfigurationDto implements Dto<ProcessConfiguration.Builder> {
 
-  @NotNull
+  @NotBlank
   private final String environment;
   @Positive
   private final int maxHeapMemorySize;

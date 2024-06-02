@@ -19,13 +19,14 @@ package eu.cloudnetservice.ext.modules.rest.dto.version;
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.ext.modules.rest.dto.Dto;
 import eu.cloudnetservice.node.version.ServiceVersion;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import lombok.NonNull;
 
 public final class ServiceVersionDto implements Dto<ServiceVersion> {
 
-  @NotNull
+  @NotBlank
   private final String name;
   @NotNull
   private final String url;

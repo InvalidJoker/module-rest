@@ -29,7 +29,6 @@ import lombok.NonNull;
 
 public final class JsonConfigurationDto implements Dto<JsonConfiguration> {
 
-  @NotNull
   @NotBlank
   private final String language;
 

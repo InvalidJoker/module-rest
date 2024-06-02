@@ -19,13 +19,14 @@ package eu.cloudnetservice.ext.modules.rest.dto;
 import eu.cloudnetservice.driver.cluster.NetworkClusterNode;
 import eu.cloudnetservice.driver.document.Document;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.NonNull;
 
 public final class NetworkClusterNodeDto implements Dto<NetworkClusterNode> {
 
-  @NotNull
+  @NotBlank
   private final String uniqueId;
   @Valid
   @NotNull

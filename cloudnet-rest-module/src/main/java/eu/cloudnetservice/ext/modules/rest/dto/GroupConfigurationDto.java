@@ -22,6 +22,7 @@ import eu.cloudnetservice.ext.modules.rest.dto.service.ServiceConfigurationBaseD
 import eu.cloudnetservice.ext.modules.rest.dto.service.ServiceDeploymentDto;
 import eu.cloudnetservice.ext.modules.rest.dto.service.ServiceRemoteInclusionDto;
 import eu.cloudnetservice.ext.modules.rest.dto.service.ServiceTemplateDto;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import java.util.Set;
@@ -29,7 +30,7 @@ import lombok.NonNull;
 
 public final class GroupConfigurationDto extends ServiceConfigurationBaseDto implements Dto<GroupConfiguration> {
 
-  @NotNull
+  @NotBlank
   private final String name;
 
   @NotNull

@@ -19,14 +19,15 @@ package eu.cloudnetservice.ext.modules.rest.dto.service;
 import eu.cloudnetservice.driver.document.Document;
 import eu.cloudnetservice.driver.service.ServiceRemoteInclusion;
 import eu.cloudnetservice.ext.modules.rest.dto.Dto;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 
 public final class ServiceRemoteInclusionDto implements Dto<ServiceRemoteInclusion> {
 
-  @NotNull
+  @NotBlank
   private final String url;
-  @NotNull
+  @NotBlank
   private final String destination;
   @NotNull
   private final Document properties;

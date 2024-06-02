@@ -20,6 +20,7 @@ import eu.cloudnetservice.driver.service.ServiceEnvironmentType;
 import eu.cloudnetservice.driver.service.ServiceId;
 import eu.cloudnetservice.driver.service.ServiceTask;
 import eu.cloudnetservice.ext.modules.rest.dto.Dto;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -29,7 +30,7 @@ import lombok.NonNull;
 
 public final class ServiceIdDto implements Dto<ServiceId.Builder>  {
 
-  @NotNull
+  @NotBlank
   private final String taskName;
   @NotNull
   @Pattern(regexp = ServiceTask.NAMING_REGEX)

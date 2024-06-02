@@ -16,13 +16,13 @@
 
 package eu.cloudnetservice.ext.modules.rest.dto.version;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 public class ServiceEnvironmentDto {
 
-  @NotNull
+  @NotBlank
   protected final String name;
-  @NotNull
+  @NotBlank
   protected final String environmentType;
 
   public ServiceEnvironmentDto(String name, String environmentType) {

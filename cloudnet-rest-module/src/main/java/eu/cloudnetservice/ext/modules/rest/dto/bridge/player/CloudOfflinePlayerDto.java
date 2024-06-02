@@ -21,12 +21,13 @@ import eu.cloudnetservice.ext.modules.rest.dto.Dto;
 import eu.cloudnetservice.modules.bridge.player.CloudOfflinePlayer;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 
 public class CloudOfflinePlayerDto implements Dto<CloudOfflinePlayer> {
 
-  @NotNull
+  @NotBlank
   private final String name;
 
   @Min(-1)

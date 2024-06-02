@@ -18,16 +18,16 @@ package eu.cloudnetservice.ext.modules.rest.dto.service;
 
 import eu.cloudnetservice.driver.service.ServiceTemplate;
 import eu.cloudnetservice.ext.modules.rest.dto.Dto;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.NonNull;
 
 public final class ServiceTemplateDto implements Dto<ServiceTemplate> {
 
-  @NotNull
+  @NotBlank
   private final String prefix;
-  @NotNull
+  @NotBlank
   private final String name;
-  @NotNull
+  @NotBlank
   private final String storage;
   private final int priority;
   private final boolean alwaysCopyToStaticServices;

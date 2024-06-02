@@ -22,6 +22,7 @@ import eu.cloudnetservice.ext.modules.rest.dto.Dto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -34,7 +35,7 @@ public final class ServiceTaskDto extends ServiceConfigurationBaseDto implements
   @Pattern(regexp = ServiceTask.NAMING_REGEX)
   private final String name;
 
-  @NotNull
+  @NotBlank
   private final String runtime;
   private final String hostAddress;
   private final String javaCommand;
