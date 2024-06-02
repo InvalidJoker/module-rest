@@ -14,31 +14,19 @@
  * limitations under the License.
  */
 
-package eu.cloudnetservice.ext.modules.rest.dto;
+package eu.cloudnetservice.ext.modules.rest.validation.validator;
 
-import eu.cloudnetservice.driver.network.HostAndPort;
 import eu.cloudnetservice.ext.modules.rest.validation.HostAddress;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import eu.cloudnetservice.node.util.NetworkUtil;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import lombok.NonNull;
 
-public final class HostAndPortDto implements Dto<HostAndPort> {
-
-  @NotNull
-  @HostAddress
-  private final String host;
-  @Min(1)
-  @Max(0xFFFF)
-  private final int port;
-
-  public HostAndPortDto(String host, int port) {
-    this.host = host;
-    this.port = port;
-  }
+public class HostAddressValidator implements ConstraintValidator<HostAddress, String> {
 
   @Override
-  public @NonNull HostAndPort toEntity() {
-    return new HostAndPort(this.host, this.port);
+  public boolean isValid(@NonNull String value, @NonNull ConstraintValidatorContext context) {
+    var hostAddress = NetworkUtil.parseHostAndPort(value, false);
+    return hostAddress != null;
   }
 }
