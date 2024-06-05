@@ -85,7 +85,7 @@ public final class V3HttpHandlerTemplate {
           .detail(String.format("The requested template %s does not contain the requested file %s", template, path));
       }
 
-      return this.applyDispositionHeader(MediaType.OCTET_STREAM, this.guessFileName(path));
+      return this.applyDispositionHeader(MediaType.OCTET_STREAM, this.guessFileName(path)).body(stream);
     });
   }
 
