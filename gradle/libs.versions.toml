@@ -1,7 +1,7 @@
 [versions]
 
 # plugins
-shadow = "8.1.8"
+shadow = "8.3.0"
 juppiter = "0.4.0"
 spotless = "6.25.0"
 nexusPublish = "2.0.0"
@@ -86,7 +86,7 @@ checkstyleTools = { group = "com.puppycrawl.tools", name = "checkstyle", version
 
 [plugins]
 
-shadow = { id = "io.github.goooler.shadow", version.ref = "shadow"}
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow"}
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 juppiter = { id = "eu.cloudnetservice.juppiter", version.ref = "juppiter" }
 nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexusPublish" }
