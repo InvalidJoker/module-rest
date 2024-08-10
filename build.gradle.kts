@@ -68,6 +68,9 @@ allprojects {
     testLogging {
       events("started", "passed", "skipped", "failed")
     }
+
+    // allow dynamic agent loading for mockito
+    jvmArgs("-XX:+EnableDynamicAgentLoading")
     // always pass down all given system properties
     systemProperties(System.getProperties().mapKeys { it.key.toString() })
   }
