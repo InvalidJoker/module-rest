@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2023 CloudNetService team & contributors
+ * Copyright 2019-2024 CloudNetService team & contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+package eu.cloudnetservice.ext.modules.rest.dto.auth;
 
-rootProject.name = "modules-rest"
+import eu.cloudnetservice.ext.rest.api.auth.RestUser;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import java.util.Set;
 
-include("web-api")
-include("web-jwt-auth")
-include("web-impl-netty")
-include("web-codec-gson")
-include("web-ticket-auth")
-include("web-parameter-validator")
-include("cloudnet-rest-module")
+public record ScopedJwtBody(Set<@NotNull @Pattern(regexp = RestUser.SCOPE_NAMING_REGEX) String> scopes) {
+
+}

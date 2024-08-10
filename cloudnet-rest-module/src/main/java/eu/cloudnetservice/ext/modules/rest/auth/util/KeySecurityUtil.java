@@ -17,6 +17,7 @@
 package eu.cloudnetservice.ext.modules.rest.auth.util;
 
 import java.security.InvalidAlgorithmParameterException;
+import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -27,13 +28,16 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.PSSParameterSpec;
 import java.security.spec.RSAKeyGenParameterSpec;
 import java.security.spec.X509EncodedKeySpec;
+import javax.crypto.KeyGenerator;
+import javax.crypto.spec.SecretKeySpec;
 import lombok.NonNull;
 
-public final class JwtSecurityUtil {
+public final class KeySecurityUtil {
 
-  private static final String KEY_ALGORITHM = "RSASSA-PSS";
+  public static final String HMAC_SHA_256_ALGORITHM_NAME = "HmacSHA256";
+  private static final String RSA_KEY_ALGORITHM_NAME = "RSASSA-PSS";
 
-  private JwtSecurityUtil() {
+  private KeySecurityUtil() {
     throw new UnsupportedOperationException();
   }
 
@@ -48,7 +52,7 @@ public final class JwtSecurityUtil {
         PSSParameterSpec.TRAILER_FIELD_BC);
       var rsaKeyGenParameterSpec = new RSAKeyGenParameterSpec(4096, RSAKeyGenParameterSpec.F4, pssParameterSpec);
 
-      var factory = KeyPairGenerator.getInstance(KEY_ALGORITHM);
+      var factory = KeyPairGenerator.getInstance(RSA_KEY_ALGORITHM_NAME);
       factory.initialize(rsaKeyGenParameterSpec);
       return factory.generateKeyPair();
     } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException exception) {
@@ -58,12 +62,25 @@ public final class JwtSecurityUtil {
 
   public static @NonNull KeyPair pairFromEncodedKeys(byte[] encodedPublic, byte[] encodedPrivate) {
     try {
-      var keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
+      var keyFactory = KeyFactory.getInstance(RSA_KEY_ALGORITHM_NAME);
       var decodedPublicKey = keyFactory.generatePublic(new X509EncodedKeySpec(encodedPublic));
       var decodedPrivateKey = keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encodedPrivate));
       return new KeyPair(decodedPublicKey, decodedPrivateKey);
     } catch (NoSuchAlgorithmException | InvalidKeySpecException exception) {
       throw new IllegalStateException("Unable to decode RsaSsa-Pss-Sha-512 JWT singing keys", exception);
     }
+  }
+
+  public static @NonNull Key generateHmacSHA256Key() {
+    try {
+      var keyGenerator = KeyGenerator.getInstance(HMAC_SHA_256_ALGORITHM_NAME);
+      return keyGenerator.generateKey();
+    } catch (NoSuchAlgorithmException exception) {
+      throw new IllegalStateException("Unable to generate HmacSHA256 ticket signing key", exception);
+    }
+  }
+
+  public static @NonNull Key hmacSHA256KeyFromEncoded(byte[] encodedKey) {
+    return new SecretKeySpec(encodedKey, HMAC_SHA_256_ALGORITHM_NAME);
   }
 }

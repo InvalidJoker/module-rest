@@ -17,6 +17,7 @@
 package eu.cloudnetservice.ext.rest.api.auth;
 
 import eu.cloudnetservice.ext.rest.api.HttpContext;
+import java.util.Set;
 import lombok.NonNull;
 
 /**
@@ -28,10 +29,9 @@ import lombok.NonNull;
  * Provider discovery is done via service loading once per jvm lifetime. Note that only providers are discovered that
  * are defined in the same class loader that this provider class is loaded in.
  *
- * @param <T> the type of data that is used as the body when generating an auth token.
  * @since 1.0
  */
-public interface AuthProvider<T> {
+public interface AuthProvider {
 
   /**
    * The default provider priority that any base implementation should use.
@@ -50,7 +50,7 @@ public interface AuthProvider<T> {
 
   /**
    * Gets if this provider supports the generation of authentication tokens. If this method returns false, the
-   * {@link #generateAuthToken(RestUserManagement, RestUser)} method cannot be called.
+   * {@link #generateAuthToken(RestUserManagement, RestUser, Set)} method cannot be called.
    *
    * @return true if this provider supports token generation, false otherwise.
    */
@@ -62,20 +62,30 @@ public interface AuthProvider<T> {
    *
    * @return the name of this auth provider.
    */
-  @NonNull String name();
+  @NonNull
+  String name();
 
   /**
    * Generates a new authentication token for the given user. The returned auth token type is implementation dependant
    * and can be down-casted to get all the exposed information from the token.
+   * <p>
+   * The provided scopes should be included in the generated token, but only if the user has the requested scopes
+   * assigned to himself. When doing further requests with the generated token the provider should ensure that both the
+   * token and the user have the scope that is needed for the request.
    *
    * @param management the user management that was used to resolve the given rest user.
    * @param restUser   the rest user to generate an authentication token for.
+   * @param scopes     the scopes that are requested by the user to be included in the auth token.
    * @return the generated authentication token for the given user.
    * @throws NullPointerException          if the given management or user is null.
    * @throws UnsupportedOperationException if this provider does not support token generation.
    * @see #supportsTokenGeneration()
    */
-  @NonNull AuthToken<T> generateAuthToken(@NonNull RestUserManagement management, @NonNull RestUser restUser);
+  @NonNull
+  AuthTokenGenerationResult generateAuthToken(
+    @NonNull RestUserManagement management,
+    @NonNull RestUser restUser,
+    @NonNull Set<String> scopes);
 
   /**
    * Tries to authenticate a user based on the given information from the client (through the http request that is
@@ -86,10 +96,16 @@ public interface AuthProvider<T> {
    * This method should not throw any exception (except for the documented ones) and only indicate the handling state
    * via the returned authentication result.
    *
-   * @param context    the http context information to get required information to authenticate a user.
-   * @param management the user management that should be used to load the requested user from.
+   * @param context        the http context information to get required information to authenticate a user.
+   * @param management     the user management that should be used to load the requested user from.
+   * @param requiredScopes the scopes that are required by the handler which called this auth provider.
    * @return an authentication result indicating the state to which this provider was able to handle the request.
-   * @throws NullPointerException if the given http context or user management is null.
+   * @throws NullPointerException if the given http context, user management or the required scopes are null.
    */
-  @NonNull AuthenticationResult tryAuthenticate(@NonNull HttpContext context, @NonNull RestUserManagement management);
+  @NonNull
+  AuthenticationResult tryAuthenticate(
+    @NonNull HttpContext context,
+    @NonNull RestUserManagement management,
+    @NonNull Set<String> requiredScopes
+  );
 }

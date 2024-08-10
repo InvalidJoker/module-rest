@@ -19,17 +19,18 @@ package eu.cloudnetservice.ext.rest.api.auth.basic;
 import com.google.common.net.HttpHeaders;
 import eu.cloudnetservice.ext.rest.api.HttpContext;
 import eu.cloudnetservice.ext.rest.api.auth.AuthProvider;
-import eu.cloudnetservice.ext.rest.api.auth.AuthToken;
+import eu.cloudnetservice.ext.rest.api.auth.AuthTokenGenerationResult;
 import eu.cloudnetservice.ext.rest.api.auth.AuthenticationResult;
 import eu.cloudnetservice.ext.rest.api.auth.RestUser;
 import eu.cloudnetservice.ext.rest.api.auth.RestUserManagement;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Set;
 import java.util.regex.Pattern;
 import lombok.NonNull;
 
-public class BasicAuthProvider implements AuthProvider<Void> {
+public class BasicAuthProvider implements AuthProvider {
 
   private static final byte BASIC_AUTH_DELIM_CHAR = ':' & 0xFF;
   private static final Pattern BASIC_LOGIN_PATTERN = Pattern.compile("Basic ([a-zA-Z0-9-_=]+)$");
@@ -50,14 +51,19 @@ public class BasicAuthProvider implements AuthProvider<Void> {
   }
 
   @Override
-  public @NonNull AuthToken<Void> generateAuthToken(@NonNull RestUserManagement management, @NonNull RestUser user) {
+  public @NonNull AuthTokenGenerationResult generateAuthToken(
+    @NonNull RestUserManagement management,
+    @NonNull RestUser user,
+    @NonNull Set<String> scopes
+  ) {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public @NonNull AuthenticationResult tryAuthenticate(
     @NonNull HttpContext context,
-    @NonNull RestUserManagement management
+    @NonNull RestUserManagement management,
+    @NonNull Set<String> scopes
   ) {
     // check if the authorization header is present
     var authHeader = context.request().headers().firstValue(HttpHeaders.AUTHORIZATION);

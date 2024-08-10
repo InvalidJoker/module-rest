@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
-enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-rootProject.name = "modules-rest"
-
-include("web-api")
-include("web-jwt-auth")
-include("web-impl-netty")
-include("web-codec-gson")
-include("web-ticket-auth")
-include("web-parameter-validator")
-include("cloudnet-rest-module")
+dependencies {
+  compileOnlyApi(projects.webApi)
+}

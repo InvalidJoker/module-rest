@@ -29,6 +29,8 @@ dependencies {
   moduleLibrary(libs.jjwtApi)
   moduleLibrary(libs.jjwtImpl)
   moduleLibrary(libs.jjwtGson)
+  
+  implementation(projects.webTicketAuth)
 
   implementation(projects.webImplNetty)
   moduleLibrary(libs.nettyHandler)
@@ -43,6 +45,9 @@ dependencies {
   moduleLibrary(libs.expressly)
   moduleLibrary(libs.hibernateValidator)
   moduleLibrary(libs.jakartaValidationApi)
+
+  compileOnly(libs.logbackCore)
+  compileOnly(libs.logbackClassic)
 
   compileOnly("eu.cloudnetservice.cloudnet:node:4.0.0-RC10")
   compileOnly("eu.cloudnetservice.cloudnet:bridge:4.0.0-RC10")

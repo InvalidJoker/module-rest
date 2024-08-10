@@ -16,6 +16,7 @@
 
 package eu.cloudnetservice.ext.rest.api.auth;
 
+import java.util.Set;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,13 +52,17 @@ public sealed interface AuthenticationResult permits
      * couldn't be completed.
      */
     INVALID_CREDENTIALS,
+    /**
+     * The user does not have the scopes required by the handler.
+     */
+    MISSING_REQUIRED_SCOPES,
   }
 
   /**
    * A successful authentication result containing the authenticated subject.
    *
    * @param restUser the rest user that was successfully authenticated, not null.
-   * @param tokenId the id of the token used for auth, null in case the tokens have no id.
+   * @param tokenId  the id of the token used for auth, null in case the tokens have no id.
    * @since 1.0
    */
   record Success(@NonNull RestUser restUser, @Nullable String tokenId) implements AuthenticationResult {
@@ -76,6 +81,7 @@ public sealed interface AuthenticationResult permits
    */
   record InvalidTokenType(
     @NonNull RestUser restUser,
+    @NonNull Set<String> scopes,
     @Nullable String tokenId,
     @Nullable String tokenType
   ) implements AuthenticationResult {
