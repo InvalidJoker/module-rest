@@ -33,7 +33,7 @@
     {
       "description": "Disabled until cloudnet 4 stable release",
       "matchPackagePrefixes": [
-        "eu.cloudnetservice:"
+        "eu.cloudnetservice.cloudnet:"
       ],
       "enabled": false
     }
