@@ -43,6 +43,8 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
 
   private final ExecutorService executorService;
 
+  private final int maxContentLength;
+
   /**
    * Constructs a new netty http server initializer instance.
    *
@@ -50,18 +52,21 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
    * @param nettyHttpServer  the http server the initializer belongs to.
    * @param listenerAddress  the host and port of the listener which was bound.
    * @param executorService  the executor service to use when handling requests.
+   * @param maxContentLength the maximum size (in bytes) of the content the http server is allowed to handle.
    * @throws NullPointerException if either the http server or host and port is null.
    */
   public NettyHttpServerInitializer(
     @Nullable SslContext serverSslContext,
     @NonNull HostAndPort listenerAddress,
     @NonNull NettyHttpServer nettyHttpServer,
-    @NonNull ExecutorService executorService
+    @NonNull ExecutorService executorService,
+    int maxContentLength
   ) {
     this.serverSslContext = serverSslContext;
     this.listenerAddress = listenerAddress;
     this.nettyHttpServer = nettyHttpServer;
     this.executorService = executorService;
+    this.maxContentLength = maxContentLength;
   }
 
   /**
@@ -89,7 +94,7 @@ final class NettyHttpServerInitializer extends ChannelInitializer<Channel> {
       .addLast("http-response-encoder", new HttpResponseEncoder())
       .addLast("http-response-compressor", new HttpContentCompressor())
       .addLast("http-response-chunk-writer", new ChunkedWriteHandler())
-      .addLast("http-object-aggregator", new NettyOversizedClosingHttpAggregator<>(Short.MAX_VALUE))
+      .addLast("http-object-aggregator", new NettyOversizedClosingHttpAggregator<>(this.maxContentLength))
       .addLast("http-server-handler", new NettyHttpServerHandler(
         this.nettyHttpServer,
         this.listenerAddress,
