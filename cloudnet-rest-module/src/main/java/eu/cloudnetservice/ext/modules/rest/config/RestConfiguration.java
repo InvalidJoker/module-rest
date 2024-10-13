@@ -17,6 +17,7 @@
 package eu.cloudnetservice.ext.modules.rest.config;
 
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import eu.cloudnetservice.ext.rest.api.config.ComponentConfig;
 import eu.cloudnetservice.ext.rest.api.config.CorsConfig;
 import eu.cloudnetservice.ext.rest.api.config.HttpProxyMode;
@@ -25,12 +26,15 @@ import eu.cloudnetservice.ext.rest.api.connection.EmptyConnectionInfoResolver;
 import eu.cloudnetservice.ext.rest.api.connection.HttpConnectionInfoResolver;
 import eu.cloudnetservice.ext.rest.api.util.HostAndPort;
 import java.util.List;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
 
 public record RestConfiguration(
   int maxContentLength,
+  int requestDispatchThreadLimit,
   boolean disableNativeTransport,
   @NonNull CorsConfig corsConfig,
   @NonNull HttpProxyMode proxyMode,
@@ -42,6 +46,7 @@ public record RestConfiguration(
 
   public static final RestConfiguration DEFAULT = new RestConfiguration(
     ComponentConfig.DEFAULT_MAX_CONTENT_LENGTH,
+    50,
     false,
     CorsConfig.builder()
       .addAllowedOrigin("*")
@@ -70,14 +75,27 @@ public record RestConfiguration(
   }
 
   public @NonNull ComponentConfig toComponentConfig() {
+    var requestDispatchThreadFactory = new ThreadFactoryBuilder()
+      .setDaemon(true)
+      .setPriority(Thread.NORM_PRIORITY)
+      .setNameFormat("rest-request-dispatcher-%d")
+      .build();
+    var requestDispatchExecutor = new ThreadPoolExecutor(
+      1,
+      this.requestDispatchThreadLimit,
+      30L,
+      TimeUnit.SECONDS,
+      new LinkedBlockingQueue<>(),
+      requestDispatchThreadFactory);
+
     return ComponentConfig.builder()
       .corsConfig(this.corsConfig)
       .haProxyMode(this.proxyMode)
       .maxContentLength(this.maxContentLength)
       .sslConfiguration(this.sslConfiguration)
+      .executorService(requestDispatchExecutor)
       .disableNativeTransport(this.disableNativeTransport)
       .connectionInfoResolver(this.httpConnectionInfoResolver())
-      .executorService(Executors.newVirtualThreadPerTaskExecutor())
       .build();
   }
 
