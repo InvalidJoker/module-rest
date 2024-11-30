@@ -4631,7 +4631,7 @@ components:
         version:
           type: string
           examples:
-            - 4.0.0-RELEASE
+            - 4.0.0
         sha3256:
           type: string
           examples:
